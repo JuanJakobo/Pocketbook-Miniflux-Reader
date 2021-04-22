@@ -1,15 +1,19 @@
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
 
-# Test binary, built with `go test -c`
-*.test
+bin/
+build/
+.vscode/*
+*.code-workspace
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Local History for Visual Studio Code
+.history/
