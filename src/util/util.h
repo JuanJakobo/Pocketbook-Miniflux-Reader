@@ -10,7 +10,11 @@
 #define UTIL
 
 #include "inkview.h"
+#include "eventHandler.h"
 
+#include <string>
+
+using std::string;
 
 class Util
 {
@@ -33,6 +37,15 @@ public:
     * @return true - network access succeeded, false - network access failed
     */
     static bool connectToNetwork();
+
+    /**
+    * Reads an string from the config file 
+    *
+    * @param name name of the config that shall be read
+    *  
+    * @return string that has been found in the config file 
+    */
+    static string readFromConfig(string name);
 
 private:
     Util() {}
