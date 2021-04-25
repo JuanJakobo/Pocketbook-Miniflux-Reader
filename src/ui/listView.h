@@ -30,7 +30,7 @@ public:
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
-    ListView(const irect *contentRect, const vector<Item> &items);
+    ListView(const irect *contentRect, const vector<entry> readerentries);
 
     ~ListView();
 
@@ -82,7 +82,7 @@ private:
     int _footerFontHeight;
     int _entryFontHeight;
     const irect *_contentRect;
-    std::unique_ptr<const vector<Item>> _items;
+    const vector<entry> _readerentries;
     vector<ListViewEntry> _entries;
     ifont *_headerFont;
     ifont *_footerFont;
