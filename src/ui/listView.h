@@ -12,7 +12,6 @@
 #include "inkview.h"
 #include "listViewEntry.h"
 #include "model.h"
-#include "entryView.h"
 
 #include <vector>
 #include <memory>
@@ -33,6 +32,14 @@ public:
     ListView(const irect *contentRect, const vector<entry> readerentries);
 
     ~ListView();
+
+    //TODO if entry is out of bounds throw error
+    const entry *getEntry(int itemID){return &_readerentries[itemID];};
+
+    //TODO --> where do I handle fonts? in Util?
+    const int getEntryFontHeight(){return _entryFontHeight;};
+    ifont *getEntryFont(){return _entryFont;};
+    ifont *getEntryFontBold(){return _entryFontBold;};
 
     void draw();
 

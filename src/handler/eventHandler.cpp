@@ -16,6 +16,8 @@ EventHandler::EventHandler()
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
     _listView = nullptr;
+    _entryView = nullptr;
+
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         _menu.drawLoadingScreen();
@@ -79,16 +81,17 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             return _menu.createMenu(true, true, EventHandler::mainMenuHandlerStatic);
             //return _menu.createMenu(_miniflux.isLoggedIn(), _miniflux.isWorkOffline(), EventHandler::mainMenuHandlerStatic);
         }
-        //else if (_entryView != nullptr)
-        //{
-            
-        //}
-        //if listView is shown
+        else if (_entryView != nullptr)
+        {
+        }
         else if (_listView != nullptr)
         {
             int itemID = _listView->listClicked(par1, par2);
             if (itemID != -1)
             {
+                _entryView = std::unique_ptr<EntryView>(new EntryView(_listView->getEntry(itemID), _menu.getContentRect()));
+                FillAreaRect(_menu.getContentRect(), WHITE);
+                _entryView->draw(_listView->getEntryFont(), _listView->getEntryFontBold(), _listView->getEntryFontHeight());
             }
             PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
 
