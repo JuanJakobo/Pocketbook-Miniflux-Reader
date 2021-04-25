@@ -16,23 +16,29 @@ EventHandler::EventHandler()
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
     _listView = nullptr;
-
-    if (iv_access(MINIFLUX_CONFIG_PATH.c_str(), W_OK) == 0)
+    if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         _menu.drawLoadingScreen();
-        if (_miniflux.login())
+        auto _miniflux = Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token"));
+        
+        //TODO to util
+        if (!Util::connectToNetwork())
         {
-            _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), _miniflux.getItems()));
-            FullUpdate();
-            return;
+            Message(ICON_WARNING, "Warning", "Cannot connect to the internet.", 2000);
+            //return
         }
-        else
+
+        vector<entry> entries = _miniflux.getEntries();
+        if (entries.empty())
         {
             Message(ICON_ERROR, "Error", "Could not login, please try again.", 1200);
         }
+        else
+        {
+            _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), entries));
+        }
+        FullUpdate();
     }
-
-    FullUpdate();
 }
 
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
