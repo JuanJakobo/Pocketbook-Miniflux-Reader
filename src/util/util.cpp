@@ -6,11 +6,6 @@
 //
 //-------------------------------------------------------------------
 #include "util.h"
-#include "inkview.h"
-
-#include <string>
-
-using std::string;
 
 size_t Util::writeCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -23,7 +18,7 @@ size_t Util::writeData(void *ptr, size_t size, size_t nmemb, FILE *stream)
     size_t written = iv_fwrite(ptr, size, nmemb, stream);
     return written;
 }
-
+//also throw errors
 bool Util::connectToNetwork()
 {
     iv_netinfo *netinfo = NetInfo();
@@ -42,4 +37,14 @@ bool Util::connectToNetwork()
         return true;
 
     return false;
+}
+
+//int or string? do a template?
+string Util::readFromConfig(string name)
+{
+    iconfigedit *temp = nullptr;
+    iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);
+    string url = ReadString(config, name.c_str(), "");
+    CloseConfigNoSave(config);
+    return url;
 }
