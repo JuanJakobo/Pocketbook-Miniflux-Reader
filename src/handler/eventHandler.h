@@ -16,7 +16,8 @@
 
 #include <memory>
 
-const string LOG_PATH = "/mnt/ext1/system/config/miniflux";
+const string CONFIG_FOLDER = "/mnt/ext1/system/config/miniflux";
+const string CONFIG_PATH = CONFIG_FOLDER + "/miniflux.cfg";
 
 class EventHandler
 {
@@ -39,9 +40,8 @@ public:
 private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<ListView> _listView;
+    //std::unique_ptr<Miniflux> _miniflux;
     MenuHandler _menu = MenuHandler("Miniflux");
-    Miniflux _miniflux = Miniflux();
-    string _tempPath;
 
     /**
         * Function needed to call C function, redirects to real function
