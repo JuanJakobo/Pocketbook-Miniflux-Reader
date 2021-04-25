@@ -12,6 +12,7 @@
 #include "menuHandler.h"
 #include "miniflux.h"
 #include "listView.h"
+#include "entryView.h"
 #include "util.h"
 
 #include <memory>
@@ -40,6 +41,7 @@ public:
 private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<ListView> _listView;
+    std::unique_ptr<EntryView> _entryView;
     //std::unique_ptr<Miniflux> _miniflux;
     MenuHandler _menu = MenuHandler("Miniflux");
 
@@ -66,5 +68,15 @@ private:
         * @return int returns if the event was handled
         */
     int pointerHandler(const int type, const int par1, const int par2);
+
+        /**
+        * Handles key Events
+        * 
+        * @param type event type
+        * @param par1 first argument of the event (is the key)
+        * @param par2 second argument of the event
+        * @return int returns if the event was handled
+        */
+    int keyHandler(const int type, const int par1, const int par2);
 };
 #endif
