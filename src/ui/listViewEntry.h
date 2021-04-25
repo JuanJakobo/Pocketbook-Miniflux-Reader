@@ -20,23 +20,25 @@ public:
         * 
         * @param Page site of the listView the Entry is shown
         * @param Rect area of the screen the item is positioned
+        * @param entry entry that shall be drawn
         */
-    ListViewEntry(int page, irect position);
+    ListViewEntry(int page, irect position, entry entry);
 
+    entry *getEntry() {return &_entry;};
     irect *getPosition() { return &_position; }
     int getPage() const { return _page; }
 
     /**
         * draws the listViewEntry to the screen
         * 
-        * @param item item that shall be drawn
         * @param entryFont font for the entry itself
         * @param entryFontBold bold font for the header
         * @param fontHeight height of the font 
         */
-    void draw(const Item &item, ifont *entryFont, ifont *entryFontBold, int fontHeight);
+    void draw(ifont *entryFont, ifont *entryFontBold, int fontHeight);
 
 private:
+    entry _entry;
     int _page;
     irect _position;
 };
