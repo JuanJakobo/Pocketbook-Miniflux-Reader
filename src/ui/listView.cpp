@@ -12,7 +12,7 @@ ListView::ListView(const irect *contentRect, const vector<entry> readerentries) 
 {
     _entries.clear();
 
-    int entrySize = _contentRect->h / (_itemCount + 1);
+    int entrySize = _contentRect->h / (ITEMS_PER_PAGE + 1);
 
     _headerHeight = 0.25 * entrySize;
     _footerHeight = 0.75 * entrySize;
@@ -36,7 +36,7 @@ ListView::ListView(const irect *contentRect, const vector<entry> readerentries) 
 
     while (i > 0)
     {
-        if (z >= _itemCount)
+        if (z >= ITEMS_PER_PAGE)
         {
             _page++;
             z = 0;
