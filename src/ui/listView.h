@@ -10,14 +10,13 @@
 #define LISTVIEW
 
 #include "inkview.h"
-#include "item.h"
 #include "listViewEntry.h"
+#include "model.h"
+#include "entryView.h"
 
-#include <string>
 #include <vector>
 #include <memory>
 
-using std::string;
 using std::vector;
 
 class ListView

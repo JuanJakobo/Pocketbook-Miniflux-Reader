@@ -12,6 +12,7 @@
 #include "menuHandler.h"
 #include "miniflux.h"
 #include "listView.h"
+#include "util.h"
 
 #include <memory>
 

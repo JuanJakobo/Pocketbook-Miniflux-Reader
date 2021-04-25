@@ -10,7 +10,7 @@
 #define LISTVIEWENTRY
 
 #include "inkview.h"
-#include "item.h"
+#include "model.h"
 
 class ListViewEntry
 {

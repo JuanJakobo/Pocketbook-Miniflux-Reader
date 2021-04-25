@@ -6,11 +6,7 @@
 //
 //-------------------------------------------------------------------
 
-#include "inkview.h"
 #include "menuHandler.h"
-
-#include <string>
-
 
 MenuHandler::MenuHandler(const string &name)
 {

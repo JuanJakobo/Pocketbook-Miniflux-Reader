@@ -6,23 +6,10 @@
 //
 //-------------------------------------------------------------------
 
-#include "inkview.h"
-#include "item.h"
-#include "util.h"
 #include "listView.h"
-#include "listViewEntry.h"
 
-#include <string>
-#include <vector>
-#include <memory>
-
-using std::string;
-using std::vector;
-
-ListView::ListView(const irect *contentRect, const vector<Item> &items) : _contentRect(contentRect), _items(&items)
+ListView::ListView(const irect *contentRect, const vector<entry> readerentries) : _contentRect(contentRect), _readerentries(readerentries)
 {
-    FillAreaRect(_contentRect, WHITE);
-
     _entries.clear();
 
     int entrySize = _contentRect->h / (_itemCount + 1);
