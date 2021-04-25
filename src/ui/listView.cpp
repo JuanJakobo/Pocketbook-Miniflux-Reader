@@ -56,9 +56,7 @@ ListView::ListView(const irect *contentRect, const vector<entry> readerentries) 
     _nextPageButton = iRect(_contentRect->x + 300, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
     _lastPageButton = iRect(_contentRect->x + 450, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
 
-    drawEntries();
-    drawFooter();
-    drawHeader("Filter");
+    draw();
 }
 
 ListView::~ListView()
@@ -67,6 +65,14 @@ ListView::~ListView()
     CloseFont(_entryFontBold);
     CloseFont(_headerFont);
     CloseFont(_footerFont);
+}
+
+void ListView::draw()
+{
+    FillAreaRect(_contentRect, WHITE);
+    drawHeader("Filter");
+    drawEntries();
+    drawFooter();
 }
 
 void ListView::drawHeader(string headerText)
