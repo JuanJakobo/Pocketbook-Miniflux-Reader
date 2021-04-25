@@ -39,6 +39,8 @@ int EventHandler::eventDistributor(const int type, const int par1, const int par
 {
     if (ISPOINTEREVENT(type))
         return EventHandler::pointerHandler(type, par1, par2);
+    //else if (ISKEYEVENT(type))
+        //return EventHandler::keyHandler(type, par1, par2);
 
     return 0;
 }
@@ -74,16 +76,19 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         //menu is clicked
         if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
         {
-            return _menu.createMenu(_miniflux.isLoggedIn(), _miniflux.isWorkOffline(), EventHandler::mainMenuHandlerStatic);
+            return _menu.createMenu(true, true, EventHandler::mainMenuHandlerStatic);
+            //return _menu.createMenu(_miniflux.isLoggedIn(), _miniflux.isWorkOffline(), EventHandler::mainMenuHandlerStatic);
         }
+        //else if (_entryView != nullptr)
+        //{
+            
+        //}
         //if listView is shown
         else if (_listView != nullptr)
         {
             int itemID = _listView->listClicked(par1, par2);
             if (itemID != -1)
             {
-                Message(ICON_INFORMATION, "Warning", "Item clicked", 1200);
-
             }
             PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
 
