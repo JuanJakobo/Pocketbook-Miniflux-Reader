@@ -31,11 +31,10 @@ ListView::ListView(const irect *contentRect, const vector<entry> readerentries) 
 
     auto entrycount = _readerentries.size();
     auto z = 0;
+    auto i = 0;
     _entries.reserve(entrycount);
 
-    _entries.reserve(i);
-
-    while (i > 0)
+    while (i < entrycount)
     {
         if (z >= ITEMS_PER_PAGE)
         {
@@ -44,8 +43,8 @@ ListView::ListView(const irect *contentRect, const vector<entry> readerentries) 
         }
 
         irect rect = iRect(_contentRect->x, z * entrySize + _headerHeight + _contentRect->y, _contentRect->w, entrySize, 0);
-        this->_entries.emplace_back(_page, rect);
-        i--;
+        this->_entries.emplace_back(_page, rect, _readerentries[i]);
+        i++;
         z++;
     }
 
@@ -103,7 +102,7 @@ void ListView::drawFooter()
 void ListView::drawEntry(int itemID)
 {
     FillAreaRect(_entries[itemID].getPosition(), WHITE);
-    _entries[itemID].draw(_items->at(itemID), _entryFont, _entryFontBold, _entryFontHeight);
+    _entries[itemID].draw(_entryFont, _entryFontBold, _entryFontHeight);
 }
 
 void ListView::drawEntries()
@@ -111,7 +110,7 @@ void ListView::drawEntries()
     for (unsigned int i = 0; i < _entries.size(); i++)
     {
         if (_entries[i].getPage() == _shownPage)
-            _entries[i].draw(_items->at(i), _entryFont, _entryFontBold, _entryFontHeight);
+            _entries[i].draw(_entryFont, _entryFontBold, _entryFontHeight);
     }
 }
 
