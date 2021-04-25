@@ -157,6 +157,10 @@ int ListView::listClicked(int x, int y)
         {
             if (_entries[i].getPage() == _shownPage && IsInRect(x, y, _entries[i].getPosition()) == 1)
             {
+                //move to central
+                EntryView e = EntryView(_entries[i].getEntry(),_contentRect);
+                FillAreaRect(_contentRect, WHITE);
+                e.draw(_entryFont, _entryFontBold, _entryFontHeight);
                 return i;
             }
         }
