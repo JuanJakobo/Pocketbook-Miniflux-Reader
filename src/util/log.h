@@ -10,8 +10,10 @@
 #define LOG
 
 #include "inkview.h"
+#include "eventHandler.h"
 
 #include <string>
+#include <fstream>
 
 using std::string;
 

@@ -9,6 +9,8 @@
 #ifndef MENU_HANDLER
 #define MENU_HANDLER
 
+#include "inkview.h"
+
 #include <string>
 
 using std::string;

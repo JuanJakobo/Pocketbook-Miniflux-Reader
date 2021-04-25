@@ -6,17 +6,7 @@
 //
 //-------------------------------------------------------------------
 
-#include "inkview.h"
 #include "eventHandler.h"
-#include "menuHandler.h"
-#include "listView.h"
-#include "util.h"
-#include "log.h"
-
-#include <string>
-#include <memory>
-
-using std::string;
 
 std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
 
