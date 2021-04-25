@@ -29,8 +29,9 @@ ListView::ListView(const irect *contentRect, const vector<entry> readerentries) 
     _page = 1;
     _shownPage = _page;
 
-    auto i = _items->size();
+    auto entrycount = _readerentries.size();
     auto z = 0;
+    _entries.reserve(entrycount);
 
     _entries.reserve(i);
 
