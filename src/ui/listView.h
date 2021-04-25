@@ -34,6 +34,8 @@ public:
 
     ~ListView();
 
+    void draw();
+
     /**
         * Draws the header
         * 
