@@ -26,17 +26,19 @@ vector<entry> Miniflux::getEntries()
                              element.value()["comments_url"],
                              element.value()["content"]});
     }
+    if (tempItems.empty())
+        throw std::runtime_error("upfuck");
     return tempItems;
 }
 
 nlohmann::json Miniflux::get(const string &api)
 {
-   //TODO test if url and token are empty
+
+    //TODO test if url and token are empty
 
     string url = _url + api;
-
     Log::writeLog(url);
-    
+
     string readBuffer;
     CURLcode res;
     CURL *curl = curl_easy_init();
@@ -54,6 +56,7 @@ nlohmann::json Miniflux::get(const string &api)
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
 
+        //TODO in other class
         if (res == CURLE_OK)
         {
             long response_code;
@@ -65,12 +68,12 @@ nlohmann::json Miniflux::get(const string &api)
             case 200:
                 return nlohmann::json::parse(readBuffer);
             default:
-                Log::writeLog("Curl Response Code" + std::to_string(response_code));
+                throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
             }
         }
         else
         {
-            Log::writeLog("Error Code "  + std::to_string(res));
+            throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
         }
     }
     //TODO write error code here ?

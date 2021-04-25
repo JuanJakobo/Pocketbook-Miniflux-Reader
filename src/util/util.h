@@ -34,9 +34,8 @@ public:
     /**
     * Checks if a network connection can be established
     * 
-    * @return true - network access succeeded, false - network access failed
     */
-    static bool connectToNetwork();
+    static void connectToNetwork();
 
     /**
     * Reads an string from the config file 

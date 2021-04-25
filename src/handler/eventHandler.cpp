@@ -19,25 +19,19 @@ EventHandler::EventHandler()
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         _menu.drawLoadingScreen();
-        auto _miniflux = Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token"));
-        
-        //TODO to util
-        if (!Util::connectToNetwork())
-        {
-            Message(ICON_WARNING, "Warning", "Cannot connect to the internet.", 2000);
-            //return
-        }
 
-        vector<entry> entries = _miniflux.getEntries();
-        if (entries.empty())
+        try
         {
-            Message(ICON_ERROR, "Error", "Could not login, please try again.", 1200);
-        }
-        else
-        {
+            auto _miniflux = Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token"));
+            Util::connectToNetwork();
+            vector<entry> entries = _miniflux.getEntries();
             _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), entries));
+            FullUpdate();
         }
-        FullUpdate();
+        catch (const std::exception &e)
+        {
+            Message(ICON_ERROR, "Error", e.what(), 1200);
+        }
     }
 }
 
