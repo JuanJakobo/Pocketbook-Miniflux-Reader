@@ -19,6 +19,8 @@
 
 using std::vector;
 
+const int ITEMS_PER_PAGE = 7;
+
 class ListView
 {
 public:
@@ -93,6 +95,5 @@ private:
     irect _prevPageButton;
     irect _firstPageButton;
     irect _lastPageButton;
-    int _itemCount = 7;
 };
 #endif
