@@ -64,8 +64,8 @@ list(APPEND PB_INCLUDE_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnuea
 set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp 
 			${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp 		
 			${CMAKE_SOURCE_DIR}/src/handler/menuHandler.cpp 
-			${CMAKE_SOURCE_DIR}/src/util/miniflux.cpp 
-			${CMAKE_SOURCE_DIR}/src/util/item.cpp
+			${CMAKE_SOURCE_DIR}/src/api/miniflux.cpp 
+			${CMAKE_SOURCE_DIR}/src/ui/entryView.cpp 
 			${CMAKE_SOURCE_DIR}/src/ui/listView.cpp 
 			${CMAKE_SOURCE_DIR}/src/ui/listViewEntry.cpp 
 			${CMAKE_SOURCE_DIR}/src/util/util.cpp 
@@ -78,6 +78,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/handler/
     ${CMAKE_SOURCE_DIR}/src/util/
     ${CMAKE_SOURCE_DIR}/src/ui/
+    ${CMAKE_SOURCE_DIR}/src/api/
 )
 
 target_link_libraries(Miniflux-Reader.app PRIVATE  inkview freetype z curl nlohmann_json::nlohmann_json)
