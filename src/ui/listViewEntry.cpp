@@ -8,18 +8,18 @@
 
 #include "listViewEntry.h"
 
-ListViewEntry::ListViewEntry(int page, irect rect) : _page(page), _position(rect)
+ListViewEntry::ListViewEntry(int page, irect rect, entry entry) : _page(page), _position(rect), _entry(entry)
 {
 }
 
-void ListViewEntry::draw(const Item &item, ifont *entryFont, ifont *entryFontBold, int fontHeight)
+void ListViewEntry::draw(ifont *entryFont, ifont *entryFontBold, int fontHeight)
 {
     SetFont(entryFontBold, BLACK);
-    DrawTextRect(_position.x, _position.y, _position.w, fontHeight, item.getTitle().c_str(), ALIGN_LEFT);
+    DrawTextRect(_position.x, _position.y, _position.w, fontHeight, _entry.title.c_str(), ALIGN_LEFT);
 
     SetFont(entryFont, BLACK);
 
-    DrawTextRect(_position.x, _position.y + fontHeight, _position.w, fontHeight, item.getUrl().c_str(), ALIGN_LEFT);
+    DrawTextRect(_position.x, _position.y + fontHeight, _position.w, fontHeight, _entry.url.c_str(), ALIGN_LEFT);
     //DrawTextRect(_position.x, _position.y + 2 * fontHeight, _position.w, fontHeight, item.getId(), ALIGN_LEFT);
     //DrawTextRect(_position.x, _position.y + 3 * fontHeight, _position.w, fontHeight, item.getCommentsUrl().c_str(), ALIGN_RIGHT);
 
