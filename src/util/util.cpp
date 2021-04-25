@@ -18,25 +18,24 @@ size_t Util::writeData(void *ptr, size_t size, size_t nmemb, FILE *stream)
     size_t written = iv_fwrite(ptr, size, nmemb, stream);
     return written;
 }
-//also throw errors
-bool Util::connectToNetwork()
+
+void Util::connectToNetwork()
 {
     iv_netinfo *netinfo = NetInfo();
     if (netinfo->connected)
-        return true;
+        return;
 
     const char *network_name = nullptr;
     int result = NetConnect2(network_name, 1);
     if (result != 0)
     {
-        return false;
+        throw "Could not connect to internet."; 
     }
 
     netinfo = NetInfo();
     if (netinfo->connected)
-        return true;
-
-    return false;
+        return;
+    throw "Could not connect to internet.";
 }
 
 //int or string? do a template?
