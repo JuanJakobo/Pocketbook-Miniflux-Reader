@@ -26,7 +26,7 @@ class Miniflux
 public:
     Miniflux(const string &url, const string &token);
 
-    vector<entry> getEntries();
+    vector<entry> getEntries(const string &filter);
 
 
 private:

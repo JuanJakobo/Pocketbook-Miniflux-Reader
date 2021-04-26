@@ -12,9 +12,9 @@ Miniflux::Miniflux(const string &url, const string &token) : _url(url), _token(t
 {
 }
 
-vector<entry> Miniflux::getEntries()
+vector<entry> Miniflux::getEntries(const string &filter)
 {
-    nlohmann::json j = get("/v1/entries?starred=true&direction=desc");
+    nlohmann::json j = get("/v1/entries?"+ filter);
 
     vector<entry> tempItems;
 
