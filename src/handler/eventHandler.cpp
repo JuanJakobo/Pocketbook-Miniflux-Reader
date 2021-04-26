@@ -26,7 +26,7 @@ EventHandler::EventHandler()
         {
             auto _miniflux = Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token"));
             Util::connectToNetwork();
-            vector<entry> entries = _miniflux.getEntries();
+            vector<entry> entries = _miniflux.getEntries(Util::readFromConfig("filter"));
             _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), entries));
             FullUpdate();
         }
