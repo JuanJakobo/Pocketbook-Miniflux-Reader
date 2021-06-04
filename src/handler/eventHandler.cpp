@@ -182,34 +182,28 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 int EventHandler::keyHandler(const int type, const int par1, const int par2)
 {
     //menu button
-    if (par1 == 23)
+    if (type == EVT_KEYPRESS)
     {
-        _listView->draw();
-        _entryView = nullptr;
-        PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
-        return 1;
-    }
-    if (_entryView != nullptr)
-    {
-        //left button -> pre page
-        if (par1 == 24)
+
+        if (_listView != nullptr)
         {
-            //next page with text, how to handle images?
-        }
-        //right button -> next page
-        else if (par1 == 25)
-        {
-        }
-    }
-    else if (_listView != nullptr)
-    {
-        //left button -> pre page
-        if (par1 == 24)
-        {
-        }
-        //right button -> next page
-        else if (par1 == 25)
-        {
+            if (par1 == 23)
+            {
+                _listView->firstPage();
+                return 1;
+            }
+            //left button -> pre page
+            else if (par1 == 24)
+            {
+                _listView->prevPage();
+                return 1;
+            }
+            //right button -> next page
+            else if (par1 == 25)
+            {
+                _listView->nextPage();
+                return 1;
+            }
         }
     }
 
