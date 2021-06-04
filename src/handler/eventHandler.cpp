@@ -34,7 +34,6 @@ EventHandler::EventHandler()
 
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
-        _menu.drawLoadingScreen();
 
         try
         {
@@ -71,13 +70,13 @@ void EventHandler::mainMenuHandler(const int index)
     switch (index)
     {
     //Info
-    case 104:
+    case 101:
     {
         Message(ICON_INFORMATION, "Info", "Info", 1200);
         break;
     }
     //Exit
-    case 105:
+    case 102:
         CloseApp();
         break;
     default:
@@ -92,8 +91,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         //menu is clicked
         if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
         {
-            return _menu.createMenu(true, true, EventHandler::mainMenuHandlerStatic);
-            //return _menu.createMenu(_miniflux.isLoggedIn(), _miniflux.isWorkOffline(), EventHandler::mainMenuHandlerStatic);
+            return _menu.createMenu(EventHandler::mainMenuHandlerStatic);
         }
         else if (_entryView != nullptr)
         {
