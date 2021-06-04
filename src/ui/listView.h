@@ -56,23 +56,19 @@ public:
     void drawFooter();
 
     /**
-        * Draws an single entry to the screen
-        * 
-        * @param itemID the id of the item that shall be drawn
+        * Navigates to the next page
         */
-    void drawEntry(int itemID);
+    void nextPage() { this->actualizePage(_shownPage + 1); };
 
     /**
-        * Iterates through the items and sends them to the listViewEntry Class for drawing
+        * Navigates to the prev page
         */
-    void drawEntries();
+    void prevPage() { this->actualizePage(_shownPage - 1); };
 
     /**
-        * Navigates to the selected page
-        * 
-        * @param pageToShown page that shall be shown
+        * Navigates to first page
         */
-    void actualizePage(int pageToShown);
+    void firstPage() { this->actualizePage(1); };
 
     /**
         * Checkes if the listview has been clicked and either changes the page or returns item ID
@@ -102,5 +98,24 @@ private:
     irect _prevPageButton;
     irect _firstPageButton;
     irect _lastPageButton;
+
+    /**
+        * Draws the footer including a page changer 
+        */
+    void drawFooter();
+
+    /**
+        * updates an entry 
+        * 
+        * @param itemID the id of the item that shall be inverted
+        */
+    void updateEntry(int itemID);
+
+    /**
+        * Navigates to the selected page
+        * 
+        * @param pageToShown page that shall be shown
+        */
+    void actualizePage(int pageToShown);
 };
 #endif

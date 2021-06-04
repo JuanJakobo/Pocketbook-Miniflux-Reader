@@ -63,6 +63,7 @@ list(APPEND PB_INCLUDE_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnuea
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp 
 			${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp 		
+			${CMAKE_SOURCE_DIR}/src/handler/contextMenu.cpp 		
       ${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp 
 			${CMAKE_SOURCE_DIR}/src/api/miniflux.cpp 
 			${CMAKE_SOURCE_DIR}/src/ui/listView.cpp 
