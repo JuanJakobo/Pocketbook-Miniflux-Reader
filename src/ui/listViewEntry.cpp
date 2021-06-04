@@ -6,7 +6,9 @@
 //
 //-------------------------------------------------------------------
 
+#include "inkview.h"
 #include "listViewEntry.h"
+#include "util.h"
 
 ListViewEntry::ListViewEntry(int page, irect rect, entry entry) : _page(page), _position(rect), _entry(entry)
 {

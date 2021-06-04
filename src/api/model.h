@@ -11,14 +11,13 @@
 
 #include <string>
 
-using std::string;
-
 struct entry
 {
   int id;
-  string title;
-  string url;
-  string comments_url;
-  string content;
+  std::string title;
+  std::string url;
+  std::string comments_url;
+  std::string content;
+  
 };
 #endif

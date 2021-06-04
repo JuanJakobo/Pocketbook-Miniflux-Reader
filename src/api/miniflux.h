@@ -19,21 +19,19 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
-using std::vector;
-
 class Miniflux
 {
 public:
-    Miniflux(const string &url, const string &token);
+    Miniflux(const std::string &url, const std::string &token);
 
-    vector<entry> getEntries(const string &filter);
+    std::vector<entry> getEntries(const std::string &filter);
 
 
 private:
-    string _url;
-    string _token;
+    std::string _url;
+    std::string _token;
 
-    nlohmann::json get(const string &api);
+    nlohmann::json get(const std::string &apiEndpoint);
 };
 
 #endif

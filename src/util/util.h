@@ -10,11 +10,8 @@
 #define UTIL
 
 #include "inkview.h"
-#include "eventHandler.h"
 
 #include <string>
-
-using std::string;
 
 class Util
 {
@@ -44,7 +41,7 @@ public:
     *  
     * @return string that has been found in the config file 
     */
-    static string readFromConfig(string name);
+    static std::string readFromConfig(std::string name);
 
 private:
     Util() {}
