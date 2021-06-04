@@ -41,9 +41,11 @@ public:
 private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<ListView> _listView;
+    std::unique_ptr<ContextMenu> _contextMenu;
 
     //std::unique_ptr<Miniflux> _miniflux;
     MainMenu _menu = MainMenu("Miniflux");
+    int _tempItemID;
 
     /**
         * Function needed to call C function, redirects to real function
@@ -51,13 +53,28 @@ private:
         *  @param index int of the menu that is set
         */
     static void mainMenuHandlerStatic(const int index);
-    
+
     /**
         * Handles menu events and redirects them
         * 
         * @param index int of the menu that is set
         */
     void mainMenuHandler(const int index);
+
+    /**
+        * Function needed to call C function, redirects to real function
+        * 
+        *  @param index int of the menu that is set
+        */
+    static void contextMenuHandlerStatic(const int index);
+
+    /**
+        * Handlescontext  menu events and redirects them
+        * 
+        * @param index int of the menu that is set
+        */
+
+    void contextMenuHandler(const int index);
 
     /**
         * Handles pointer Events
@@ -69,7 +86,7 @@ private:
         */
     int pointerHandler(const int type, const int par1, const int par2);
 
-        /**
+    /**
         * Handles key Events
         * 
         * @param type event type

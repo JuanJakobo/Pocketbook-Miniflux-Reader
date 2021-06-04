@@ -83,9 +83,58 @@ void EventHandler::mainMenuHandler(const int index)
     }
 }
 
+void EventHandler::contextMenuHandlerStatic(const int index)
+{
+    _eventHandlerStatic->contextMenuHandler(index);
+}
+std::unique_ptr<ContextMenu> _contextMenu;
+
+void EventHandler::contextMenuHandler(const int index)
+{
+    //invert color
+    switch (index)
+    {
+    //Star
+    case 101:
+    {
+        break;
+    }
+    //Comment
+    case 102:
+    {
+        break;
+    }
+    //Browser
+    case 103:
+    {
+        break;
+    }
+    default:
+    {
+        _listView->invertEntryColor(_tempItemID);
+        break;
+    }
+
+        _contextMenu.reset();
+    }
+}
+
 int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 {
-    if (type == EVT_POINTERDOWN)
+    if (type == EVT_POINTERLONG)
+    {
+        if (_listView != nullptr)
+        {
+            _tempItemID = _listView->listClicked(par1, par2);
+            _listView->invertEntryColor(_tempItemID);
+            if (_tempItemID != -1)
+            {
+                _contextMenu = std::unique_ptr<ContextMenu>(new ContextMenu());
+                _contextMenu->createMenu(par2, EventHandler::contextMenuHandlerStatic);
+            }
+        }
+    }
+    else if (type == EVT_POINTERUP)
     {
         //menu is clicked
         if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
