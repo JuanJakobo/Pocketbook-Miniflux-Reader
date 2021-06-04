@@ -41,7 +41,7 @@ public:
 private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<ListView> _listView;
-    std::unique_ptr<EntryView> _entryView;
+
     //std::unique_ptr<Miniflux> _miniflux;
     MainMenu _menu = MainMenu("Miniflux");
 
