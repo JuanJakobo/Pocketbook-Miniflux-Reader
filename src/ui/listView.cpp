@@ -24,14 +24,11 @@ ListView::ListView(const irect *contentRect, const vector<entry> readerentries) 
 
     int entrySize = _contentRect->h / (ITEMS_PER_PAGE + 1);
 
-    _headerHeight = 0.25 * entrySize;
-    _footerHeight = 0.75 * entrySize;
+    _footerHeight = 1 * entrySize;
 
-    _headerFontHeight = 0.8 * _headerHeight;
     _footerFontHeight = 0.3 * _footerHeight;
     _entryFontHeight = 0.2 * entrySize;
 
-    _headerFont = OpenFont("LiberationMono", _headerFontHeight, 1);
     _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
     _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);
     _entryFontBold = OpenFont("LiberationMono-Bold", _entryFontHeight, 1);
@@ -52,7 +49,7 @@ ListView::ListView(const irect *contentRect, const vector<entry> readerentries) 
             z = 0;
         }
 
-        irect rect = iRect(_contentRect->x, z * entrySize + _headerHeight + _contentRect->y, _contentRect->w, entrySize, 0);
+        irect rect = iRect(_contentRect->x, z * entrySize + _contentRect->y, _contentRect->w, entrySize, 0);
         this->_entries.emplace_back(_page, rect, _readerentries[i]);
         i++;
         z++;
@@ -72,14 +69,12 @@ ListView::~ListView()
 {
     CloseFont(_entryFont);
     CloseFont(_entryFontBold);
-    CloseFont(_headerFont);
     CloseFont(_footerFont);
 }
 
 void ListView::draw()
 {
     FillAreaRect(_contentRect, WHITE);
-    drawHeader("Filter");
     drawEntries();
     drawFooter();
 }
@@ -91,8 +86,9 @@ void ListView::drawEntry(int itemID)
     updateEntry(itemID);
 }
 
-void ListView::drawFooter()
+void ListView::invertEntryColor(int itemID)
 {
+    InvertAreaBW(_entries[itemID].getPosition()->x, _entries[itemID].getPosition()->y, _entries[itemID].getPosition()->w, _entries[itemID].getPosition()->h);
     updateEntry(itemID);
 }
 
