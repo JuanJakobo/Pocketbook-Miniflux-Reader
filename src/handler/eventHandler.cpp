@@ -173,6 +173,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     OpenBook(path.c_str(), "", 0);
                 }
 
+                _listView->invertEntryColor(_tempItemID);
+            }
             return 1;
         }
     }

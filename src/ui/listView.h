@@ -43,17 +43,23 @@ public:
     void draw();
 
     /**
-        * Draws the header
+        * Draws an single entry to the screen
         * 
-        * @param headerText the text that shall be displayed in the header
-        * 
+        * @param itemID the id of the item that shall be drawn
         */
-    void drawHeader(string headerText);
+    void drawEntry(int itemID);
 
     /**
-        * Draws the footer including a page changer 
+        * inverts the color of an entry 
+        * 
+        * @param itemID the id of the item that shall be inverted
         */
-    void drawFooter();
+    void invertEntryColor(int itemID);
+
+    /**
+        * Iterates through the items and sends them to the listViewEntry Class for drawing
+        */
+    void drawEntries();
 
     /**
         * Navigates to the next page
@@ -81,8 +87,6 @@ public:
 
 private:
     int _footerHeight;
-    int _headerHeight;
-    int _headerFontHeight;
     int _footerFontHeight;
     int _entryFontHeight;
     const irect *_contentRect;
