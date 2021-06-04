@@ -14,9 +14,6 @@
 #include "model.h"
 
 #include <vector>
-#include <memory>
-
-using std::vector;
 
 const int ITEMS_PER_PAGE = 7;
 
@@ -29,17 +26,19 @@ public:
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
-    ListView(const irect *contentRect, const vector<entry> readerentries);
+    ListView(const irect *contentRect, const std::vector<entry> readerentries);
 
     ~ListView();
 
     //TODO if entry is out of bounds throw error
-    const entry *getEntry(int itemID){return &_readerentries[itemID];};
+    const entry *getEntry(int itemID) { return &_readerentries[itemID]; };
 
     //TODO --> where do I handle fonts? in Util?
-    const int getEntryFontHeight(){return _entryFontHeight;};
-    ifont *getEntryFont(){return _entryFont;};
-    ifont *getEntryFontBold(){return _entryFontBold;};
+
+    //temp static
+    const int getEntryFontHeight() { return _entryFontHeight; };
+    ifont *getEntryFont() { return _entryFont; };
+    ifont *getEntryFontBold() { return _entryFontBold; };
 
     void draw();
 
@@ -91,9 +90,8 @@ private:
     int _footerFontHeight;
     int _entryFontHeight;
     const irect *_contentRect;
-    const vector<entry> _readerentries;
-    vector<ListViewEntry> _entries;
-    ifont *_headerFont;
+    const std::vector<entry> _readerentries;
+    std::vector<ListViewEntry> _entries;
     ifont *_footerFont;
     ifont *_entryFont;
     ifont *_entryFontBold;

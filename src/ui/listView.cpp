@@ -6,7 +6,17 @@
 //
 //-------------------------------------------------------------------
 
+#include "inkview.h"
+#include "model.h"
 #include "listView.h"
+#include "listViewEntry.h"
+
+#include <string>
+#include <vector>
+#include <memory>
+
+using std::string;
+using std::vector;
 
 ListView::ListView(const irect *contentRect, const vector<entry> readerentries) : _contentRect(contentRect), _readerentries(readerentries)
 {

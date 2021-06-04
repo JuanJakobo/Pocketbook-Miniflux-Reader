@@ -9,16 +9,16 @@
 #ifndef EVENT_HANDLER
 #define EVENT_HANDLER
 
-#include "menuHandler.h"
+#include "mainMenu.h"
+#include "contextMenu.h"
 #include "miniflux.h"
 #include "listView.h"
-#include "entryView.h"
 #include "util.h"
 
 #include <memory>
 
-const string CONFIG_FOLDER = "/mnt/ext1/system/config/miniflux";
-const string CONFIG_PATH = CONFIG_FOLDER + "/miniflux.cfg";
+const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/miniflux";
+const std::string CONFIG_PATH = CONFIG_FOLDER + "/miniflux.cfg";
 
 class EventHandler
 {

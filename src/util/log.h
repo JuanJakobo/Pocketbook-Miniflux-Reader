@@ -10,12 +10,8 @@
 #define LOG
 
 #include "inkview.h"
-#include "eventHandler.h"
 
 #include <string>
-#include <fstream>
-
-using std::string;
 
 class Log
 {
@@ -25,7 +21,7 @@ public:
         * 
         * @param text that shall be written to the log
         */
-    static void writeLog(const string &text);
+    static void writeLog(const std::string &text);
 
 private:
     Log() {}

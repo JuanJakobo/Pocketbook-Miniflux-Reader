@@ -6,7 +6,18 @@
 //
 //-------------------------------------------------------------------
 
+#include "model.h"
+#include "util.h"
+#include "log.h"
 #include "miniflux.h"
+
+#include <string>
+#include <vector>
+#include <curl/curl.h>
+#include <nlohmann/json.hpp>
+
+using std::vector;
+using std::string;
 
 Miniflux::Miniflux(const string &url, const string &token) : _url(url), _token(token)
 {
