@@ -30,7 +30,6 @@ EventHandler::EventHandler()
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
     _listView = nullptr;
-    _entryView = nullptr;
 
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
@@ -93,19 +92,37 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         {
             return _menu.createMenu(EventHandler::mainMenuHandlerStatic);
         }
-        else if (_entryView != nullptr)
-        {
-        }
         else if (_listView != nullptr)
         {
-            int itemID = _listView->listClicked(par1, par2);
-            if (itemID != -1)
+            _tempItemID = _listView->listClicked(par1, par2);
+            _listView->invertEntryColor(_tempItemID);
+
+            if (_tempItemID != -1)
             {
-                _entryView = std::unique_ptr<EntryView>(new EntryView(_listView->getEntry(itemID), _menu.getContentRect()));
-                FillAreaRect(_menu.getContentRect(), WHITE);
-                _entryView->draw(_listView->getEntryFont(), _listView->getEntryFontBold(), _listView->getEntryFontHeight());
-            }
-            PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
+                //TODO change
+                Log::writeLog(std::to_string(_listView->getEntry(_tempItemID)->content.length()));
+                if (_listView->getEntry(_tempItemID)->content.length() < 12)
+                {
+                    Message(1, "test", "content empty", 1000);
+                    //TODO use browser
+                    //string cmd = "exec /ebrmain/bin/webbrowser.sh www.google.de";
+                    //string cmd = "/ebrmain/bin/browser.app \"https://www.google.de\"";
+                    //system(cmd.c_str());
+                }
+                else
+                {
+                    //TODO change path
+                    string path = "/mnt/ext1/system/config/miniflux/" + std::to_string(_listView->getEntry(_tempItemID)->id) + ".html";
+
+                    //TODO download images and set their path to local
+
+                    std::ofstream htmlfile;
+                    htmlfile.open(path);
+                    htmlfile << _listView->getEntry(_tempItemID)->content;
+                    htmlfile.close();
+
+                    OpenBook(path.c_str(), "", 0);
+                }
 
             return 1;
         }
