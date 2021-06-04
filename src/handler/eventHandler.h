@@ -43,7 +43,7 @@ private:
     std::unique_ptr<ListView> _listView;
     std::unique_ptr<EntryView> _entryView;
     //std::unique_ptr<Miniflux> _miniflux;
-    MenuHandler _menu = MenuHandler("Miniflux");
+    MainMenu _menu = MainMenu("Miniflux");
 
     /**
         * Function needed to call C function, redirects to real function
