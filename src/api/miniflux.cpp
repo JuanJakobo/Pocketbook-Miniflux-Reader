@@ -42,12 +42,12 @@ vector<entry> Miniflux::getEntries(const string &filter)
     return tempItems;
 }
 
-nlohmann::json Miniflux::get(const string &api)
+nlohmann::json Miniflux::get(const string &apiEndpoint)
 {
 
     //TODO test if url and token are empty
 
-    string url = _url + api;
+    string url = _url + apiEndpoint;
     Log::writeLog(url);
 
     string readBuffer;
