@@ -37,6 +37,9 @@ EventHandler::EventHandler()
 
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
+        //TDOO does create?
+        if (iv_access(ARTICLE_FOLDER.c_str(), W_OK) != 0)
+            iv_mkdir(ARTICLE_FOLDER.c_str(), 0777);
 
         try
         {
@@ -91,7 +94,6 @@ void EventHandler::contextMenuHandlerStatic(const int index)
 {
     _eventHandlerStatic->contextMenuHandler(index);
 }
-std::unique_ptr<ContextMenu> _contextMenu;
 
 void EventHandler::contextMenuHandler(const int index)
 {
@@ -106,6 +108,23 @@ void EventHandler::contextMenuHandler(const int index)
     //Comment
     case 102:
     {
+        ShowHourglassForce();
+
+        //TODO only show if is hn!
+        try
+        {
+            auto parentCommentItemID = _listView->getEntry(_tempItemID)->comments_url;
+
+            auto end = parentCommentItemID.find("id=");
+            parentCommentItemID = parentCommentItemID.substr(end + 3);
+            _listView.reset();
+            drawHN(atoi(parentCommentItemID.c_str()));
+        }
+        catch (const std::exception &e)
+        {
+            Log::writeLog(e.what());
+        }
+
         break;
     }
     //Browser
@@ -149,35 +168,79 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         {
             _tempItemID = _listView->listClicked(par1, par2);
             _listView->invertEntryColor(_tempItemID);
+            ShowHourglassForce();
 
             if (_tempItemID != -1)
             {
-                //TODO change
                 Log::writeLog(std::to_string(_listView->getEntry(_tempItemID)->content.length()));
                 if (_listView->getEntry(_tempItemID)->content.length() < 12)
                 {
-                    Message(1, "test", "content empty", 1000);
-                    //TODO use browser
+                    //TODO use browser --> in child??
                     //string cmd = "exec /ebrmain/bin/webbrowser.sh www.google.de";
-                    //string cmd = "/ebrmain/bin/browser.app \"https://www.google.de\"";
-                    //system(cmd.c_str());
+                    string cmd = "/ebrmain/bin/browser.app \"https://www.google.de\"";
+                    execlp(cmd.c_str(), cmd.c_str(), (char *)NULL);
                 }
                 else
                 {
-                    //TODO change path
-                    string path = "/mnt/ext1/system/config/miniflux/" + std::to_string(_listView->getEntry(_tempItemID)->id) + ".html";
-
-                    //TODO download images and set their path to local
-
-                    std::ofstream htmlfile;
-                    htmlfile.open(path);
-                    htmlfile << _listView->getEntry(_tempItemID)->content;
-                    htmlfile.close();
+                    string path = ARTICLE_FOLDER + "/" + std::to_string(_listView->getEntry(_tempItemID)->id) + ".html";
+                    if (iv_access(path.c_str(), W_OK) != 0)
+                    {
+                        Log::writeLog("transform");
+                        //TODO download images and set their path to local
+                        std::ofstream htmlfile;
+                        htmlfile.open(path);
+                        htmlfile << _listView->getEntry(_tempItemID)->content;
+                        htmlfile.close();
+                    }
 
                     OpenBook(path.c_str(), "", 0);
                 }
 
                 _listView->invertEntryColor(_tempItemID);
+            }
+            return 1;
+        }
+        else if (_hnCommentView != nullptr)
+        {
+            //todo rename
+            int clickedItemIDHN = _hnCommentView->listClicked(par1, par2);
+
+            //here does not work
+
+            if (clickedItemIDHN != -1)
+            {
+                if (clickedItemIDHN == 0)
+                {
+                    if (_order->at(clickedItemIDHN).parent != 0)
+                    {
+                        //TODO go back where one left of
+                        drawHN(_order->at(clickedItemIDHN).parent);
+                    }
+                    else
+                    {
+                        //TODO double
+                        try
+                        {
+                            auto _miniflux = Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token"));
+                            Util::connectToNetwork();
+                            vector<entry> entries = _miniflux.getEntries(Util::readFromConfig("filter"));
+                            _listView = std::unique_ptr<ListView>(new ListView(_menu.getContentRect(), entries));
+                            _hnCommentView.reset();
+                            _hnItems.clear();
+
+                            FullUpdate();
+                        }
+                        catch (const std::exception &e)
+                        {
+                            Message(ICON_ERROR, "Error", e.what(), 1200);
+                        }
+                    }
+                }
+                else
+                {
+                    drawHN(_order->at(clickedItemIDHN).id);
+                    //drawHN(_hnCommentView->getEntry(currentHNItemID)->id);
+                }
             }
             return 1;
         }

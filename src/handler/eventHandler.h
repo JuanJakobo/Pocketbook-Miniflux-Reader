@@ -20,6 +20,7 @@
 
 const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/miniflux";
 const std::string CONFIG_PATH = CONFIG_FOLDER + "/miniflux.cfg";
+const std::string ARTICLE_FOLDER = "/mnt/ext1/miniflux";
 
 class EventHandler
 {
