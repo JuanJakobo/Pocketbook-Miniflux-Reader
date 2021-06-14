@@ -18,7 +18,7 @@
 using std::string;
 using std::vector;
 
-ListView::ListView(const irect *contentRect, const vector<entry> readerentries) : _contentRect(contentRect), _readerentries(readerentries)
+ListView::ListView(const irect *contentRect, const vector<entry> readerentries, int page) : _contentRect(contentRect), _readerentries(readerentries)
 {
     _entries.clear();
 
@@ -34,7 +34,7 @@ ListView::ListView(const irect *contentRect, const vector<entry> readerentries) 
     _entryFontBold = OpenFont("LiberationMono-Bold", _entryFontHeight, 1);
 
     _page = 1;
-    _shownPage = _page;
+    _shownPage = page;
 
     auto entrycount = _readerentries.size();
     auto z = 0;

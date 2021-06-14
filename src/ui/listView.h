@@ -26,7 +26,7 @@ public:
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
-    ListView(const irect *contentRect, const std::vector<entry> readerentries);
+    ListView(const irect *contentRect, const std::vector<entry> readerentries, int page = 1);
 
     ~ListView();
 
