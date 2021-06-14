@@ -211,6 +211,35 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
                 return 1;
             }
         }
+        else if (_hnCommentView != nullptr)
+        {
+            //go back one page
+            if (par1 == 23)
+            {
+                if (_order->front().parent != 0)
+                {
+                    drawHN(_order->front().parent);
+                }
+                else
+                {
+                    //TODO when is main comment go back to miniflux?
+                    _hnCommentView->firstPage();
+                }
+                return 1;
+            }
+            //left button -> pre page
+            else if (par1 == 24)
+            {
+                _hnCommentView->prevPage();
+                return 1;
+            }
+            //right button -> next page
+            else if (par1 == 25)
+            {
+                _hnCommentView->nextPage();
+                return 1;
+            }
+        }
     }
 
     return 0;
