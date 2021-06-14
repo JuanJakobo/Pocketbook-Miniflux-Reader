@@ -30,7 +30,7 @@ public:
 private:
     char *_menu = strdup("Menu");
     char *_star = strdup("Star");
-    char *_comment = strdup("Comment");
+    char *_comments = strdup("Comments");
     char *_browser = strdup("Browser");
 };
 #endif
