@@ -84,6 +84,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/api/
 )
 
-target_link_libraries(Miniflux-Reader.app PRIVATE  inkview freetype z curl nlohmann_json::nlohmann_json)
+target_link_libraries(Miniflux-Reader.app PRIVATE  inkview pthread freetype curl nlohmann_json::nlohmann_json)
 
 INSTALL (TARGETS Miniflux-Reader.app)

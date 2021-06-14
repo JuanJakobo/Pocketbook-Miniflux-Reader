@@ -14,6 +14,7 @@
 #include "miniflux.h"
 #include "listView.h"
 #include "util.h"
+#include "hnCommentView.h"
 
 #include <memory>
 
@@ -41,11 +42,13 @@ public:
 private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<ListView> _listView;
+    std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<ContextMenu> _contextMenu;
-
-    //std::unique_ptr<Miniflux> _miniflux;
     MainMenu _menu = MainMenu("Miniflux");
     int _tempItemID;
+    int _parentCurrentHnPage;
+    std::vector<hnItem> _hnItems;
+    std::unique_ptr<std::vector<hnItem>> _order;
 
     /**
         * Function needed to call C function, redirects to real function
@@ -95,5 +98,21 @@ private:
         * @return int returns if the event was handled
         */
     int keyHandler(const int type, const int par1, const int par2);
+    
+    /**
+     * 
+     * Called by the threads and writes items to _hnitems
+     * 
+     * @param void itemId that shall be downloaded
+     */
+    static void *itemToEntries(void *arg);
+
+    /**
+     * 
+     * Draws a HN Comment and its childs to an ListView
+     * 
+     * @param int parent itemId
+     */
+    void drawHN(int itemID);
 };
 #endif
