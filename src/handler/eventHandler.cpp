@@ -13,6 +13,9 @@
 #include "listView.h"
 #include "util.h"
 #include "log.h"
+#include "hackernews.h"
+#include "item.h"
+#include "hnCommentView.h"
 
 #include <string>
 #include <memory>
@@ -23,6 +26,7 @@ using std::string;
 using std::vector;
 
 std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
+pthread_mutex_t mutexEntries;
 
 EventHandler::EventHandler()
 {
@@ -210,4 +214,131 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     }
 
     return 0;
+}
+
+void *EventHandler::itemToEntries(void *arg)
+{
+    //TODO make static? and just once...
+    auto hn = Hackernews();
+    hnItem temp = hn.getItem(*(int *)arg);
+
+    //TODO do here or in return value?
+    pthread_mutex_lock(&mutexEntries);
+    _eventHandlerStatic->_hnItems.push_back(temp);
+    pthread_mutex_unlock(&mutexEntries);
+
+    return NULL;
+}
+
+void EventHandler::drawHN(int itemID)
+{
+    ShowHourglassForce();
+    auto hn = Hackernews();
+
+    auto found = false;
+
+    hnItem parentItem;
+
+    Log::writeLog(std::to_string(_hnItems.size()));
+
+    //test if is already in Database
+    for (size_t i = 0; i < _hnItems.size(); i++)
+    {
+
+        if (_hnItems.at(i).id == itemID)
+        {
+            parentItem = _hnItems.at(i);
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        Util::connectToNetwork();
+        parentItem = hn.getItem(itemID);
+    }
+
+    if (parentItem.kids.size() == 0)
+    {
+        Message(ICON_INFORMATION, "Info", "This Comment has no childs.", 1000);
+    }
+    else
+    {
+        _order.reset(new vector<hnItem>);
+
+        //when item is child make text ...
+        if (parentItem.parent > 0 && !parentItem.text.empty())
+            parentItem.text = "...";
+
+        _hnItems.push_back(parentItem);
+
+        _order->push_back(_hnItems.back());
+
+        //test if items have already been downloaded
+        vector<int> tosearch;
+
+        for (size_t i = 0; i < parentItem.kids.size(); ++i)
+        {
+            found = false;
+
+            for (size_t j = 0; j < _hnItems.size(); ++j)
+            {
+                if (parentItem.kids.at(i) == _hnItems.at(j).id)
+                {
+                    _order->push_back(_hnItems.at(j));
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+                tosearch.push_back(parentItem.kids.at(i));
+        }
+
+        //Download comments
+        auto threadCount = tosearch.size();
+        pthread_t threads[threadCount];
+        //void *retvals[threadCount];
+        mutexEntries = PTHREAD_MUTEX_INITIALIZER;
+        int count;
+
+        Util::connectToNetwork();
+
+        for (count = 0; count < threadCount; ++count)
+        {
+            if (pthread_create(&threads[count], NULL, itemToEntries, &parentItem.kids.at(count)) != 0)
+            {
+                Log::writeLog("could not create thread");
+                break;
+            }
+        }
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            if (pthread_join(threads[i], NULL) != 0)
+                Log::writeLog("cannot join thread" + std::to_string(i));
+
+            //order.push_back((*(hnItem *)retvals[i]));
+        }
+
+        pthread_mutex_destroy(&mutexEntries);
+
+        //sort items in the correct order
+        for (size_t i = 0; i < parentItem.kids.size(); ++i)
+        {
+            for (size_t j = 0; j < _hnItems.size(); ++j)
+            {
+                if (parentItem.kids.at(i) == _hnItems.at(j).id)
+                {
+                    _order->push_back(_hnItems.at(j));
+                    break;
+                }
+            }
+        }
+
+        _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), _order.get()));
+
+        PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
+    }
 }
