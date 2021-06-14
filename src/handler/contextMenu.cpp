@@ -17,7 +17,7 @@ ContextMenu::~ContextMenu()
 {
     free(_menu);
     free(_star);
-    free(_comment);
+    free(_comments);
     free(_browser);
 }
 
@@ -27,7 +27,7 @@ int ContextMenu::createMenu(int y, iv_menuhandler handler)
         {
             {ITEM_HEADER, 0, _menu, NULL},
             {ITEM_ACTIVE, 101, _star, NULL},
-            {ITEM_ACTIVE, 102, _comment, NULL},
+            {ITEM_ACTIVE, 102, _comments, NULL},
             {ITEM_ACTIVE, 103, _browser, NULL},
 
             {0, 0, NULL, NULL}};
