@@ -25,7 +25,7 @@ public:
         * @param handler  which action does the menu buttons start 
         * @return int returns if the event was handled
         */
-    int createMenu(int y, iv_menuhandler handler);
+    int createMenu(int y, const iv_menuhandler &handler);
 
 private:
     char *_menu = strdup("Menu");

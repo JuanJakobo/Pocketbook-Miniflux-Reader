@@ -21,7 +21,7 @@ ContextMenu::~ContextMenu()
     free(_browser);
 }
 
-int ContextMenu::createMenu(int y, iv_menuhandler handler)
+int ContextMenu::createMenu(int y, const iv_menuhandler &handler)
 {
     imenu contextMenu[] =
         {
