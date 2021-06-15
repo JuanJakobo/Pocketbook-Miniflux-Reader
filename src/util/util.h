@@ -41,7 +41,7 @@ public:
     *  
     * @return string that has been found in the config file 
     */
-    static std::string readFromConfig(std::string name);
+    static std::string readFromConfig(const std::string &name);
 
 private:
     Util() {}

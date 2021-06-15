@@ -33,7 +33,7 @@ public:
         * 
         * @return int returns if the event was handled
         */
-    int createMenu(iv_menuhandler handler);
+    int createMenu(const iv_menuhandler &handler);
 
 private:
     ifont *_menuFont;

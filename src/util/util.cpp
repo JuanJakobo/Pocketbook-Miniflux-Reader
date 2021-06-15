@@ -47,8 +47,7 @@ void Util::connectToNetwork()
     throw "Could not connect to internet.";
 }
 
-//int or string? do a template?
-string Util::readFromConfig(string name)
+string Util::readFromConfig(const string &name)
 {
     iconfigedit *temp = nullptr;
     iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);

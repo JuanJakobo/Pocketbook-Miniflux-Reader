@@ -52,7 +52,7 @@ void MainMenu::panelHandlerStatic()
     SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
 }
 
-int MainMenu::createMenu(iv_menuhandler handler)
+int MainMenu::createMenu(const iv_menuhandler &handler)
 {
     imenu mainMenu[] =
         {
