@@ -29,18 +29,61 @@ vector<entry> Miniflux::getEntries(const string &filter)
 
     vector<entry> tempItems;
 
-    for (auto &element : j["entries"].items())
+    if(j.empty())
     {
+        //TODO ERROR
+    }
+
+    for (auto &element : j["entries"].items())
+{
+            //TODO test if is null
+        //if(element.value()["content"].empty())
+        //{
+            //Log::writeLog("Empty Content on " + element.value()["title"]);
+        //}
+        //download also feed info
         tempItems.push_back({element.value()["id"],
+                            //element.value()["feed_id"],
+                            element.value()["status"], //read unread
                              element.value()["title"],
                              element.value()["url"],
                              element.value()["comments_url"],
-                             element.value()["content"]});
+                             //element.value()["published_at"],
+                             element.value()["content"],
+                             element.value()["starred"],
+                             element.value()["reading_time"]
+                             });
     }
     if (tempItems.empty())
-        throw std::runtime_error("upfuck");
+        throw std::runtime_error("Error"); //TODO catch
     return tempItems;
 }
+
+//TODO return bitmap
+//vector<entry> Miniflux::getFeedIcon(const string &feedID)
+//{
+//    nlohmann::json j = get("/v1/feeds"+ feedID + "/icon");
+
+    //{
+    //"id": 262,
+    //"data": "image/png;base64,iVBORw0KGgoAAA....",
+    //"mime_type": "image/png"
+//}
+
+    //returns 404 if no icon exists
+
+//    return {};        //TODO test if is null
+
+
+//}
+
+//updateFeed();
+//updateEntries();
+
+//markUserEntriesAsRead()
+
+
+
 
 nlohmann::json Miniflux::get(const string &apiEndpoint)
 {
