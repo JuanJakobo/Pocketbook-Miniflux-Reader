@@ -1,18 +1,22 @@
 //------------------------------------------------------------------
-// hnCommentView.cpp
+// MinifluxView.cpp
 //
 // Author:           JuanJakobo
 // Date:             04.08.2020
 //
 //-------------------------------------------------------------------
 
-#include "hnCommentView.h"
-#include "hnCommentViewEntry.h"
+#include "model.h"
+#include "minifluxView.h"
+#include "minifluxViewEntry.h"
+
+#include <string>
+#include <vector>
 
 using std::string;
 using std::vector;
 
-HnCommentView::HnCommentView(const irect *contentRect, const std::vector<hnItem> &readerentries, int page) : ListView(contentRect, page), _readerentries(std::move(readerentries))
+MinifluxView::MinifluxView(const irect *contentRect, const vector<entry> &readerentries, int page) : ListView(contentRect, page), _readerentries(std::move(readerentries))
 {
     int entrySize;
 
@@ -23,7 +27,7 @@ HnCommentView::HnCommentView(const irect *contentRect, const std::vector<hnItem>
     int contentHeight = _contentRect->h - _footerHeight;
 
     _footerFontHeight = 0.3 * _footerHeight;
-    _entryFontHeight = 30; //0.2 * _footerFontHeight;//entrySize; //how much?
+    _entryFontHeight = 30; //0.2 * _footerFontHeight;//entrySize; //TODO how much? --> add for both
 
     _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
     _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);
@@ -33,23 +37,12 @@ HnCommentView::HnCommentView(const irect *contentRect, const std::vector<hnItem>
 
     auto i = 0;
     _entries.reserve(entrycount);
-
+    
     SetFont(_entryFont, BLACK);
 
     while (i < entrycount)
     {
-        if (!_readerentries.at(i).title.empty())
-        {
-            //uses the font that is currently set
-            entrySize = TextRectHeight(contentRect->w, _readerentries.at(i).title.c_str(), 0) + _entryFontHeight * 4;
-        }
-        else if (!_readerentries.at(i).text.empty())
-        {
-            entrySize = TextRectHeight(contentRect->w, _readerentries.at(i).text.c_str(), 0) + _entryFontHeight * 4;
-        }
-
-        //TODO if content is to long for one page, cut --> also do with existing... how to handle clicks on button?
-        //on page x and page y both is the same article, therefore _entries can be on two pages
+        entrySize = TextRectHeight(contentRect->w, _readerentries.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
 
         if ((pageHeight + entrySize) > contentHeight)
         {
@@ -58,7 +51,7 @@ HnCommentView::HnCommentView(const irect *contentRect, const std::vector<hnItem>
         }
         irect rect = iRect(_contentRect->x, _contentRect->y + pageHeight, _contentRect->w, entrySize, 0);
 
-        _entries.emplace_back(std::unique_ptr<HnCommentViewEntry>(new HnCommentViewEntry(_page, rect, _readerentries.at(i))));
+        _entries.emplace_back(std::unique_ptr<MinifluxViewEntry>(new MinifluxViewEntry(_page, rect, _readerentries.at(i))));
 
         i++;
         pageHeight = pageHeight + entrySize;

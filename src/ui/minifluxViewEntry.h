@@ -1,41 +1,41 @@
 //------------------------------------------------------------------
-// hnCommentViewEntry.h
+// minifluxViewEntry.h
 //
 // Author:           JuanJakobo
 // Date:             04.08.2020
-// Description:      An listViewEntry that handles an item of a listview
+// Description:      An MinifluxViewEntry that handles an item of a listview
 //-------------------------------------------------------------------
 
-#ifndef HNCOMMENTVIEWENTRY
-#define HNCOMMENTVIEWENTRY
+#ifndef MINIFLUXVIEWENTRY
+#define MINIFLUXVIEWENTRY
 
 #include "listViewEntry.h"
-#include "item.h"
+#include "model.h"
 
 #include <memory>
 
-class HnCommentViewEntry : public ListViewEntry
+class MinifluxViewEntry : public ListViewEntry
 {
 public:
     /**
-        * Creates an ListViewEntry 
+        * Creates an MinifluxViewEntry 
         * 
         * @param Page site of the listView the Entry is shown
         * @param Rect area of the screen the item is positioned
         * @param entry entry that shall be drawn
         */
-    HnCommentViewEntry(int page, const irect position, const hnItem &item);
+    MinifluxViewEntry(int page, const irect &position, const entry &entry);
 
     /**
-        * draws the listViewEntry to the screen
+        * draws the MinifluxViewEntry to the screen
         * 
         * @param entryFont font for the entry itself
         * @param entryFontBold bold font for the header
         * @param fontHeight height of the font 
         */
-    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight); // const;
+    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight);
 
 private:
-    std::unique_ptr<hnItem> _entry;
+    std::unique_ptr<entry> _entry;
 };
 #endif

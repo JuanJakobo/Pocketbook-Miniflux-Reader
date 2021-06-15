@@ -6,16 +6,15 @@
 //
 //-------------------------------------------------------------------
 
-#include "inkview.h"
 #include "hnCommentViewEntry.h"
-#include "util.h"
-#include "item.h"
 
-HnCommentViewEntry::HnCommentViewEntry(int page, irect rect, hnItem *entry) : _page(page), _position(rect), _entry(entry)
+#include <memory>
+
+HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect, const hnItem &item) : ListViewEntry(page,rect), _entry(std::make_unique<hnItem>(item))
 {
 }
 
-void HnCommentViewEntry::draw(ifont *entryFont, ifont *entryFontBold, int fontHeight)
+void HnCommentViewEntry::draw(const ifont *entryFont,const ifont *entryFontBold, int fontHeight)
 {
 
     SetFont(entryFontBold, BLACK);

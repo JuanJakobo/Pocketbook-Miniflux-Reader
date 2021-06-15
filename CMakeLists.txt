@@ -67,10 +67,12 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
       ${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp 
 			${CMAKE_SOURCE_DIR}/src/api/miniflux.cpp 
       ${CMAKE_SOURCE_DIR}/src/api/hackernews.cpp
+      ${CMAKE_SOURCE_DIR}/src/ui/listView.cpp 
+      ${CMAKE_SOURCE_DIR}/src/ui/listViewEntry.cpp 
       ${CMAKE_SOURCE_DIR}/src/ui/hnCommentView.cpp 
       ${CMAKE_SOURCE_DIR}/src/ui/hnCommentViewEntry.cpp
-			${CMAKE_SOURCE_DIR}/src/ui/listView.cpp 
-			${CMAKE_SOURCE_DIR}/src/ui/listViewEntry.cpp 
+			${CMAKE_SOURCE_DIR}/src/ui/minifluxView.cpp 
+			${CMAKE_SOURCE_DIR}/src/ui/minifluxViewEntry.cpp 
 			${CMAKE_SOURCE_DIR}/src/util/util.cpp 
 			${CMAKE_SOURCE_DIR}/src/util/log.cpp 
 )

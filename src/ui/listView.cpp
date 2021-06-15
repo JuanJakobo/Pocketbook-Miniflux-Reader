@@ -13,56 +13,14 @@
 
 #include <string>
 #include <vector>
-#include <memory>
 
 using std::string;
 using std::vector;
 
-ListView::ListView(const irect *contentRect, const vector<entry> readerentries, int page) : _contentRect(contentRect), _readerentries(readerentries)
+
+ListView::ListView(const irect *contentRect, int page) : _contentRect(contentRect), _shownPage(page) 
 {
     _entries.clear();
-
-    int entrySize = _contentRect->h / (ITEMS_PER_PAGE + 1);
-
-    _footerHeight = 1 * entrySize;
-
-    _footerFontHeight = 0.3 * _footerHeight;
-    _entryFontHeight = 0.2 * entrySize;
-
-    _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
-    _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);
-    _entryFontBold = OpenFont("LiberationMono-Bold", _entryFontHeight, 1);
-
-    _page = 1;
-    _shownPage = page;
-
-    auto entrycount = _readerentries.size();
-    auto z = 0;
-    auto i = 0;
-    _entries.reserve(entrycount);
-
-    while (i < entrycount)
-    {
-        if (z >= ITEMS_PER_PAGE)
-        {
-            _page++;
-            z = 0;
-        }
-
-        irect rect = iRect(_contentRect->x, z * entrySize + _contentRect->y, _contentRect->w, entrySize, 0);
-        this->_entries.emplace_back(_page, rect, _readerentries[i]);
-        i++;
-        z++;
-    }
-
-    _pageIcon = iRect(_contentRect->w - 100, _contentRect->h + _contentRect->y - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
-
-    _firstPageButton = iRect(_contentRect->x, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-    _prevPageButton = iRect(_contentRect->x + 150, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-    _nextPageButton = iRect(_contentRect->x + 300, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-    _lastPageButton = iRect(_contentRect->x + 450, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-
-    draw();
 }
 
 ListView::~ListView()
@@ -71,6 +29,7 @@ ListView::~ListView()
     CloseFont(_entryFontBold);
     CloseFont(_footerFont);
 }
+
 
 void ListView::draw()
 {
@@ -81,14 +40,14 @@ void ListView::draw()
 
 void ListView::drawEntry(int itemID)
 {
-    FillAreaRect(_entries[itemID].getPosition(), WHITE);
-    _entries[itemID].draw(_entryFont, _entryFontBold, _entryFontHeight);
+    FillAreaRect(_entries[itemID]->getPosition(), WHITE);
+    _entries[itemID]->draw(_entryFont, _entryFontBold, _entryFontHeight);
     updateEntry(itemID);
 }
 
 void ListView::invertEntryColor(int itemID)
 {
-    InvertAreaBW(_entries[itemID].getPosition()->x, _entries[itemID].getPosition()->y, _entries[itemID].getPosition()->w, _entries[itemID].getPosition()->h);
+    InvertAreaBW(_entries[itemID]->getPosition()->x, _entries[itemID]->getPosition()->y, _entries[itemID]->getPosition()->w, _entries[itemID]->getPosition()->h);
     updateEntry(itemID);
 }
 
@@ -96,8 +55,8 @@ void ListView::drawEntries()
 {
     for (unsigned int i = 0; i < _entries.size(); i++)
     {
-        if (_entries[i].getPage() == _shownPage)
-            _entries[i].draw(_entryFont, _entryFontBold, _entryFontHeight);
+        if (_entries[i]->getPage() == _shownPage)
+            _entries[i]->draw(_entryFont, _entryFontBold, _entryFontHeight);
     }
 }
 
@@ -108,7 +67,7 @@ int ListView::listClicked(int x, int y)
         firstPage();
     }
     else if (IsInRect(x, y, &_nextPageButton))
-    {
+    {   
         nextPage();
     }
     else if (IsInRect(x, y, &_prevPageButton))
@@ -123,7 +82,7 @@ int ListView::listClicked(int x, int y)
     {
         for (unsigned int i = 0; i < _entries.size(); i++)
         {
-            if (_entries[i].getPage() == _shownPage && IsInRect(x, y, _entries[i].getPosition()) == 1)
+            if (_entries[i]->getPage() == _shownPage && IsInRect(x, y, _entries[i]->getPosition()) == 1)
             {
                 return i;
             }
@@ -151,7 +110,7 @@ void ListView::drawFooter()
 
 void ListView::updateEntry(int itemID)
 {
-    PartialUpdate(_entries[itemID].getPosition()->x, _entries[itemID].getPosition()->y, _entries[itemID].getPosition()->w, _entries[itemID].getPosition()->h);
+    PartialUpdate(_entries[itemID]->getPosition()->x, _entries[itemID]->getPosition()->y, _entries[itemID]->getPosition()->w, _entries[itemID]->getPosition()->h);
 }
 
 void ListView::actualizePage(int pageToShown)
