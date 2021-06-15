@@ -14,10 +14,12 @@
 struct entry
 {
   int id;
+  std::string status;
   std::string title;
   std::string url;
   std::string comments_url;
   std::string content;
-  
+  bool starred;
+  int reading_time; //in min
 };
 #endif
