@@ -1,21 +1,23 @@
 //------------------------------------------------------------------
-// hnCommentView.h
+// listView.h
 //
 // Author:           JuanJakobo
 // Date:             04.08.2020
 // Description:      An UI class to display items in a listview
 //-------------------------------------------------------------------
 
-#ifndef HNCOMMENTVIEW
-#define HNCOMMENTVIEW
+#ifndef MINIFLUXVIEW
+#define MINIFLUXVIEW
 
 #include "listView.h"
-#include "item.h"
+#include "model.h"
 
-#include <memory>
 #include <vector>
+#include <memory> 
 
-class HnCommentView : public ListView
+const int ITEMS_PER_PAGE = 7;
+
+class MinifluxView : public ListView
 {
 public:
     /**
@@ -23,13 +25,13 @@ public:
         * 
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
-        * @param page page that is shown, default is 1
         */
-    HnCommentView(const irect *contentRect, const std::vector<hnItem> &readerentries, int page = 1);
-
-    hnItem *getEntry(int itemID) { return &_readerentries.at(itemID); };
+    MinifluxView(const irect *contentRect, const std::vector<entry> &readerentries, int page = 1);
+    
+    //TODO return smart pointer
+    entry *getEntry(int itemID) { return &_readerentries.at(itemID); };
 
 private:
-    std::vector<hnItem> _readerentries;
+    std::vector<entry> _readerentries;
 };
 #endif

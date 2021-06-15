@@ -12,7 +12,7 @@
 #include "mainMenu.h"
 #include "contextMenu.h"
 #include "miniflux.h"
-#include "listView.h"
+#include "minifluxView.h"
 #include "util.h"
 #include "hnCommentView.h"
 
@@ -42,14 +42,13 @@ public:
 
 private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
-    std::unique_ptr<ListView> _listView;
+    std::unique_ptr<MinifluxView> _minifluxView;
     std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<ContextMenu> _contextMenu;
     MainMenu _menu = MainMenu("Miniflux");
     int _tempItemID;
     int _parentCurrentHnPage;
     std::vector<hnItem> _hnItems;
-    std::unique_ptr<std::vector<hnItem>> _order;
 
     /**
         * Function needed to call C function, redirects to real function
@@ -107,6 +106,14 @@ private:
      * @param void itemId that shall be downloaded
      */
     static void *itemToEntries(void *arg);
+
+    /**
+     * 
+     * Draws the miniflux items to an ListView
+     * 
+     */
+    void drawMiniflux();
+
 
     /**
      * 

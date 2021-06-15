@@ -10,7 +10,6 @@
 #define LISTVIEWENTRY
 
 #include "inkview.h"
-#include "model.h"
 
 class ListViewEntry
 {
@@ -20,11 +19,11 @@ public:
         * 
         * @param Page site of the listView the Entry is shown
         * @param Rect area of the screen the item is positioned
-        * @param entry entry that shall be drawn
         */
-    ListViewEntry(int page, irect position, entry entry);
+    ListViewEntry(int page, const irect &position);
 
-    entry *getEntry() {return &_entry;};
+    virtual ~ListViewEntry(){};
+
     irect *getPosition() { return &_position; }
     int getPage() const { return _page; }
 
@@ -35,10 +34,9 @@ public:
         * @param entryFontBold bold font for the header
         * @param fontHeight height of the font 
         */
-    void draw(ifont *entryFont, ifont *entryFontBold, int fontHeight);
+    virtual void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) = 0; // const;
 
-private:
-    entry _entry;
+protected:
     int _page;
     irect _position;
 };

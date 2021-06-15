@@ -14,8 +14,7 @@
 #include "model.h"
 
 #include <vector>
-
-const int ITEMS_PER_PAGE = 7;
+#include <memory>
 
 class ListView
 {
@@ -26,28 +25,9 @@ public:
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
-    ListView(const irect *contentRect, const std::vector<entry> readerentries, int page = 1);
+    ListView(const irect *contentRect, int page = 1);
 
-    ~ListView();
-
-    //TODO if entry is out of bounds throw error
-    const entry *getEntry(int itemID) { return &_readerentries[itemID]; };
-
-    //TODO --> where do I handle fonts? in Util?
-
-    //temp static
-    const int getEntryFontHeight() { return _entryFontHeight; };
-    ifont *getEntryFont() { return _entryFont; };
-    ifont *getEntryFontBold() { return _entryFontBold; };
-
-    void draw();
-
-    /**
-        * Draws an single entry to the screen
-        * 
-        * @param itemID the id of the item that shall be drawn
-        */
-    void drawEntry(int itemID);
+    virtual ~ListView();
 
     /**
         * inverts the color of an entry 
@@ -55,11 +35,6 @@ public:
         * @param itemID the id of the item that shall be inverted
         */
     void invertEntryColor(int itemID);
-
-    /**
-        * Iterates through the items and sends them to the listViewEntry Class for drawing
-        */
-    void drawEntries();
 
     /**
         * Navigates to the next page
@@ -85,23 +60,41 @@ public:
         */
     int listClicked(int x, int y);
 
-private:
+protected:
     int _footerHeight;
     int _footerFontHeight;
     int _entryFontHeight;
     const irect *_contentRect;
-    const std::vector<entry> _readerentries;
-    std::vector<ListViewEntry> _entries;
+    std::vector<std::unique_ptr<ListViewEntry>> _entries;
     ifont *_footerFont;
     ifont *_entryFont;
     ifont *_entryFontBold;
-    int _page;
+    int _page = 1;
     int _shownPage;
     irect _pageIcon;
     irect _nextPageButton;
     irect _prevPageButton;
     irect _firstPageButton;
     irect _lastPageButton;
+
+    /**
+        * Clears the screen and draws entries and footer 
+        * 
+        */
+    void draw();
+
+
+    /**
+        * Draws an single entry to the screen
+        * 
+        * @param itemID the id of the item that shall be drawn
+        */
+    void drawEntry(int itemID);
+
+    /**
+        * Iterates through the items and sends them to the listViewEntry Class for drawing
+        */
+    void drawEntries();
 
     /**
         * Draws the footer including a page changer 
