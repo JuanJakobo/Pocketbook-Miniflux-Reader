@@ -3,7 +3,7 @@
 //
 // Author:           JuanJakobo
 // Date:             22.04.2021
-// Description:      
+// Description:
 //
 //-------------------------------------------------------------------
 
@@ -26,6 +26,9 @@ public:
 
     std::vector<entry> getEntries(const std::string &filter);
 
+    bool markUserEntriesAsRead(int userID);
+
+    bool updateEntries(const std::vector<entry> &entrys);
 
 private:
     std::string _url;
