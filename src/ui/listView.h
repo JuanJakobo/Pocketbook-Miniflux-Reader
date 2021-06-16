@@ -25,16 +25,11 @@ public:
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
-    ListView(const irect *contentRect, int page = 1);
+    ListView(const irect *contentRect, int page);
 
     virtual ~ListView();
 
-    /**
-        * inverts the color of an entry 
-        * 
-        * @param itemID the id of the item that shall be inverted
-        */
-    void invertEntryColor(int itemID);
+    int getShownPage(){return _shownPage;};
 
     /**
         * Navigates to the next page
@@ -50,6 +45,13 @@ public:
         * Navigates to first page
         */
     void firstPage() { this->actualizePage(1); };
+
+    /**
+        * inverts the color of an entry 
+        * 
+        * @param itemID the id of the item that shall be inverted
+        */
+    void invertEntryColor(int itemID);
 
     /**
         * Checkes if the listview has been clicked and either changes the page or returns item ID
@@ -82,7 +84,6 @@ protected:
         * 
         */
     void draw();
-
 
     /**
         * Draws an single entry to the screen
