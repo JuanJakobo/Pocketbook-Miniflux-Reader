@@ -43,6 +43,9 @@ MainMenu::~MainMenu()
     CloseFont(_menuFont);
     free(_menu);
     free(_info);
+    free(_reloadFeed);
+    free(_showStarred);
+    free(_markRead);
     free(_exit);
 }
 
@@ -58,7 +61,10 @@ int MainMenu::createMenu(const iv_menuhandler &handler)
         {
             {ITEM_HEADER, 0, _menu, NULL},
             {ITEM_ACTIVE, 101, _info, NULL},
-            {ITEM_ACTIVE, 102, _exit, NULL},
+            {ITEM_ACTIVE, 102, _reloadFeed, NULL},
+            {ITEM_ACTIVE, 103, _showStarred, NULL},
+            {ITEM_ACTIVE, 104, _markRead, NULL},
+            {ITEM_ACTIVE, 105, _exit, NULL},
             {0, 0, NULL, NULL}};
 
     OpenMenu(mainMenu, 0, _panelMenuBeginX, _panelMenuBeginY, handler);
