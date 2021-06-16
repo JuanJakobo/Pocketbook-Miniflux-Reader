@@ -21,6 +21,7 @@
 #include <memory>
 #include <iostream>
 #include <fstream>
+#include <map>
 
 using std::string;
 using std::vector;
@@ -42,6 +43,11 @@ EventHandler::EventHandler()
 
         try
         {
+
+            _miniflux = std::unique_ptr<Miniflux>(new Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token")));
+            Util::connectToNetwork();
+            //TODO handle if filter is not set
+            _entries = _miniflux->getEntries(Util::readFromConfig("filter"));
             drawMiniflux();
         }
         catch (const std::exception &e)
@@ -76,8 +82,46 @@ void EventHandler::mainMenuHandler(const int index)
         Message(ICON_INFORMATION, "Info", "Info", 1200);
         break;
     }
-    //Exit
+    //TODO Only show if in minifluxview
+    //Reload feed
     case 102:
+    {
+        //TODO and reload feed
+        ShowHourglassForce();
+        _entries.clear();
+        _entries = _miniflux->getEntries(Util::readFromConfig("filter"));
+        drawMiniflux();
+        break;
+    }
+    //TODO-->  switches to show unread if that was the last one 
+    //show starred 
+    case 103:
+    {
+        ShowHourglassForce();
+        _entries.clear();
+        _entries = _miniflux->getEntries("starred=true&direction=desc");
+        drawMiniflux();
+        break;
+    }
+    //Mark all as read
+    case 104:
+    {
+        ShowHourglassForce();
+        try
+        {
+            if (_miniflux->markUserEntriesAsRead(1))
+                Log::writeLog("sucess");
+            _entries = _miniflux->getEntries(Util::readFromConfig("filter"));
+            drawMiniflux();
+        }
+        catch (const std::exception &e)
+        {
+            Log::writeLog(e.what());
+        }
+        break;
+    }
+    //Exi1
+    case 105:
         CloseApp();
         break;
     default:
@@ -92,27 +136,40 @@ void EventHandler::contextMenuHandlerStatic(const int index)
 
 void EventHandler::contextMenuHandler(const int index)
 {
-    //invert color
     switch (index)
     {
+    //TODO star is not implemented in API 
     //Star
     case 101:
     {
+        try
+        {
+            vector<entry> star;
+
+            //TODO CHANGE
+            star.push_back(*_minifluxView->getEntry(_tempItemID));
+            _miniflux->updateEntries(star);
+        }
+        catch (const std::exception &e)
+        {
+            Log::writeLog(e.what());
+        }
+        //TODO redraw entry AND get the new information from cloud...
+        _minifluxView->invertEntryColor(_tempItemID);
+
         break;
     }
     //Comment
     case 102:
     {
         ShowHourglassForce();
-
-        //TODO only show if is hn!
         try
         {
             auto parentCommentItemID = _minifluxView->getEntry(_tempItemID)->comments_url;
 
             auto end = parentCommentItemID.find("id=");
             parentCommentItemID = parentCommentItemID.substr(end + 3);
-            _minifluxView.reset();
+            _minifluxViewShownPage = _minifluxView->getShownPage();
             drawHN(atoi(parentCommentItemID.c_str()));
         }
         catch (const std::exception &e)
@@ -129,10 +186,8 @@ void EventHandler::contextMenuHandler(const int index)
     }
     default:
     {
-        _minifluxView->invertEntryColor(_tempItemID);
         break;
     }
-
         _contextMenu.reset();
     }
 }
@@ -155,6 +210,11 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 _contextMenu->createMenu(par2, EventHandler::contextMenuHandlerStatic, comments);
                 return 1;
             }
+        }
+        else if (_hnCommentView != nullptr)
+        {
+            //TODO show user id etc here
+            Message(1, "test", "User information", 1000);
         }
     }
     else if (type == EVT_POINTERUP)
@@ -202,10 +262,9 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         }
         else if (_hnCommentView != nullptr)
         {
-            //todo rename
+            //TODO rename and miniflux is in object and here not, why?
             int clickedItemIDHN = _hnCommentView->listClicked(par1, par2);
 
-            //here does not work
             if (clickedItemIDHN != -1)
             {
                 _hnCommentView->invertEntryColor(clickedItemIDHN);
@@ -215,15 +274,15 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 {
                     if (_hnCommentView->getEntry(clickedItemIDHN)->parent != 0)
                     {
-                        //TODO go back where one left of
-
                         drawHN(_hnCommentView->getEntry(clickedItemIDHN)->parent);
                     }
                     else
                     {
+                        //TODO need try and catch?
                         try
                         {
-                            drawMiniflux();
+                            _hnCommentView.reset();
+                            drawMiniflux(_minifluxViewShownPage);
                         }
                         catch (const std::exception &e)
                         {
@@ -273,14 +332,16 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
             //go back one page
             if (par1 == 23)
             {
+                ShowHourglassForce();
                 if (_hnCommentView->getEntry(0)->parent != 0)
                 {
                     drawHN(_hnCommentView->getEntry(0)->parent);
                 }
                 else
                 {
-                    //TODO when is main comment go back to miniflux?
-                    _hnCommentView->firstPage();
+                    _hnCommentView.reset();
+                    //TODO go to correct page... --> dont reload and keep entries here? --> reload in menu.
+                    drawMiniflux(_minifluxViewShownPage);
                 }
                 return 1;
             }
@@ -315,14 +376,24 @@ void *EventHandler::itemToEntries(void *arg)
     return NULL;
 }
 
-void EventHandler::drawMiniflux()
+//TODO TEMP
+
+void EventHandler::drawMiniflux(int page)
 {
-    auto _miniflux = Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token"));
-    Util::connectToNetwork();
-    std::vector<entry> entries = _miniflux.getEntries(Util::readFromConfig("filter"));
-    _minifluxView = std::unique_ptr<MinifluxView>(new MinifluxView(_menu.getContentRect(), entries));
-    _hnCommentView.reset();
-    _hnItems.clear();
+
+    if (_entries.size() > 0)
+    {
+        _minifluxView = std::unique_ptr<MinifluxView>(new MinifluxView(_menu.getContentRect(), _entries, page));
+        _hnCommentView.reset();
+        //TODO is necessary during runtime?
+        //_hnItems.clear();
+    }
+    else
+    {
+        FillAreaRect(_menu.getContentRect(), WHITE);
+
+        DrawTextRect2(_menu.getContentRect(), "no entries to show");
+    }
 
     FullUpdate();
 }
@@ -336,12 +407,9 @@ void EventHandler::drawHN(int itemID)
     hnItem parentItem;
     std::vector<hnItem> currentHnComments;
 
-    Log::writeLog(std::to_string(_hnItems.size()));
-
     //test if is already in Database
     for (size_t i = 0; i < _hnItems.size(); i++)
     {
-
         if (_hnItems.at(i).id == itemID)
         {
             parentItem = _hnItems.at(i);
@@ -356,23 +424,27 @@ void EventHandler::drawHN(int itemID)
         parentItem = hn.getItem(itemID);
     }
 
+    Log::writeLog("got parent");
+
     if (parentItem.kids.size() == 0)
     {
         Message(ICON_INFORMATION, "Info", "This Comment has no childs.", 1000);
+        //TODO return and invert color
+        //what happens if is parent child --> test
     }
     else
     {
-
         //when item is child make text ...
         if (parentItem.parent > 0 && !parentItem.text.empty())
             parentItem.text = "...";
 
         _hnItems.push_back(parentItem);
-
         currentHnComments.push_back(_hnItems.back());
 
         //test if items have already been downloaded
         vector<int> tosearch;
+
+        //TODO integrate into other function --> call threads
 
         for (size_t i = 0; i < parentItem.kids.size(); ++i)
         {
@@ -382,7 +454,7 @@ void EventHandler::drawHN(int itemID)
             {
                 if (parentItem.kids.at(i) == _hnItems.at(j).id)
                 {
-                    currentHnComments.push_back(_hnItems.at(j));
+                    //currentHnComments.push_back(_hnItems.at(j));
                     found = true;
                     break;
                 }
@@ -392,8 +464,13 @@ void EventHandler::drawHN(int itemID)
                 tosearch.push_back(parentItem.kids.at(i));
         }
 
+        Log::writeLog("getting childs");
+        Log::writeLog(std::to_string(tosearch.size()));
         //Download comments
         auto threadCount = tosearch.size();
+        //TODO get thread max!
+        if (threadCount > 20)
+            threadCount = 20;
         pthread_t threads[threadCount];
         mutexEntries = PTHREAD_MUTEX_INITIALIZER;
         int count;
@@ -402,7 +479,7 @@ void EventHandler::drawHN(int itemID)
 
         for (count = 0; count < threadCount; ++count)
         {
-            if (pthread_create(&threads[count], NULL, itemToEntries, &parentItem.kids.at(count)) != 0)
+            if (pthread_create(&threads[count], NULL, itemToEntries, &tosearch.at(count)) != 0)
             {
                 Log::writeLog("could not create thread");
                 break;
@@ -414,6 +491,8 @@ void EventHandler::drawHN(int itemID)
             if (pthread_join(threads[i], NULL) != 0)
                 Log::writeLog("cannot join thread" + std::to_string(i));
         }
+
+        Log::writeLog("got childs");
 
         pthread_mutex_destroy(&mutexEntries);
 
@@ -430,7 +509,28 @@ void EventHandler::drawHN(int itemID)
             }
         }
 
-        _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments));
+        Log::writeLog("start drawing");
+
+        if (_hnCommentView != nullptr)
+            _hnShownPage.insert(std::make_pair(_hnCommentView->getEntry(0)->id, _hnCommentView->getShownPage()));
+
+        auto current = _hnShownPage.find(itemID);
+
+        int page;
+
+        //TODO how do go forward --> then this will still be there?
+        if (current != _hnShownPage.end())
+        {
+            page = current->second;
+            _hnShownPage.erase(itemID);
+        }
+        else
+        {
+            page = 1;
+        }
+
+        _minifluxView.reset();
+        _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
 
         PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
     }

@@ -17,6 +17,8 @@
 #include "hnCommentView.h"
 
 #include <memory>
+#include <map>
+#include <vector>
 
 const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/miniflux";
 const std::string CONFIG_PATH = CONFIG_FOLDER + "/miniflux.cfg";
@@ -45,10 +47,13 @@ private:
     std::unique_ptr<MinifluxView> _minifluxView;
     std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<ContextMenu> _contextMenu;
+    std::unique_ptr<Miniflux> _miniflux;
     MainMenu _menu = MainMenu("Miniflux");
     int _tempItemID;
-    int _parentCurrentHnPage;
     std::vector<hnItem> _hnItems;
+    std::vector<entry> _entries;
+    int _minifluxViewShownPage = 1;
+    std::map<int,int> _hnShownPage;
 
     /**
         * Function needed to call C function, redirects to real function
@@ -112,7 +117,7 @@ private:
      * Draws the miniflux items to an ListView
      * 
      */
-    void drawMiniflux();
+    void drawMiniflux(int page = 1);
 
 
     /**
