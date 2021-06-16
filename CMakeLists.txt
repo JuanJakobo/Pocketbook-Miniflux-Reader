@@ -1,6 +1,7 @@
-PROJECT (Pocketbook-Miniflux-Reader)
-
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.1)
+
+PROJECT (Pocketbook-Miniflux-Reader VERSION 0.0.1)
+
 set(CMAKE_CXX_STANDARD 14)
 
 include(FetchContent)
