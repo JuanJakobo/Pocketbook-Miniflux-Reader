@@ -21,13 +21,13 @@ ContextMenu::~ContextMenu()
     free(_browser);
 }
 
-int ContextMenu::createMenu(int y, const iv_menuhandler &handler)
+int ContextMenu::createMenu(int y, const iv_menuhandler &handler, bool comments)
 {
     imenu contextMenu[] =
         {
             {ITEM_HEADER, 0, _menu, NULL},
             {ITEM_ACTIVE, 101, _star, NULL},
-            {ITEM_ACTIVE, 102, _comments, NULL},
+            {comments ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _comments, NULL},
             {ITEM_ACTIVE, 103, _browser, NULL},
 
             {0, 0, NULL, NULL}};
