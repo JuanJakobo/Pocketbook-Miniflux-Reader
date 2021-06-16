@@ -147,8 +147,12 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             _minifluxView->invertEntryColor(_tempItemID);
             if (_tempItemID != -1)
             {
+                bool comments = false;
+                if (_minifluxView->getEntry(_tempItemID)->comments_url.find("news.ycombinator.com") != std::string::npos)
+                    comments = true;
+
                 _contextMenu = std::unique_ptr<ContextMenu>(new ContextMenu());
-                _contextMenu->createMenu(par2, EventHandler::contextMenuHandlerStatic);
+                _contextMenu->createMenu(par2, EventHandler::contextMenuHandlerStatic, comments);
                 return 1;
             }
         }
