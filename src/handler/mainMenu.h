@@ -49,6 +49,9 @@ private:
 
     char *_menu = strdup("Menu");
     char *_info = strdup("Info");
+    char *_reloadFeed = strdup("Reload feed");
+    char *_showStarred = strdup("Show starred");
+    char *_markRead = strdup("Mark all as read");
     char *_exit = strdup("Close App");
 
     /**
