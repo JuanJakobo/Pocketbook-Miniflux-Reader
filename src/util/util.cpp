@@ -55,3 +55,45 @@ string Util::readFromConfig(const string &name)
     CloseConfigNoSave(config);
     return url;
 }
+
+string Util::getData(const string &url)
+{
+    string readBuffer;
+    CURLcode res;
+    CURL *curl = curl_easy_init();
+
+    Util::connectToNetwork();
+
+    if (curl)
+    {
+
+        struct curl_slist *headers = NULL;
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+
+        if (res == CURLE_OK)
+        {
+            long response_code;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+
+            switch (response_code)
+            {
+            case 200:
+                return readBuffer;
+            default:
+                throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
+            }
+        }
+        else
+        {
+            throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
+        }
+    }
+    return {};
+}
+

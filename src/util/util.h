@@ -43,6 +43,8 @@ public:
     */
     static std::string readFromConfig(const std::string &name);
 
+    static std::string getData(const std::string &url);
+
 private:
     Util() {}
 };
