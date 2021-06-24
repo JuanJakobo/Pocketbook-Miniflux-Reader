@@ -49,8 +49,13 @@ EventHandler::EventHandler()
 
             _miniflux = std::unique_ptr<Miniflux>(new Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token")));
             Util::connectToNetwork();
-            //TODO handle if filter is not set
-            _entries = _miniflux->getEntries(Util::readFromConfig("filter"));
+
+            //TODO implement once custom filter is available
+            //filter in menubar ! --> as in PB lib
+            //string filter = Util::readFromConfig("filter");
+            //if(filter.empty())
+            string filter = "status=unread&direction=desc";
+            _entries = _miniflux->getEntries(filter);
             drawMiniflux();
         }
         catch (const std::exception &e)
