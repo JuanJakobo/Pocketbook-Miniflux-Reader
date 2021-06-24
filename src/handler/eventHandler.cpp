@@ -58,6 +58,11 @@ EventHandler::EventHandler()
             Message(ICON_ERROR, "Error", e.what(), 1200);
         }
     }
+    else
+    {
+        Message(ICON_INFORMATION, "Config", ("Please create " + CONFIG_PATH + " containing username and token. Example is provided in the Repo.").c_str(), 5000);
+        CloseApp();
+    }
 }
 
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
