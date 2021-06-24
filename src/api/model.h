@@ -22,4 +22,12 @@ struct entry
   bool starred;
   int reading_time; //in min
 };
+
+struct feedIcon
+{
+  int id;
+  std::string data;
+  std::string mime_type;
+};
+
 #endif

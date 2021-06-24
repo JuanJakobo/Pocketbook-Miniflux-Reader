@@ -25,122 +25,86 @@ Miniflux::Miniflux(const string &url, const string &token) : _url(url), _token(t
 
 vector<entry> Miniflux::getEntries(const string &filter)
 {
-    nlohmann::json j = get("/v1/entries?" + filter);
+    //default limit is 100, therefore set limit here to more 
+    //TODO make filter variable
+    nlohmann::json j = get("/v1/entries?" + filter + "&limit=1000");
 
     vector<entry> tempItems;
 
-    if (j.empty())
+    for (const auto &element : j["entries"].items())
     {
-        //TODO ERROR
-    }
+        entry temp;
 
-    for (auto &element : j["entries"].items())
-    {
-        //TODO test if is null
-        //if(element.value()["content"].empty())
-        //{
-        //Log::writeLog("Empty Content on " + element.value()["title"]);
-        //}
-        //download also feed info
-        tempItems.push_back({element.value()["id"],
-                             //element.value()["feed_id"],
-                             element.value()["status"], //read unread
-                             element.value()["title"],
-                             element.value()["url"],
-                             element.value()["comments_url"],
-                             //element.value()["published_at"],
-                             element.value()["content"],
-                             element.value()["starred"],
-                             element.value()["reading_time"]});
+        if (element.value()["id"].is_number())
+            temp.id = element.value()["id"];
+        if (element.value()["status"].is_string())
+            temp.status = element.value()["status"];
+        if (element.value()["title"].is_string())
+            temp.title = element.value()["title"];
+        if (element.value()["url"].is_string())
+            temp.url = element.value()["url"];
+        if (element.value()["comments_url"].is_string())
+            temp.comments_url = element.value()["comments_url"];
+        if (element.value()["content"].is_string())
+            temp.content = element.value()["content"];
+        if (element.value()["starred"].is_boolean())
+            temp.starred = element.value()["starred"];
+        if (element.value()["reading_time"].is_number())
+            temp.reading_time = element.value()["reading_time"];
+
+        tempItems.push_back(temp);
     }
-    //TODO where to handle this case?
-    //if (tempItems.empty())
-    //    throw std::runtime_error("Error"); //TODO catch
     return tempItems;
 }
 
-//TODO return bitmap
-//vector<entry> Miniflux::getFeedIcon(const string &feedID)
-//{
-//    nlohmann::json j = get("/v1/feeds"+ feedID + "/icon");
+feedIcon Miniflux::getFeedIcon(int feedID)
+{
 
-//{
-//"id": 262,
-//"data": "image/png;base64,iVBORw0KGgoAAA....",
-//"mime_type": "image/png"
-//}
+    nlohmann::json j = get("/v1/feeds" + std::to_string(feedID) + "/icon");
 
-//returns 404 if no icon exists
+    feedIcon temp;
 
-//    return {};        //TODO test if is null
+    if (j["id"].is_number())
+        temp.id = j["id"];
+    if (j["data"].is_string())
+        temp.data = j["data"];
+    if (j["mime_type"].is_string())
+        temp.mime_type = j["mime_type"];
 
-//}
+    //save to storage and update if not exist
 
-//updateFeed();
-//updateEntries();
+    return temp;
+}
 
-// TODO MAKE for put
+bool Miniflux::refreshAllFeeds()
+{
+    return put("/v1/feeds/refresh", "");
+}
 
 bool Miniflux::markUserEntriesAsRead(int userID)
 {
-    string url = _url + "/v1/users/" + std::to_string(userID) + "/mark-all-as-read";
-    Log::writeLog(url);
+    return put("/v1/users/" + std::to_string(userID) + "/mark-all-as-read", "");
+}
 
-    string readBuffer;
-    CURLcode res;
-    CURL *curl = curl_easy_init();
-
-    if (curl)
-    {
-        //TODO put header?
-        struct curl_slist *headers = NULL;
-        headers = curl_slist_append(headers, ("X-Auth-Token: " + _token).c_str());
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        //curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-        res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-
-        //TODO in other class
-        if (res == CURLE_OK)
-        {
-            long response_code;
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-
-            switch (response_code)
-            {
-            case 204:
-                return true;
-            default:
-                throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
-            }
-        }
-        else
-        {
-            throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
-        }
-    }
+bool Miniflux::updateEntries(const vector<entry> &entrys)
+{
+    //TODO only can change status read /unread...
+    //string data = "{\"entry_ids\": [6655, 6646], \"status\": \"unread\"}"; //\"starred\": \"true\"}";
+    
+    //return put("/v1/entries/", data);
     return false;
 }
 
-bool Miniflux::updateEntries(const vector<entry> &entrys) //todo add actions?
+bool Miniflux::put(const std::string &apiEndpoint, const string &data)
 {
-    string url = _url + "/v1/entries";
+    string url = _url + apiEndpoint;
     Log::writeLog(url);
 
-    string readBuffer;
     CURLcode res;
     CURL *curl = curl_easy_init();
 
-    struct WriteThis wt;
-
-    //only can change status read /unread...
-    string data = "{\"entry_ids\": [6655, 6646], \"status\": \"unread\"}"; //\"starred\": \"true\"}";
-
     if (curl)
     {
-        //TODO put header?
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, ("X-Auth-Token: " + _token).c_str());
         headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -148,25 +112,21 @@ bool Miniflux::updateEntries(const vector<entry> &entrys) //todo add actions?
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         //curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
-        //curl_easy_setopt(curl, CURLOPT_READDATA, data.c_str());
-        //curl_easy_setopt(curl, CURLOPT_READFUNCTION, Util::read_callback);
-        //curl_easy_setopt(curl, CURLOPT_READDATA, &wt);
+        if (!data.empty())
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
         res = curl_easy_perform(curl);
 
         curl_easy_cleanup(curl);
 
-        //TODO in other class
         if (res == CURLE_OK)
         {
             long response_code;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-
-            Log::writeLog("test3");
             switch (response_code)
             {
             case 204:
                 return true;
+                break;
             default:
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
             }
@@ -181,8 +141,6 @@ bool Miniflux::updateEntries(const vector<entry> &entrys) //todo add actions?
 
 nlohmann::json Miniflux::get(const string &apiEndpoint)
 {
-
-    //TODO test if url and token are empty
 
     string url = _url + apiEndpoint;
     Log::writeLog(url);
@@ -204,13 +162,11 @@ nlohmann::json Miniflux::get(const string &apiEndpoint)
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
 
-        //TODO in other class
         if (res == CURLE_OK)
         {
             long response_code;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
 
-            //TODO catch further responses
             switch (response_code)
             {
             case 200:
