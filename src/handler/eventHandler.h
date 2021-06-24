@@ -14,6 +14,7 @@
 #include "miniflux.h"
 #include "minifluxView.h"
 #include "util.h"
+#include "hackernews.h"
 #include "hnCommentView.h"
 
 #include <memory>
@@ -23,6 +24,8 @@
 const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/miniflux";
 const std::string CONFIG_PATH = CONFIG_FOLDER + "/miniflux.cfg";
 const std::string ARTICLE_FOLDER = "/mnt/ext1/miniflux";
+const std::string IMAGE_FOLDER = "/mnt/ext1/miniflux/img";
+
 
 class EventHandler
 {
@@ -53,7 +56,7 @@ private:
     std::vector<hnItem> _hnItems;
     std::vector<entry> _entries;
     int _minifluxViewShownPage = 1;
-    std::map<int,int> _hnShownPage;
+    std::map<int, int> _hnShownPage;
 
     /**
         * Function needed to call C function, redirects to real function
@@ -103,7 +106,7 @@ private:
         * @return int returns if the event was handled
         */
     int keyHandler(const int type, const int par1, const int par2);
-    
+
     /**
      * 
      * Called by the threads and writes items to _hnitems
@@ -118,7 +121,6 @@ private:
      * 
      */
     void drawMiniflux(int page = 1);
-
 
     /**
      * 
