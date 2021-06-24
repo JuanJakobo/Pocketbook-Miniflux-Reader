@@ -15,9 +15,6 @@ using std::string;
 
 MainMenu::MainMenu(const string &name)
 {
-
-    //TODO --> filter here !
-    //Define panel size
     _panelMenuHeight = ScreenHeight() / 18;
     _panelMenuBeginY = 0;
     _mainMenuWidth = ScreenWidth() / 3;
@@ -43,9 +40,11 @@ MainMenu::~MainMenu()
     CloseFont(_menuFont);
     free(_menu);
     free(_info);
+    free(_download);
     free(_reloadFeed);
     free(_showStarred);
     free(_markRead);
+    free(_minifluxOverview);
     free(_exit);
 }
 
@@ -55,16 +54,18 @@ void MainMenu::panelHandlerStatic()
     SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
 }
 
-int MainMenu::createMenu(const iv_menuhandler &handler)
+int MainMenu::createMenu(bool mainView, const iv_menuhandler &handler)
 {
     imenu mainMenu[] =
         {
             {ITEM_HEADER, 0, _menu, NULL},
             {ITEM_ACTIVE, 101, _info, NULL},
-            {ITEM_ACTIVE, 102, _reloadFeed, NULL},
-            {ITEM_ACTIVE, 103, _showStarred, NULL},
-            {ITEM_ACTIVE, 104, _markRead, NULL},
-            {ITEM_ACTIVE, 105, _exit, NULL},
+            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _download, NULL},
+            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _reloadFeed, NULL},
+            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 104, _showStarred, NULL},
+            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 105, _markRead, NULL},
+            {mainView ? (short)ITEM_HIDDEN : (short)ITEM_ACTIVE, 106, _minifluxOverview, NULL},
+            {ITEM_ACTIVE, 107, _exit, NULL},
             {0, 0, NULL, NULL}};
 
     OpenMenu(mainMenu, 0, _panelMenuBeginX, _panelMenuBeginY, handler);

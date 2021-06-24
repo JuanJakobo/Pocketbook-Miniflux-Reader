@@ -222,7 +222,11 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         //menu is clicked
         if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
         {
-            return _menu.createMenu(EventHandler::mainMenuHandlerStatic);
+            auto mainView = true;
+            if (_hnCommentView != nullptr)
+                mainView = false;
+
+            return _menu.createMenu(mainView, EventHandler::mainMenuHandlerStatic);
         }
         else if (_minifluxView != nullptr)
         {
