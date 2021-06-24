@@ -14,14 +14,22 @@
 struct hnItem
 {
   int id;
-  bool deleted;
-  std::string by; // The username of the item's author
-  //time;
+  std::string by; 
+  int time; //unix timestamp
   std::string text;
   int parent = 0;
   std::vector<int> kids;
   int score;
   std::string title;
   int descendants = 0;
+};
+
+struct hnUser
+{
+  std::string id;
+  std::string about;
+  int created; //unix timestamp
+  int karma;
+  std::vector<int> submitted;
 };
 #endif
