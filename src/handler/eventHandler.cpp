@@ -247,8 +247,20 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         }
         else if (_hnCommentView != nullptr)
         {
-            //TODO show user id etc here
-            Message(1, "test", "User information", 1000);
+            int clickedItemIDHN = _hnCommentView->listClicked(par1, par2);
+
+            if (clickedItemIDHN != -1)
+            {
+                _hnCommentView->invertEntryColor(clickedItemIDHN);
+                Util::connectToNetwork();
+                hnUser user = Hackernews::getUser(_hnCommentView->getEntry(clickedItemIDHN)->by);
+                string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) + "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
+                DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
+                CloseDialog();
+                _hnCommentView->invertEntryColor(clickedItemIDHN);
+                //TODO pointerup is called after...
+                return 1;
+            }
         }
     }
     else if (type == EVT_POINTERUP)
