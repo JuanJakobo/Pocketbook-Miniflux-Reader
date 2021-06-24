@@ -45,6 +45,13 @@ public:
 
     static std::string getData(const std::string &url);
 
+    /**
+    * Opens a webpage in a browser 
+    * 
+    * @param url webpage address that shall be opened
+    */
+    static void openInBrowser(const std::string &url);
+
 private:
     Util() {}
 };

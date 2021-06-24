@@ -13,7 +13,6 @@
 
 using std::string;
 
-
 size_t Util::writeCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     ((string *)userp)->append((char *)contents, size * nmemb);
@@ -38,7 +37,7 @@ void Util::connectToNetwork()
     int result = NetConnect2(network_name, 1);
     if (result != 0)
     {
-        throw "Could not connect to internet."; 
+        throw "Could not connect to internet.";
     }
 
     netinfo = NetInfo();
@@ -97,3 +96,19 @@ string Util::getData(const string &url)
     return {};
 }
 
+void Util::openInBrowser(const string &url)
+{
+    //TODO use browser --> in child??
+    //string cmd = "exec /ebrmain/bin/webbrowser.sh www.google.de";
+    //string cmd = "/ebrmain/bin/browser.app \"" + _minifluxView->getEntry(_tempItemID)->url + "\"";
+    ///ebrmain/bin/webbrowser.sh "https://insideevs.com/news/514727/tesla-towing-70mph-fast-charging/"
+
+    string cmd = "/ebrmain/bin/webbrowser.sh \"google.de\"";
+
+    cmd = "/ebrmain/bin/browser.app \"google.de\"";
+
+    //string cmd = "/ebrmain/bin/webbrowser.sh \"" + url + "\"";
+
+    system(cmd.c_str());
+    //execlp(cmd.c_str(), cmd.c_str(), (char *)NULL);
+}
