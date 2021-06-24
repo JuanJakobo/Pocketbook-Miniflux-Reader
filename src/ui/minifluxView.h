@@ -10,7 +10,6 @@
 #define MINIFLUXVIEW
 
 #include "listView.h"
-#include "model.h"
 
 #include <vector>
 #include <memory> 
