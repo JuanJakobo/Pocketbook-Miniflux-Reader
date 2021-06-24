@@ -31,9 +31,10 @@ public:
     /**
         * Shows the menu on the screen, lets the user choose menu options and then redirects the handler to the caller
         * 
+        * @param mainView if true mainView will be shown
         * @return int returns if the event was handled
         */
-    int createMenu(const iv_menuhandler &handler);
+    int createMenu(bool mainView, const iv_menuhandler &handler);
 
 private:
     ifont *_menuFont;
@@ -49,9 +50,11 @@ private:
 
     char *_menu = strdup("Menu");
     char *_info = strdup("Info");
-    char *_reloadFeed = strdup("Reload feed");
+    char *_download = strdup("Download");
+    char *_reloadFeed = strdup("Reload unread");
     char *_showStarred = strdup("Show starred");
     char *_markRead = strdup("Mark all as read");
+    char *_minifluxOverview = strdup("Go back to overview");
     char *_exit = strdup("Close App");
 
     /**
