@@ -232,9 +232,10 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         if (_minifluxView != nullptr)
         {
             _tempItemID = _minifluxView->listClicked(par1, par2);
-            _minifluxView->invertEntryColor(_tempItemID);
             if (_tempItemID != -1)
             {
+                _minifluxView->invertEntryColor(_tempItemID);
+
                 bool comments = false;
                 if (_minifluxView->getEntry(_tempItemID)->comments_url.find("news.ycombinator.com") != std::string::npos)
                     comments = true;
@@ -270,12 +271,9 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 _minifluxView->invertEntryColor(_tempItemID);
                 ShowHourglassForce();
 
-                if (_minifluxView->getEntry(_tempItemID)->content.length() < 12)
+                if (_minifluxView->getEntry(_tempItemID)->reading_time == 0 || _minifluxView->getEntry(_tempItemID)->content.empty())
                 {
-                    //TODO use browser --> in child??
-                    //string cmd = "exec /ebrmain/bin/webbrowser.sh www.google.de";
-                    string cmd = "/ebrmain/bin/browser.app \"https://www.google.de\"";
-                    execlp(cmd.c_str(), cmd.c_str(), (char *)NULL);
+                    Util::openInBrowser(_minifluxView->getEntry(_tempItemID)->url);
                 }
                 else
                 {
