@@ -95,36 +95,28 @@ void EventHandler::mainMenuHandler(const int index)
         Message(ICON_INFORMATION, "Info", "Info", 1200);
         break;
     }
-    //TODO Only show if in minifluxview
-    //Reload feed
+    //download
     case 102:
     {
-        //TODO and reload feed
+        Message(ICON_INFORMATION, "Info", "Download", 1200);
+    }
+    //show unread
+    case 103:
+    {
         ShowHourglassForce();
         _entries.clear();
         _entries = _miniflux->getEntries(Util::readFromConfig("filter"));
         drawMiniflux();
         break;
     }
-    //TODO-->  switches to show unread if that was the last one 
-    //show starred 
-    case 103:
-    {
-        ShowHourglassForce();
-        _entries.clear();
-        _entries = _miniflux->getEntries("starred=true&direction=desc");
-        drawMiniflux();
-        break;
-    }
-    //Mark all as read
+    //show starred
     case 104:
     {
         ShowHourglassForce();
         try
         {
-            if (_miniflux->markUserEntriesAsRead(1))
-                Log::writeLog("sucess");
-            _entries = _miniflux->getEntries(Util::readFromConfig("filter"));
+            _entries.clear();
+            _entries = _miniflux->getEntries("starred=true&direction=desc");
             drawMiniflux();
         }
         catch (const std::exception &e)
@@ -133,8 +125,33 @@ void EventHandler::mainMenuHandler(const int index)
         }
         break;
     }
-    //Exi1
+    //Mark all as read
     case 105:
+    {
+        ShowHourglassForce();
+        try
+        {
+            if (_miniflux->markUserEntriesAsRead(1))
+                Log::writeLog("sucess");
+            _entries = _miniflux->getEntries("status=unread&direction=desc");
+            drawMiniflux();
+        }
+        catch (const std::exception &e)
+        {
+            Log::writeLog(e.what());
+        }
+        break;
+    }
+    //Go back to miniflux overview
+    case 106:
+    {
+        _hnCommentView.reset();
+        drawMiniflux(_minifluxViewShownPage);
+        break;
+    }
+    //TODO delete articles
+    //Exit
+    case 107:
         CloseApp();
         break;
     default:
@@ -151,24 +168,25 @@ void EventHandler::contextMenuHandler(const int index)
 {
     switch (index)
     {
-    //TODO star is not implemented in API 
     //Star
     case 101:
     {
+        //TODO star is not implemented in API
+        /*
         try
         {
             vector<entry> star;
 
-            //TODO CHANGE
             star.push_back(*_minifluxView->getEntry(_tempItemID));
             _miniflux->updateEntries(star);
+            redraw entry AND get the new information from cloud...
         }
         catch (const std::exception &e)
         {
             Log::writeLog(e.what());
-        }
-        //TODO redraw entry AND get the new information from cloud...
-        _minifluxView->invertEntryColor(_tempItemID);
+        }       
+        */
+        Message(ICON_INFORMATION, "Not implemented", "currently there is no API available to mark items starred.", 1200);
 
         break;
     }
@@ -195,10 +213,12 @@ void EventHandler::contextMenuHandler(const int index)
     //Browser
     case 103:
     {
+        Util::openInBrowser(_minifluxView->getEntry(_tempItemID)->url);
         break;
     }
     default:
     {
+        _minifluxView->invertEntryColor(_tempItemID);
         break;
     }
         _contextMenu.reset();
