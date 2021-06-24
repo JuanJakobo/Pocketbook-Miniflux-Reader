@@ -9,6 +9,7 @@
 #include "hackernews.h"
 #include "item.h"
 #include "util.h"
+#include "log.h"
 
 #include <string>
 #include <curl/curl.h>
@@ -16,38 +17,67 @@
 
 using std::string;
 
-Hackernews::Hackernews()
-{
-}
-
 hnItem Hackernews::getItem(int itemID)
 {
+
     nlohmann::json j = get("item/" + std::to_string(itemID) + ".json");
-    //TODO check if exists?
-
-    //TODO  if dead --> then is flagged
-    hnItem a = hnItem();
+    Log::writeLog("got item " + std::to_string(itemID));
+    hnItem item = hnItem();
     if (j["by"].is_string())
-        a.by = j["by"];
+        item.by = j["by"];
     if (j["id"].is_number())
-        a.id = j["id"];
-    if (j["deleted"].is_boolean())
-        a.deleted = j["deleted"];
-    //TODO here return error, as is deleted! --> has a deleted comment childs?
+        item.id = j["id"];
+    if (j["time"].is_number())
+        item.time = j["time"];
     if (j["descendants"].is_number())
-        a.descendants = j["descendants"];
+        item.descendants = j["descendants"];
     if (j["parent"].is_number())
-        a.parent = j["parent"];
+        item.parent = j["parent"];
     if (j["score"].is_number())
-        a.score = j["score"];
+        item.score = j["score"];
     if (j["kids"].is_array())
-        a.kids = j["kids"].get<std::vector<int>>();
-    if (j["text"].is_string())
-        a.text = j["text"];
-    if (j["title"].is_string())
-        a.title = j["title"];
+        item.kids = j["kids"].get<std::vector<int>>();
+    if (j["dead"].is_boolean() || j["deleted"].is_boolean())
+    {
+        if (j["dead"].is_boolean())
+        {
+            item.text = "[flagged]";
+        }
+        else if (j["deleted"].is_boolean())
+        {
+            item.text = "[deleted]";
+        }
+        Log::writeLog("return item " + std::to_string(item.id));
 
-    return a;
+        return item;
+    }
+    if (j["text"].is_string())
+        item.text = j["text"];
+
+    if (j["title"].is_string())
+        item.title = j["title"];
+    Log::writeLog("return item " + std::to_string(item.id));
+    return item;
+}
+
+hnUser Hackernews::getUser(const string &username)
+{
+    nlohmann::json j = get("user/" + username + ".json");
+
+    hnUser user = hnUser();
+
+    if (j["id"].is_string())
+        user.id = j["id"];
+    if (j["about"].is_string())
+        user.about = j["about"];
+    if (j["created"].is_number())
+        user.created = j["created"];
+    if (j["karma"].is_number())
+        user.karma = j["karma"];
+    if (j["submitted"].is_array())
+        user.submitted = j["submitted"].get<std::vector<int>>();
+
+    return user;
 }
 
 nlohmann::json Hackernews::get(const string &apiEndpoint)
@@ -58,6 +88,8 @@ nlohmann::json Hackernews::get(const string &apiEndpoint)
     string readBuffer;
     CURLcode res;
     CURL *curl = curl_easy_init();
+
+    Log::writeLog("start curl for " + apiEndpoint);
 
     if (curl)
     {
@@ -79,13 +111,20 @@ nlohmann::json Hackernews::get(const string &apiEndpoint)
             switch (response_code)
             {
             case 200:
+            {
+                Log::writeLog("end curl for " + apiEndpoint);
                 return nlohmann::json::parse(readBuffer);
+            }
             default:
+            {
+                Log::writeLog("curl error " + std::to_string(response_code));
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
+            }
             }
         }
         else
         {
+            Log::writeLog("curl error " + std::to_string(res));
             throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
         }
     }
