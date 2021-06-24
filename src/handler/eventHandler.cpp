@@ -41,6 +41,9 @@ EventHandler::EventHandler()
         if (iv_access(ARTICLE_FOLDER.c_str(), W_OK) != 0)
             iv_mkdir(ARTICLE_FOLDER.c_str(), 0777);
 
+        if (iv_access(IMAGE_FOLDER.c_str(), W_OK) != 0)
+            iv_mkdir(IMAGE_FOLDER.c_str(), 0777);
+
         try
         {
 
@@ -246,27 +249,100 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
-                    string path = ARTICLE_FOLDER + "/" + std::to_string(_minifluxView->getEntry(_tempItemID)->id) + ".html";
+
+                    string title = _minifluxView->getEntry(_tempItemID)->title;
+
+                    //open the comment view directly if is ask HN
+                    if (title.find("Ask HN:") != std::string::npos)
+                    {
+                        auto parentCommentItemID = _minifluxView->getEntry(_tempItemID)->comments_url;
+
+                        auto end = parentCommentItemID.find("id=");
+                        parentCommentItemID = parentCommentItemID.substr(end + 3);
+                        _minifluxViewShownPage = _minifluxView->getShownPage();
+                        drawHN(atoi(parentCommentItemID.c_str()));
+                        return 1;
+                    }
+
+                    //remove chars that are not allowed in filenames
+                    const std::string forbiddenInFiles = "<>\\/:?\"|";
+
+                    std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c) { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
+
+                    string path = ARTICLE_FOLDER + "/" + title + ".html";
                     if (iv_access(path.c_str(), W_OK) != 0)
                     {
-                        //TODO download images and set their path to local
+                        string content = _minifluxView->getEntry(_tempItemID)->content;
+                        string result = content;
+                        try
+                        {
+                            while (content.length() > 0)
+                            {
+                                auto found = content.find("<img");
+
+                                if (found != std::string::npos)
+                                {
+                                    auto imageFolder = "img/" + title;
+
+                                    if (iv_access((ARTICLE_FOLDER + "/" + imageFolder).c_str(), W_OK) != 0)
+                                        iv_mkdir((ARTICLE_FOLDER + "/" + imageFolder).c_str(), 0777);
+
+                                    auto imagePath = imageFolder + "/" + std::to_string(found);
+
+                                    if (iv_access((ARTICLE_FOLDER + "/" + imagePath).c_str(), W_OK) != 0)
+                                    {
+                                        content = content.substr(found);
+                                        auto src = content.find("src=\"");
+                                        content = content.substr(src + 5);
+                                        auto end = content.find("\"");
+                                        auto imageURL = content.substr(0, end);
+
+                                        Log::writeLog("addresse" + imageURL);
+
+                                        std::ofstream img;
+                                        img.open(ARTICLE_FOLDER + "/" + imagePath);
+                                        img << Util::getData(imageURL);
+                                        img.close();
+
+                                        auto toReplace = result.find(imageURL);
+
+                                        if (toReplace != std::string::npos)
+                                        {
+                                            result.replace(toReplace, imageURL.length(), imagePath);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Log::writeLog("Image does already exist.");
+                                    }
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        catch (const std::exception &e)
+                        {
+                            Message(ICON_INFORMATION, "Information", e.what(), 1200);
+                            Log::writeLog(e.what());
+                        }
+
                         std::ofstream htmlfile;
                         htmlfile.open(path);
-                        htmlfile << _minifluxView->getEntry(_tempItemID)->content;
+                        htmlfile << result;
                         htmlfile.close();
-                        Log::writeLog(path);
                     }
 
                     OpenBook(path.c_str(), "", 0);
-                }
 
-                _minifluxView->invertEntryColor(_tempItemID);
+                    _minifluxView->invertEntryColor(_tempItemID);
+                }
             }
             return 1;
         }
         else if (_hnCommentView != nullptr)
         {
-            //TODO rename and miniflux is in object and here not, why?
             int clickedItemIDHN = _hnCommentView->listClicked(par1, par2);
 
             if (clickedItemIDHN != -1)
@@ -282,7 +358,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     }
                     else
                     {
-                        //TODO need try and catch?
                         try
                         {
                             _hnCommentView.reset();
