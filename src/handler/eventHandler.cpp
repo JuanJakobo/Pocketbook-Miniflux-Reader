@@ -419,7 +419,6 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
                 else
                 {
                     _hnCommentView.reset();
-                    //TODO go to correct page... --> dont reload and keep entries here? --> reload in menu.
                     drawMiniflux(_minifluxViewShownPage);
                 }
                 return 1;
@@ -442,30 +441,14 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     return 0;
 }
 
-void *EventHandler::itemToEntries(void *arg)
-{
-    //TODO make static? and just once...
-    auto hn = Hackernews();
-    hnItem temp = hn.getItem(*(int *)arg);
-
-    pthread_mutex_lock(&mutexEntries);
-    _eventHandlerStatic->_hnItems.push_back(temp);
-    pthread_mutex_unlock(&mutexEntries);
-
-    return NULL;
-}
-
-//TODO TEMP
-
 void EventHandler::drawMiniflux(int page)
 {
 
     if (_entries.size() > 0)
     {
+        Log::writeLog(std::to_string(_entries.size()));
         _minifluxView = std::unique_ptr<MinifluxView>(new MinifluxView(_menu.getContentRect(), _entries, page));
         _hnCommentView.reset();
-        //TODO is necessary during runtime?
-        //_hnItems.clear();
     }
     else
     {
@@ -477,10 +460,21 @@ void EventHandler::drawMiniflux(int page)
     FullUpdate();
 }
 
+void *EventHandler::itemToEntries(void *arg)
+{
+    hnItem temp = Hackernews::getItem(*(int *)arg);
+
+    Log::writeLog("Got " + std::to_string(temp.id));
+
+    pthread_mutex_lock(&mutexEntries);
+    _eventHandlerStatic->_hnItems.push_back(temp);
+    pthread_mutex_unlock(&mutexEntries);
+
+    return NULL;
+}
+
 void EventHandler::drawHN(int itemID)
 {
-    auto hn = Hackernews();
-
     auto found = false;
 
     hnItem parentItem;
@@ -500,31 +494,25 @@ void EventHandler::drawHN(int itemID)
     if (!found)
     {
         Util::connectToNetwork();
-        parentItem = hn.getItem(itemID);
+        parentItem = Hackernews::getItem(itemID);
     }
-
-    Log::writeLog("got parent");
 
     if (parentItem.kids.size() == 0)
     {
         Message(ICON_INFORMATION, "Info", "This Comment has no childs.", 1000);
-        //TODO return and invert color
-        //what happens if is parent child --> test
+        _minifluxView->invertEntryColor(_tempItemID);
     }
     else
     {
-        //when item is child make text ...
         if (parentItem.parent > 0 && !parentItem.text.empty())
             parentItem.text = "...";
 
         _hnItems.push_back(parentItem);
         currentHnComments.push_back(_hnItems.back());
 
-        //test if items have already been downloaded
         vector<int> tosearch;
 
-        //TODO integrate into other function --> call threads
-
+        //test if items have already been downloaded
         for (size_t i = 0; i < parentItem.kids.size(); ++i)
         {
             found = false;
@@ -533,7 +521,6 @@ void EventHandler::drawHN(int itemID)
             {
                 if (parentItem.kids.at(i) == _hnItems.at(j).id)
                 {
-                    //currentHnComments.push_back(_hnItems.at(j));
                     found = true;
                     break;
                 }
@@ -543,37 +530,51 @@ void EventHandler::drawHN(int itemID)
                 tosearch.push_back(parentItem.kids.at(i));
         }
 
-        Log::writeLog("getting childs");
-        Log::writeLog(std::to_string(tosearch.size()));
         //Download comments
-        auto threadCount = tosearch.size();
-        //TODO get thread max!
-        if (threadCount > 20)
-            threadCount = 20;
-        pthread_t threads[threadCount];
         mutexEntries = PTHREAD_MUTEX_INITIALIZER;
         int count;
 
         Util::connectToNetwork();
 
-        for (count = 0; count < threadCount; ++count)
-        {
-            if (pthread_create(&threads[count], NULL, itemToEntries, &tosearch.at(count)) != 0)
-            {
-                Log::writeLog("could not create thread");
-                break;
-            }
-        }
+        auto counter = 0;
 
-        for (size_t i = 0; i < count; ++i)
+        //count of threads that can be handled
+        auto threadsPerSession = 4;
+
+        while (counter < tosearch.size())
         {
-            if (pthread_join(threads[i], NULL) != 0)
-                Log::writeLog("cannot join thread" + std::to_string(i));
+            if (counter % threadsPerSession == 0 || counter < threadsPerSession)
+            {
+                if ((tosearch.size() - counter) < threadsPerSession)
+                    threadsPerSession = tosearch.size() - counter;
+
+                pthread_t threads[threadsPerSession];
+
+                for (count = 0; count < threadsPerSession; ++count)
+                {
+                    if (pthread_create(&threads[count], NULL, itemToEntries, &tosearch.at(counter)) != 0)
+                    {
+                        Log::writeLog("could not create thread");
+                        break;
+                    }
+                    counter++;
+                }
+
+                for (size_t i = 0; i < count; ++i)
+                {
+                    if (pthread_join(threads[i], NULL) != 0)
+                    {
+                        Log::writeLog("cannot join thread" + std::to_string(i));
+                    }
+                }
+            }
         }
 
         Log::writeLog("got childs");
 
         pthread_mutex_destroy(&mutexEntries);
+
+        //TODO content modificaion
 
         //sort items in the correct order
         for (size_t i = 0; i < parentItem.kids.size(); ++i)
@@ -597,7 +598,6 @@ void EventHandler::drawHN(int itemID)
 
         int page;
 
-        //TODO how do go forward --> then this will still be there?
         if (current != _hnShownPage.end())
         {
             page = current->second;
