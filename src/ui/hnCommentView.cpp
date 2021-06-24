@@ -38,15 +38,21 @@ HnCommentView::HnCommentView(const irect *contentRect, const std::vector<hnItem>
 
     while (i < entrycount)
     {
+
+        entrySize = 0;
+
         if (!_readerentries.at(i).title.empty())
         {
             //uses the font that is currently set
-            entrySize = TextRectHeight(contentRect->w, _readerentries.at(i).title.c_str(), 0) + _entryFontHeight * 4;
+            entrySize = entrySize + TextRectHeight(contentRect->w, _readerentries.at(i).title.c_str(), 0);
         }
-        else if (!_readerentries.at(i).text.empty())
+
+        if (!_readerentries.at(i).text.empty())
         {
-            entrySize = TextRectHeight(contentRect->w, _readerentries.at(i).text.c_str(), 0) + _entryFontHeight * 4;
+            entrySize = entrySize + TextRectHeight(contentRect->w, _readerentries.at(i).text.c_str(), 0);
         }
+
+        entrySize = entrySize + 2.5 * _entryFontHeight;
 
         //TODO if content is to long for one page, cut --> also do with existing... how to handle clicks on button?
         //on page x and page y both is the same article, therefore _entries can be on two pages
