@@ -7,7 +7,6 @@
 //-------------------------------------------------------------------
 
 #include "inkview.h"
-#include "model.h"
 #include "listView.h"
 #include "listViewEntry.h"
 
