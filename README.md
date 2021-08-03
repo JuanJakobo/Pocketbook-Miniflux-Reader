@@ -1,7 +1,7 @@
-# Pocketbook Miniflux Client
+# Pocketbook Miniflux Reader
 A basic client to access an existing https://miniflux.app instance via a Pocketbook ebook-reader. 
 
-<img src="/screenshots/minifluxScreen.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/ContentView.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/HnCommentView.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/Mainmenu.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/contextMenu.bmp" width="15%" height="15%">
+<img src="/screenshots/minifluxScreen.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/ContentView.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/HnCommentView.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/mainMenu.bmp" width="15%" height="15%">&nbsp;&nbsp;<img src="/screenshots/contextMenu.bmp" width="15%" height="15%">
 
 ## Features
 
