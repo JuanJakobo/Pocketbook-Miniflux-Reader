@@ -315,65 +315,55 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     //remove chars that are not allowed in filenames
                     const std::string forbiddenInFiles = "<>\\/:?\"|";
 
-                    std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c) { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
+                    string title = _minifluxView->getCurrentEntry()->title;
+
+                    std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
+                                   { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
 
                     string path = ARTICLE_FOLDER + "/" + title + ".html";
                     if (iv_access(path.c_str(), W_OK) != 0)
                     {
-                        string content = _minifluxView->getEntry(_tempItemID)->content;
+                        string content = _minifluxView->getCurrentEntry()->content;
                         string result = content;
-                        try
+
+                        auto found = content.find("<img");
+                        auto counter = 0;
+                        while (found != std::string::npos)
                         {
-                            while (content.length() > 0)
+                            auto imageFolder = "img/" + title;
+
+                            if (iv_access((ARTICLE_FOLDER + "/" + imageFolder).c_str(), W_OK) != 0)
+                                iv_mkdir((ARTICLE_FOLDER + "/" + imageFolder).c_str(), 0777);
+
+                            auto imagePath = imageFolder + "/" + std::to_string(counter);
+
+                            content = content.substr(found);
+                            auto src = content.find("src=\"");
+                            content = content.substr(src + 5);
+                            auto end = content.find("\"");
+                            auto imageURL = content.substr(0, end);
+
+                            if (iv_access((ARTICLE_FOLDER + "/" + imagePath).c_str(), W_OK) != 0)
                             {
-                                auto found = content.find("<img");
-
-                                if (found != std::string::npos)
+                                try
                                 {
-                                    auto imageFolder = "img/" + title;
-
-                                    if (iv_access((ARTICLE_FOLDER + "/" + imageFolder).c_str(), W_OK) != 0)
-                                        iv_mkdir((ARTICLE_FOLDER + "/" + imageFolder).c_str(), 0777);
-
-                                    auto imagePath = imageFolder + "/" + std::to_string(found);
-
-                                    if (iv_access((ARTICLE_FOLDER + "/" + imagePath).c_str(), W_OK) != 0)
-                                    {
-                                        content = content.substr(found);
-                                        auto src = content.find("src=\"");
-                                        content = content.substr(src + 5);
-                                        auto end = content.find("\"");
-                                        auto imageURL = content.substr(0, end);
-
-                                        Log::writeLog("addresse" + imageURL);
-
-                                        std::ofstream img;
-                                        img.open(ARTICLE_FOLDER + "/" + imagePath);
-                                        img << Util::getData(imageURL);
-                                        img.close();
-
-                                        auto toReplace = result.find(imageURL);
-
-                                        if (toReplace != std::string::npos)
-                                        {
-                                            result.replace(toReplace, imageURL.length(), imagePath);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Log::writeLog("Image does already exist.");
-                                    }
+                                    std::ofstream img;
+                                    img.open(ARTICLE_FOLDER + "/" + imagePath);
+                                    img << Util::getData(imageURL);
+                                    img.close();
                                 }
-                                else
+                                catch (const std::exception &e)
                                 {
-                                    break;
+                                    Log::writeLogError(e.what());
                                 }
+
+                                auto toReplace = result.find(imageURL);
+
+                                if (toReplace != std::string::npos)
+                                    result.replace(toReplace, imageURL.length(), imagePath);
                             }
-                        }
-                        catch (const std::exception &e)
-                        {
-                            Message(ICON_INFORMATION, "Information", e.what(), 1200);
-                            Log::writeLog(e.what());
+                            counter++;
+                            found = content.find("<img");
                         }
 
                         std::ofstream htmlfile;
