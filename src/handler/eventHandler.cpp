@@ -495,7 +495,39 @@ void *EventHandler::getHnEntry(void *arg)
     {
         HnEntry temp = Hackernews::getEntry(*(int *)arg);
 
-    Log::writeLog("Got " + std::to_string(temp.id));
+        if (!temp.text.empty())
+        {
+
+            Util::decodeHTML(temp.text);
+            auto found = temp.text.find("<a href=\"");
+            while (found != std::string::npos)
+            {
+                auto end3 = temp.text.find("</a>");
+
+                string toFind = temp.text.substr(found, (end3 + 4) - found);
+
+                auto url = toFind.substr(9);
+
+                auto src = url.find("\"");
+
+                url = url.substr(0, src);
+
+                temp.urls.push_back(url);
+
+                auto end1 = toFind.find(">");
+                auto end2 = toFind.find("</a>");
+
+                auto imageURL = toFind.substr(end1 + 1, end2 - end1 - 1);
+
+                auto toReplace = temp.text.find(toFind);
+
+                if (toReplace != std::string::npos)
+                {
+                    temp.text.replace(toReplace, toFind.size(), imageURL);
+                }
+
+                found = temp.text.find("<a href=\"");
+            }
 
             pthread_mutex_lock(&mutexEntries);
             _eventHandlerStatic->_hnEntries.push_back(temp);
