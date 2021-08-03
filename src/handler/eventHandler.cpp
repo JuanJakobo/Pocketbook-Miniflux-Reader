@@ -547,15 +547,14 @@ void EventHandler::drawHN(int entryID)
 {
     auto found = false;
 
-    hnItem parentItem;
-    std::vector<hnItem> currentHnComments;
+    HnEntry parentItem;
+    std::vector<HnEntry> currentHnComments;
 
-    //test if is already in Database
-    for (size_t i = 0; i < _hnItems.size(); i++)
+    for (size_t i = 0; i < _hnEntries.size(); i++)
     {
-        if (_hnItems.at(i).id == itemID)
+        if (_hnEntries.at(i).id == entryID)
         {
-            parentItem = _hnItems.at(i);
+            parentItem = _hnEntries.at(i);
             found = true;
             break;
         }
@@ -585,15 +584,15 @@ void EventHandler::drawHN(int entryID)
     if (parentItem.kids.size() == 0)
     {
         Message(ICON_INFORMATION, "Info", "This Comment has no childs.", 1000);
-        _minifluxView->invertEntryColor(_tempItemID);
+        _minifluxView->invertCurrentEntryColor();
     }
     else
     {
         if (parentItem.parent > 0 && !parentItem.text.empty())
             parentItem.text = "...";
 
-        _hnItems.push_back(parentItem);
-        currentHnComments.push_back(_hnItems.back());
+        _hnEntries.push_back(parentItem);
+        currentHnComments.push_back(_hnEntries.back());
 
         vector<int> tosearch;
 
@@ -602,9 +601,9 @@ void EventHandler::drawHN(int entryID)
         {
             found = false;
 
-            for (size_t j = 0; j < _hnItems.size(); ++j)
+            for (size_t j = 0; j < _hnEntries.size(); ++j)
             {
-                if (parentItem.kids.at(i) == _hnItems.at(j).id)
+                if (parentItem.kids.at(i) == _hnEntries.at(j).id)
                 {
                     found = true;
                     break;
@@ -620,6 +619,7 @@ void EventHandler::drawHN(int entryID)
         int count;
 
         Util::connectToNetwork();
+        ShowHourglassForce();
 
         auto counter = 0;
 
@@ -637,9 +637,9 @@ void EventHandler::drawHN(int entryID)
 
                 for (count = 0; count < threadsPerSession; ++count)
                 {
-                    if (pthread_create(&threads[count], NULL, itemToEntries, &tosearch.at(counter)) != 0)
+                    if (pthread_create(&threads[count], NULL, getHnEntry, &tosearch.at(counter)) != 0)
                     {
-                        Log::writeLog("could not create thread");
+                        Log::writeLogError("could not create thread");
                         break;
                     }
                     counter++;
@@ -649,44 +649,38 @@ void EventHandler::drawHN(int entryID)
                 {
                     if (pthread_join(threads[i], NULL) != 0)
                     {
-                        Log::writeLog("cannot join thread" + std::to_string(i));
+                        Log::writeLogError("cannot join thread" + std::to_string(i));
                     }
                 }
             }
         }
 
-        Log::writeLog("got childs");
-
         pthread_mutex_destroy(&mutexEntries);
-
-        //TODO content modificaion
 
         //sort items in the correct order
         for (size_t i = 0; i < parentItem.kids.size(); ++i)
         {
-            for (size_t j = 0; j < _hnItems.size(); ++j)
+            for (size_t j = 0; j < _hnEntries.size(); ++j)
             {
-                if (parentItem.kids.at(i) == _hnItems.at(j).id)
+                if (parentItem.kids.at(i) == _hnEntries.at(j).id)
                 {
-                    currentHnComments.push_back(_hnItems.at(j));
+                    currentHnComments.push_back(_hnEntries.at(j));
                     break;
                 }
             }
         }
 
-        Log::writeLog("start drawing");
-
         if (_hnCommentView != nullptr)
             _hnShownPage.insert(std::make_pair(_hnCommentView->getEntry(0)->id, _hnCommentView->getShownPage()));
 
-        auto current = _hnShownPage.find(itemID);
+        auto current = _hnShownPage.find(entryID);
 
         int page;
 
         if (current != _hnShownPage.end())
         {
             page = current->second;
-            _hnShownPage.erase(itemID);
+            _hnShownPage.erase(entryID);
         }
         else
         {
@@ -696,6 +690,7 @@ void EventHandler::drawHN(int entryID)
         _minifluxView.reset();
         _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
 
+        _currentView = Views::HNCOMMENTSVIEW;
         PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
     }
 }
