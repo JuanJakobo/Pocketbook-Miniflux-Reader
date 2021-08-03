@@ -493,6 +493,7 @@ void EventHandler::drawMiniflux(const string &filter, int page)
         DrawTextRect2(_menu.getContentRect(), "no entries to show");
     }
 
+    _currentView = Views::MFVIEW;
     FullUpdate();
 }
 
