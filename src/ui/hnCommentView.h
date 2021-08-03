@@ -10,12 +10,13 @@
 #define HNCOMMENTVIEW
 
 #include "listView.h"
-#include "item.h"
+#include "hnCommentViewEntry.h"
+#include "hackernewsModel.h"
 
 #include <memory>
 #include <vector>
 
-class HnCommentView : public ListView
+class HnCommentView final : public ListView
 {
 public:
     /**
@@ -25,7 +26,7 @@ public:
         * @param Items items that shall be shown in the listview
         * @param page page that is shown, default is 1
         */
-    HnCommentView(const irect *contentRect, const std::vector<hnItem> &readerentries, int page = 1);
+    HnCommentView(const irect *contentRect, const std::vector<HnEntry> &readerentries, int page = 1);
 
     hnItem *getEntry(int itemID) { return &_readerentries.at(itemID); };
 

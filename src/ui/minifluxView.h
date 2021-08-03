@@ -9,14 +9,14 @@
 #ifndef MINIFLUXVIEW
 #define MINIFLUXVIEW
 
+#include "minifluxModel.h"
 #include "listView.h"
+#include "minifluxViewEntry.h"
 
 #include <vector>
-#include <memory> 
+#include <memory>
 
-const int ITEMS_PER_PAGE = 7;
-
-class MinifluxView : public ListView
+class MinifluxView final : public ListView
 {
 public:
     /**
@@ -24,9 +24,10 @@ public:
         * 
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
+        * @param page page that is shown, default is 1
         */
-    MinifluxView(const irect *contentRect, const std::vector<entry> &readerentries, int page = 1);
-    
+    MinifluxView(const irect *contentRect, const std::vector<MfEntry> &mfEntries, int page = 1);
+
     //TODO return smart pointer
     entry *getEntry(int itemID) { return &_readerentries.at(itemID); };
 

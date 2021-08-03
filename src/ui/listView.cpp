@@ -16,10 +16,25 @@
 using std::string;
 using std::vector;
 
-
-ListView::ListView(const irect *contentRect, int page) : _contentRect(contentRect), _shownPage(page) 
+ListView::ListView(const irect *contentRect, int page) : _contentRect(contentRect), _shownPage(page)
 {
     _entries.clear();
+
+    _footerHeight = _contentRect->h / 10;
+    _footerFontHeight = 0.3 * _footerHeight;
+    _entryFontHeight = 30; //0.2 * _footerFontHeight;//entrySize; //TODO how much? 
+
+    _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
+    _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);
+    _entryFontBold = OpenFont("LiberationMono-Bold", _entryFontHeight, 1);
+
+    SetFont(_entryFont, BLACK);
+
+    _pageIcon = iRect(_contentRect->w - 100, _contentRect->h + _contentRect->y - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
+    _firstPageButton = iRect(_contentRect->x, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
+    _prevPageButton = iRect(_contentRect->x + 150, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
+    _nextPageButton = iRect(_contentRect->x + 300, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
+    _lastPageButton = iRect(_contentRect->x + 450, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
 }
 
 ListView::~ListView()
@@ -28,7 +43,6 @@ ListView::~ListView()
     CloseFont(_entryFontBold);
     CloseFont(_footerFont);
 }
-
 
 void ListView::draw()
 {
