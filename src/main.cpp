@@ -8,6 +8,7 @@
 
 #include "inkview.h"
 #include "eventHandler.h"
+#include "log.h"
 
 EventHandler *events = nullptr;
 /**
@@ -20,19 +21,27 @@ EventHandler *events = nullptr;
 */
 int Inkview_handler(int type, int par1, int par2)
 {
-    if (type == EVT_INIT)
+    Log::writeLogInfo(std::to_string(type));
+    switch (type)
+    {
+    case EVT_INIT:
     {
         events = new EventHandler();
         return 1;
+        break;
     }
-    else if (type == EVT_EXIT || type == EVT_HIDE)
+    case EVT_EXIT:
+    case EVT_HIDE:
     {
         delete events;
         return 1;
+        break;
     }
-    else
+    default:
     {
         return events->eventDistributor(type, par1, par2);
+        break;
+    }
     }
 
     return 0;
@@ -44,7 +53,7 @@ int main()
     SetOrientation(0);
 
     //draw startscreen
-    auto textHeight = ScreenHeight()/30;
+    auto textHeight = ScreenHeight() / 30;
     auto startscreenFont = OpenFont("LiberationMono", textHeight, FONT_BOLD);
     SetFont(startscreenFont, BLACK);
     DrawTextRect(0, (ScreenHeight() / 3) * 2, ScreenWidth(), textHeight, "Miniflux Client", ALIGN_CENTER);
