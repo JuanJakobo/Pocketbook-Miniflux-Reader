@@ -49,12 +49,12 @@ private:
     irect _contentRect;
 
     char *_menu = strdup("Menu");
-    char *_info = strdup("Info");
-    char *_download = strdup("Download");
-    char *_reloadFeed = strdup("Reload unread");
+    char *_downloadStarred = strdup("Download starred");
+    char *_showUnread = strdup("Show unread");
     char *_showStarred = strdup("Show starred");
-    char *_markRead = strdup("Mark all as read");
+    char *_markAsReadTillPage = strdup("Mark as read till page");
     char *_minifluxOverview = strdup("Go back to overview");
+    char *_info = strdup("Info");
     char *_exit = strdup("Close App");
 
     /**
