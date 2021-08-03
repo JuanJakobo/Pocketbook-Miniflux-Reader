@@ -9,6 +9,8 @@
 #include "inkview.h"
 #include "contextMenu.h"
 
+#include <string>
+
 ContextMenu::ContextMenu()
 {
 }
@@ -21,8 +23,15 @@ ContextMenu::~ContextMenu()
     free(_browser);
 }
 
-int ContextMenu::createMenu(int y, const iv_menuhandler &handler, bool comments)
+int ContextMenu::createMenu(int y, const iv_menuhandler &handler, bool comments, bool starred)
 {
+    std::string text = "Star";
+    if(starred)
+        text = "Unstar";
+
+    _star = strdup(text.c_str());
+
+
     imenu contextMenu[] =
         {
             {ITEM_HEADER, 0, _menu, NULL},

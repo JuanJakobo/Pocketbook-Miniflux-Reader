@@ -23,13 +23,15 @@ public:
         * 
         * @param y y-coordinate of the item 
         * @param handler  which action does the menu buttons start 
+        * @param comments show if comments are available
+        * @param starred hide option if is already starred
         * @return int returns if the event was handled
         */
-    int createMenu(int y, const iv_menuhandler &handler, bool comments);
+    int createMenu(int y, const iv_menuhandler &handler, bool comments, bool starred);
 
 private:
     char *_menu = strdup("Menu");
-    char *_star = strdup("Star");
+    char *_star;
     char *_comments = strdup("Comments");
     char *_browser = strdup("Browser");
 };
