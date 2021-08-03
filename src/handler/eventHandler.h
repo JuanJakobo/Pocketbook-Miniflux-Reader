@@ -29,6 +29,11 @@
 #include <map>
 #include <vector>
 
+enum Views{
+    MFVIEW,
+    HNCOMMENTSVIEW
+};
+
 const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/miniflux";
 const std::string CONFIG_PATH = CONFIG_FOLDER + "/miniflux.cfg";
 const std::string ARTICLE_FOLDER = "/mnt/ext1/miniflux";
@@ -65,6 +70,8 @@ private:
     MainMenu _menu = MainMenu("Miniflux");
     ContextMenu _contextMenu = ContextMenu();
     std::vector<HnEntry> _hnEntries;
+    Views _currentView; 
+    
     int _minifluxViewShownPage = 1;
     std::map<int, int> _hnShownPage;
 
