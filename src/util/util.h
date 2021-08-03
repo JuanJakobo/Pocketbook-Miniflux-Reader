@@ -61,6 +61,10 @@ public:
     */
     static void openInBrowser(const std::string &url);
 
+    static void decodeHTML(std::string &data);
+
+    static void replaceAll(std::string &data, const std::string &replace, const std::string &by);
+
 private:
     Util() {}
 };

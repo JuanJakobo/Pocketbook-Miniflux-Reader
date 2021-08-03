@@ -120,3 +120,26 @@ void Util::openInBrowser(const string &url)
     system(cmd.c_str());
     //execlp(cmd.c_str(), cmd.c_str(), (char *)NULL);
 }
+
+void Util::decodeHTML(string &data)
+{
+    replaceAll(data, "&quot;", "\"");
+    replaceAll(data, "&amp;", "&");
+    replaceAll(data, "&apos;", "\'");
+    replaceAll(data, "&t;", "<");
+    replaceAll(data, "&gt;", ">");
+    //html
+    replaceAll(data, "&#x27;", "\'");
+    replaceAll(data, "&#x2F;", "/");
+    replaceAll(data, "<p>", "\n");
+}
+
+void Util::replaceAll(std::string &data, const std::string &replace, const std::string &by)
+{
+    auto start = 0;
+    while ((start = data.find(replace, start)) != std::string::npos)
+    {
+        data.replace(start, replace.size(), by);
+        start += by.length();
+    }
+}
