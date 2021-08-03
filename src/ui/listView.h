@@ -51,21 +51,32 @@ public:
     void firstPage() { this->actualizePage(1); };
 
     /**
-        * inverts the color of an entry 
-        * 
-        * @param itemID the id of the item that shall be inverted
+        * Draws an single entry to the screen
         */
-    void invertEntryColor(int itemID);
+    void reDrawCurrentEntry();
+
+    /**
+        * inverts the color of the currently selected entry 
+        */
+    void invertCurrentEntryColor();
 
     /**
         * Checkes if the listview has been clicked and either changes the page or returns item ID
         * 
         * @param x x-coordinate
         * @param y y-coordinate
-        * @return int Item ID that has been clicked, -1 if no Item was clicked
+        * @return true if was clicked
         */
-    int listClicked(int x, int y);
+    bool checkIfEntryClicked(int x, int y);
 
+    int getCurrentEntryItertator() const {return _selectedEntry;};
+
+    /**
+        * Clears the screen and draws entries and footer 
+        * 
+        */
+    void draw();
+    
 protected:
     int _footerHeight;
     int _footerFontHeight;
@@ -82,19 +93,8 @@ protected:
     irect _prevPageButton;
     irect _firstPageButton;
     irect _lastPageButton;
+    int _selectedEntry;
 
-    /**
-        * Clears the screen and draws entries and footer 
-        * 
-        */
-    void draw();
-
-    /**
-        * Draws an single entry to the screen
-        * 
-        * @param itemID the id of the item that shall be drawn
-        */
-    void drawEntry(int itemID);
 
     /**
         * Iterates through the items and sends them to the listViewEntry Class for drawing
@@ -109,15 +109,15 @@ protected:
     /**
         * updates an entry 
         * 
-        * @param itemID the id of the item that shall be inverted
+        * @param entryID the id of the item that shall be inverted
         */
-    void updateEntry(int itemID);
+    void updateEntry(int entryID);
 
     /**
         * Navigates to the selected page
         * 
-        * @param pageToShown page that shall be shown
+        * @param pageToShow page that shall be shown
         */
-    void actualizePage(int pageToShown);
+    void actualizePage(int pageToShow);
 };
 #endif
