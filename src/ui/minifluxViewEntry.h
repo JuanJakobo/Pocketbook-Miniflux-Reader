@@ -10,9 +10,7 @@
 #define MINIFLUXVIEWENTRY
 
 #include "listViewEntry.h"
-#include "model.h"
-
-#include <memory>
+#include "minifluxModel.h"
 
 class MinifluxViewEntry : public ListViewEntry
 {
@@ -24,7 +22,7 @@ public:
         * @param Rect area of the screen the item is positioned
         * @param entry entry that shall be drawn
         */
-    MinifluxViewEntry(int page, const irect &position, const entry &entry);
+    MinifluxViewEntry(int page, const irect &position, const MfEntry &entry);
 
     /**
         * draws the MinifluxViewEntry to the screen
@@ -33,9 +31,11 @@ public:
         * @param entryFontBold bold font for the header
         * @param fontHeight height of the font 
         */
-    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight);
+    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) override;
+
+    MfEntry *get() override { return &_entry; };
 
 private:
-    std::unique_ptr<entry> _entry;
+    MfEntry _entry;
 };
 #endif

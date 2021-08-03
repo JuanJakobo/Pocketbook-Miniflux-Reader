@@ -10,7 +10,7 @@
 
 #include <memory>
 
-HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect, const hnItem &item) : ListViewEntry(page, rect), _entry(std::make_unique<hnItem>(item))
+HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect,  const HnEntry &entry) : ListViewEntry(page, rect), _entry(entry)
 {
 }
 

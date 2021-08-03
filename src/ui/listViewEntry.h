@@ -10,6 +10,7 @@
 #define LISTVIEWENTRY
 
 #include "inkview.h"
+#include "model.h"
 
 class ListViewEntry
 {
@@ -34,7 +35,9 @@ public:
         * @param entryFontBold bold font for the header
         * @param fontHeight height of the font 
         */
-    virtual void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) = 0; // const;
+    virtual void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) = 0;
+    
+    virtual Entry* get() = 0;
 
 protected:
     int _page;
