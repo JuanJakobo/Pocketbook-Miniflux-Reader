@@ -7,7 +7,7 @@
 //-------------------------------------------------------------------
 
 #include "hackernews.h"
-#include "item.h"
+#include "hackernewsModel.h"
 #include "util.h"
 #include "log.h"
 
@@ -17,54 +17,54 @@
 
 using std::string;
 
-hnItem Hackernews::getItem(int itemID)
+HnEntry Hackernews::getEntry(int entryID)
 {
+    nlohmann::json j = get("item/" + std::to_string(entryID) + ".json");
 
-    nlohmann::json j = get("item/" + std::to_string(itemID) + ".json");
-    Log::writeLog("got item " + std::to_string(itemID));
-    hnItem item = hnItem();
-    if (j["by"].is_string())
-        item.by = j["by"];
-    if (j["id"].is_number())
-        item.id = j["id"];
-    if (j["time"].is_number())
-        item.time = j["time"];
-    if (j["descendants"].is_number())
-        item.descendants = j["descendants"];
-    if (j["parent"].is_number())
-        item.parent = j["parent"];
-    if (j["score"].is_number())
-        item.score = j["score"];
-    if (j["kids"].is_array())
-        item.kids = j["kids"].get<std::vector<int>>();
     if (j["dead"].is_boolean() || j["deleted"].is_boolean())
     {
-        if (j["dead"].is_boolean())
-        {
-            item.text = "[flagged]";
-        }
-        else if (j["deleted"].is_boolean())
-        {
-            item.text = "[deleted]";
-        }
-        Log::writeLog("return item " + std::to_string(item.id));
-
-        return item;
+        //TODO 
+        //Log::writeLogInfo("Item is either dead or flagged. (" + id + ")");
+        return {};
     }
+
+    HnEntry entry;
+
+    if (j["by"].is_string())
+        entry.by = j["by"];
+    
+    if (j["id"].is_number())
+        entry.id = j["id"];
+    
+    if (j["time"].is_number())
+        entry.time = j["time"];
+    
+    if (j["descendants"].is_number())
+        entry.descendants = j["descendants"];
+    
+    if (j["parent"].is_number())
+        entry.parent = j["parent"];
+    
+    if (j["score"].is_number())
+        entry.score = j["score"];
+    
+    if (j["kids"].is_array())
+        entry.kids = j["kids"].get<std::vector<int>>();
+    
     if (j["text"].is_string())
-        item.text = j["text"];
+        entry.text = j["text"];
 
     if (j["title"].is_string())
-        item.title = j["title"];
-    Log::writeLog("return item " + std::to_string(item.id));
-    return item;
+        entry.title = j["title"];
+
+    return entry;
 }
 
-hnUser Hackernews::getUser(const string &username)
+HnUser Hackernews::getUser(const string &username)
 {
     nlohmann::json j = get("user/" + username + ".json");
 
-    hnUser user = hnUser();
+    HnUser user = HnUser();
 
     if (j["id"].is_string())
         user.id = j["id"];
@@ -89,8 +89,6 @@ nlohmann::json Hackernews::get(const string &apiEndpoint)
     CURLcode res;
     CURL *curl = curl_easy_init();
 
-    Log::writeLog("start curl for " + apiEndpoint);
-
     if (curl)
     {
 
@@ -112,19 +110,16 @@ nlohmann::json Hackernews::get(const string &apiEndpoint)
             {
             case 200:
             {
-                Log::writeLog("end curl for " + apiEndpoint);
                 return nlohmann::json::parse(readBuffer);
             }
             default:
             {
-                Log::writeLog("curl error " + std::to_string(response_code));
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
             }
             }
         }
         else
         {
-            Log::writeLog("curl error " + std::to_string(res));
             throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
         }
     }

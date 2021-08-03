@@ -10,7 +10,7 @@
 #ifndef HACKERNEWS
 #define HACKERNEWS
 
-#include "item.h"
+#include "hackernewsModel.h"
 
 #include <string>
 #include <curl/curl.h>
@@ -26,18 +26,18 @@ public:
     *
     * @param itemID id of the item that shall be downloaded
     *  
-    * @return hnItem containing the information of the itemID
+    * @return HnItem containing the information of the itemID
     */
-    static hnItem getItem(int itemID);
+    static HnEntry getEntry(int itemID);
 
     /**
     * Gets the information about a user 
     *
     * @param username 
     *  
-    * @return hnUser containing informations
+    * @return HnUser containing informations
     */
-    static hnUser getUser(const std::string &username);
+    static HnUser getUser(const std::string &username);
 
 private:
     Hackernews();
