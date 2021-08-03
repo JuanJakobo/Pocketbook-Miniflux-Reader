@@ -28,6 +28,7 @@ public:
         */
     MinifluxView(const irect *contentRect, const std::vector<MfEntry> &mfEntries, int page = 1);
 
+    std::vector<int> getEntriesTillPage(); 
 
     MfEntry *getCurrentEntry() { return getEntry(_selectedEntry); };
 
