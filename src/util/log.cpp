@@ -12,6 +12,16 @@
 #include <string>
 #include <fstream>
 
+void Log::writeLogInfo(const std::string &text)
+{
+    writeLog("Info:" + text);
+}
+
+void Log::writeLogError(const std::string &text)
+{
+    writeLog("Error:" + text);
+}
+
 void Log::writeLog(const std::string &text)
 {
     std::ofstream log(CONFIG_FOLDER + std::string("/logfile.txt"), std::ios_base::app | std::ios_base::out);
@@ -25,7 +35,7 @@ void Log::writeLog(const std::string &text)
 
     strftime(buffer, sizeof(buffer), "%d/%b/%Y:%H:%M:%S %z", timeinfo);
 
-    log << buffer << ":" << text << "\n";
+    log << buffer << ':' << text << "\n";
 
     log.close();
 }
