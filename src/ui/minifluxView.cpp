@@ -42,4 +42,16 @@ MinifluxView::MinifluxView(const irect *contentRect, const vector<MfEntry> &mfEn
     }
     draw();
 }
+
+vector<int> MinifluxView::getEntriesTillPage()
+{
+    std::vector<int> temp;
+    {
+        for (size_t i = 0; i < _entries.size(); i++)
+        {
+            if (_entries.at(i)->getPage() <= _shownPage)
+                temp.push_back(getEntry(i)->id);
+        }
+    }
+    return temp;
 }
