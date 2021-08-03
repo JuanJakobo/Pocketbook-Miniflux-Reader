@@ -79,12 +79,12 @@ vector<MfEntry> Miniflux::getEntries(const string &filter)
     return tempItems;
 }
 
-feedIcon Miniflux::getFeedIcon(int feedID)
+MfFeedIcon Miniflux::getFeedIcon(int feedID)
 {
 
     nlohmann::json j = get("/v1/feeds" + std::to_string(feedID) + "/icon");
 
-    feedIcon temp;
+    MfFeedIcon temp;
 
     if (j["id"].is_number())
         temp.id = j["id"];
@@ -108,8 +108,10 @@ bool Miniflux::markUserEntriesAsRead(int userID)
     return put("/v1/users/" + std::to_string(userID) + "/mark-all-as-read", "");
 }
 
-bool Miniflux::updateEntries(const vector<entry> &entrys)
+bool Miniflux::toggleBookmark(int entryID)
 {
+    return put("/v1/entries/" + std::to_string(entryID) + "/bookmark", "");
+}
 
 bool Miniflux::updateEntries(const vector<int> &entries, bool read)
 {
