@@ -46,6 +46,14 @@ void Util::connectToNetwork()
     throw "Could not connect to internet.";
 }
 
+void Util::writeToConfig(const string &name, const string &value)
+{ 
+    iconfigedit *temp = nullptr;
+    iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);
+    WriteString(config, name.c_str(), value.c_str());
+    CloseConfig(config);
+}
+
 string Util::readFromConfig(const string &name)
 {
     iconfigedit *temp = nullptr;
