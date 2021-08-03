@@ -6,22 +6,32 @@
 //
 //-------------------------------------------------------------------
 
-#include "inkview.h"
 #include "eventHandler.h"
+#include "inkview.h"
+
 #include "mainMenu.h"
 #include "contextMenu.h"
-#include "listView.h"
+#include "hnContextMenu.h"
+
+#include "miniflux.h"
+#include "minifluxModel.h"
+#include "minifluxView.h"
+
+#include "hackernews.h"
+#include "hackernewsModel.h"
+#include "hnCommentView.h"
+
 #include "util.h"
 #include "log.h"
-#include "hackernews.h"
-#include "item.h"
-#include "hnCommentView.h"
+#include "sqliteConnector.h"
 
 #include <string>
 #include <memory>
+#include <map>
+#include <vector>
+
 #include <iostream>
 #include <fstream>
-#include <map>
 
 using std::string;
 using std::vector;
@@ -70,6 +80,12 @@ EventHandler::EventHandler()
     }
 }
 
+EventHandler::~EventHandler()
+{
+    //TODO stop database
+    Log::writeLogInfo("delete eventHandler");
+}
+
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
 {
     if (ISPOINTEREVENT(type))
@@ -89,67 +105,49 @@ void EventHandler::mainMenuHandler(const int index)
 {
     switch (index)
     {
-    //Info
+    //show unread
     case 101:
+    {
+        drawMiniflux(Util::readFromConfig("filter"));
+        break;
+    }
+    //show starred
+    case 102:
+    {
+        drawMiniflux("starred=true&direction=desc&limit=1000");
+        break;
+    }
+    //download starred
+    case 103:
+    {
+        //TODO implement download for hn, how to store articles?
+        ShowHourglassForce();
+        //no interent chec happens
+        //get starred
+        break;
+    }
+    //Mark as read till page
+    case 104:
+    {
+        ShowHourglassForce();
+        //TODO where to do network check?
+        Util::connectToNetwork();
+        if (!_miniflux->updateEntries(_minifluxView->getEntriesTillPage(), true))
+            Log::writeLogError("Could not get entries");
+        drawMiniflux(Util::readFromConfig("filter"));
+        break;
+    }
+    //Go back to miniflux overview
+    case 105:
+    {
+        drawMiniflux("", _minifluxViewShownPage);
+        break;
+    }
+    case 106:
     {
         Message(ICON_INFORMATION, "Info", "Info", 1200);
         break;
     }
-    //download
-    case 102:
-    {
-        Message(ICON_INFORMATION, "Info", "Download", 1200);
-    }
-    //show unread
-    case 103:
-    {
-        ShowHourglassForce();
-        _entries.clear();
-        _entries = _miniflux->getEntries(Util::readFromConfig("filter"));
-        drawMiniflux();
-        break;
-    }
-    //show starred
-    case 104:
-    {
-        ShowHourglassForce();
-        try
-        {
-            _entries.clear();
-            _entries = _miniflux->getEntries("starred=true&direction=desc");
-            drawMiniflux();
-        }
-        catch (const std::exception &e)
-        {
-            Log::writeLog(e.what());
-        }
-        break;
-    }
-    //Mark all as read
-    case 105:
-    {
-        ShowHourglassForce();
-        try
-        {
-            if (_miniflux->markUserEntriesAsRead(1))
-                Log::writeLog("sucess");
-            _entries = _miniflux->getEntries("status=unread&direction=desc");
-            drawMiniflux();
-        }
-        catch (const std::exception &e)
-        {
-            Log::writeLog(e.what());
-        }
-        break;
-    }
-    //Go back to miniflux overview
-    case 106:
-    {
-        _hnCommentView.reset();
-        drawMiniflux(_minifluxViewShownPage);
-        break;
-    }
-    //TODO delete articles
     //Exit
     case 107:
         CloseApp();
@@ -159,6 +157,47 @@ void EventHandler::mainMenuHandler(const int index)
     }
 }
 
+void EventHandler::hnContextMenuHandlerStatic(const int index)
+{
+    _eventHandlerStatic->hnContextMenuHandler(index);
+}
+
+void EventHandler::hnContextMenuHandler(const int index)
+{
+    switch (index)
+    {
+    //Save note
+    case 101:
+    {
+        //TODO save notes
+        break;
+    }
+    //author
+    case 102:
+    {
+        Util::connectToNetwork();
+        ShowHourglassForce();
+        HnUser user = Hackernews::getUser(_hnCommentView->getCurrentEntry()->by);
+        Util::decodeHTML(user.about);
+        string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) + "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
+        DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
+        _hnCommentView->reDrawCurrentEntry();
+        break;
+    }
+    //urls
+    case 103:
+    {
+        //TODO show urls off the command and make clickable,  also in dialog, can then be clicked?
+        // open hackernews in comments again
+    }
+    default:
+    {
+        _hnCommentView->invertCurrentEntryColor();
+        break;
+    }
+        _hnContextMenu.reset();
+    }
+}
 void EventHandler::contextMenuHandlerStatic(const int index)
 {
     _eventHandlerStatic->contextMenuHandler(index);
@@ -168,60 +207,45 @@ void EventHandler::contextMenuHandler(const int index)
 {
     switch (index)
     {
-    //Star
+    //Unstar/Star
     case 101:
     {
-        //TODO star is not implemented in API
-        /*
-        try
+        if (_miniflux->toggleBookmark(_minifluxView->getCurrentEntry()->id))
         {
-            vector<entry> star;
-
-            star.push_back(*_minifluxView->getEntry(_tempItemID));
-            _miniflux->updateEntries(star);
-            redraw entry AND get the new information from cloud...
+            _minifluxView->getCurrentEntry()->starred = !_minifluxView->getCurrentEntry()->starred;
+            _minifluxView->reDrawCurrentEntry();
         }
-        catch (const std::exception &e)
+        else
         {
-            Log::writeLog(e.what());
-        }       
-        */
-        Message(ICON_INFORMATION, "Not implemented", "currently there is no API available to mark items starred.", 1200);
-
+            Message(ICON_ERROR, "Error", "Could not starr the selected item.", 1200);
+            _minifluxView->invertCurrentEntryColor();
+        }
         break;
     }
     //Comment
     case 102:
     {
         ShowHourglassForce();
-        try
-        {
-            auto parentCommentItemID = _minifluxView->getEntry(_tempItemID)->comments_url;
+        auto parentCommentItemID = _minifluxView->getCurrentEntry()->comments_url;
 
-            auto end = parentCommentItemID.find("id=");
-            parentCommentItemID = parentCommentItemID.substr(end + 3);
-            _minifluxViewShownPage = _minifluxView->getShownPage();
-            drawHN(atoi(parentCommentItemID.c_str()));
-        }
-        catch (const std::exception &e)
-        {
-            Log::writeLog(e.what());
-        }
+        auto end = parentCommentItemID.find("id=");
+        parentCommentItemID = parentCommentItemID.substr(end + 3);
+        _minifluxViewShownPage = _minifluxView->getShownPage();
+        drawHN(atoi(parentCommentItemID.c_str()));
 
         break;
     }
     //Browser
     case 103:
     {
-        Util::openInBrowser(_minifluxView->getEntry(_tempItemID)->url);
+        Util::openInBrowser(_minifluxView->getCurrentEntry()->url);
         break;
     }
     default:
     {
-        _minifluxView->invertEntryColor(_tempItemID);
+        _minifluxView->invertCurrentEntryColor();
         break;
     }
-        _contextMenu.reset();
     }
 }
 
@@ -229,43 +253,32 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 {
     if (type == EVT_POINTERLONG)
     {
-        if (_minifluxView != nullptr)
+        if (_currentView == Views::MFVIEW)
         {
-            _tempItemID = _minifluxView->listClicked(par1, par2);
-            if (_tempItemID != -1)
-            {
-                _minifluxView->invertEntryColor(_tempItemID);
+            if (_minifluxView->checkIfEntryClicked(par1, par2))
+                _minifluxView->invertCurrentEntryColor();
 
-                bool comments = false;
-                if (_minifluxView->getEntry(_tempItemID)->comments_url.find("news.ycombinator.com") != std::string::npos)
-                    comments = true;
+            bool comments = false;
+            if (_minifluxView->getCurrentEntry()->comments_url.find("news.ycombinator.com") != std::string::npos)
+                comments = true;
 
-                _contextMenu = std::unique_ptr<ContextMenu>(new ContextMenu());
-                _contextMenu->createMenu(par2, EventHandler::contextMenuHandlerStatic, comments);
-                return 1;
-            }
+            _contextMenu.createMenu(par2, EventHandler::contextMenuHandlerStatic, comments, _minifluxView->getCurrentEntry()->starred);
+            return 1;
         }
-        else if (_hnCommentView != nullptr)
+        else if (_currentView == Views::HNCOMMENTSVIEW)
         {
-            int clickedItemIDHN = _hnCommentView->listClicked(par1, par2);
-
-            if (clickedItemIDHN != -1)
+            if (_hnCommentView->checkIfEntryClicked(par1, par2))
             {
-                _hnCommentView->invertEntryColor(clickedItemIDHN);
-                Util::connectToNetwork();
-                hnUser user = Hackernews::getUser(_hnCommentView->getEntry(clickedItemIDHN)->by);
-                string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) + "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
-                DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
-                CloseDialog();
-                _hnCommentView->invertEntryColor(clickedItemIDHN);
-                //TODO pointerup is called after...
+                _hnCommentView->invertCurrentEntryColor();
+                _hnContextMenu = std::unique_ptr<HnContextMenu>(new HnContextMenu());
+                _hnContextMenu->createMenu(par2, EventHandler::hnContextMenuHandlerStatic);
                 return 1;
             }
         }
     }
     else if (type == EVT_POINTERUP)
     {
-        //menu is clicked
+        //if menu is clicked
         if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
         {
             auto mainView = true;
@@ -274,28 +287,23 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
             return _menu.createMenu(mainView, EventHandler::mainMenuHandlerStatic);
         }
-        else if (_minifluxView != nullptr)
+        else if (_currentView == Views::MFVIEW)
         {
-            _tempItemID = _minifluxView->listClicked(par1, par2);
-
-            if (_tempItemID != -1)
+            if (_minifluxView->checkIfEntryClicked(par1, par2))
             {
-                _minifluxView->invertEntryColor(_tempItemID);
+                _minifluxView->invertCurrentEntryColor();
                 ShowHourglassForce();
 
-                if (_minifluxView->getEntry(_tempItemID)->reading_time == 0 || _minifluxView->getEntry(_tempItemID)->content.empty())
+                if (_minifluxView->getCurrentEntry()->reading_time == 0)
                 {
-                    Util::openInBrowser(_minifluxView->getEntry(_tempItemID)->url);
+                    Util::openInBrowser(_minifluxView->getCurrentEntry()->url);
                 }
                 else
                 {
-
-                    string title = _minifluxView->getEntry(_tempItemID)->title;
-
-                    //open the comment view directly if is ask HN
-                    if (title.find("Ask HN:") != std::string::npos)
+                    //open the comment view directly if is HN
+                    if (_minifluxView->getCurrentEntry()->url.find("news.ycombinator.com") != std::string::npos)
                     {
-                        auto parentCommentItemID = _minifluxView->getEntry(_tempItemID)->comments_url;
+                        auto parentCommentItemID = _minifluxView->getCurrentEntry()->comments_url;
 
                         auto end = parentCommentItemID.find("id=");
                         parentCommentItemID = parentCommentItemID.substr(end + 3);
@@ -373,45 +381,34 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         htmlfile << result;
                         htmlfile.close();
                     }
-
                     OpenBook(path.c_str(), "", 0);
 
-                    _minifluxView->invertEntryColor(_tempItemID);
+                    _minifluxView->invertCurrentEntryColor();
                 }
             }
             return 1;
         }
-        else if (_hnCommentView != nullptr)
+        else if (_currentView == Views::HNCOMMENTSVIEW)
         {
-            int clickedItemIDHN = _hnCommentView->listClicked(par1, par2);
-
-            if (clickedItemIDHN != -1)
+            if (_hnCommentView->checkIfEntryClicked(par1, par2))
             {
-                _hnCommentView->invertEntryColor(clickedItemIDHN);
+                _hnCommentView->invertCurrentEntryColor();
                 ShowHourglassForce();
 
-                if (clickedItemIDHN == 0)
+                if (_hnCommentView->getCurrentEntryItertator() == 0)
                 {
-                    if (_hnCommentView->getEntry(clickedItemIDHN)->parent != 0)
+                    if (_hnCommentView->getCurrentEntry()->parent != 0)
                     {
-                        drawHN(_hnCommentView->getEntry(clickedItemIDHN)->parent);
+                        drawHN(_hnCommentView->getCurrentEntry()->parent);
                     }
                     else
                     {
-                        try
-                        {
-                            _hnCommentView.reset();
-                            drawMiniflux(_minifluxViewShownPage);
-                        }
-                        catch (const std::exception &e)
-                        {
-                            Message(ICON_ERROR, "Error", e.what(), 1200);
-                        }
+                        drawMiniflux("", _minifluxViewShownPage);
                     }
                 }
                 else
                 {
-                    drawHN(_hnCommentView->getEntry(clickedItemIDHN)->id);
+                    drawHN(_hnCommentView->getCurrentEntry()->id);
                 }
             }
             return 1;
@@ -426,7 +423,7 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     if (type == EVT_KEYPRESS)
     {
 
-        if (_minifluxView != nullptr)
+        if (_currentView == Views::MFVIEW)
         {
             if (par1 == 23)
             {
@@ -446,7 +443,7 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
                 return 1;
             }
         }
-        else if (_hnCommentView != nullptr)
+        else if (_currentView == Views::HNCOMMENTSVIEW)
         {
             //go back one page
             if (par1 == 23)
@@ -458,8 +455,7 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
-                    _hnCommentView.reset();
-                    drawMiniflux(_minifluxViewShownPage);
+                    drawMiniflux("", _minifluxViewShownPage);
                 }
                 return 1;
             }
@@ -481,7 +477,7 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     return 0;
 }
 
-void EventHandler::drawMiniflux(int page)
+void EventHandler::drawMiniflux(const string &filter, int page)
 {
 
     if (_entries.size() > 0)
@@ -500,20 +496,29 @@ void EventHandler::drawMiniflux(int page)
     FullUpdate();
 }
 
-void *EventHandler::itemToEntries(void *arg)
+void *EventHandler::getHnEntry(void *arg)
 {
-    hnItem temp = Hackernews::getItem(*(int *)arg);
+    try
+    {
+        HnEntry temp = Hackernews::getEntry(*(int *)arg);
 
     Log::writeLog("Got " + std::to_string(temp.id));
 
-    pthread_mutex_lock(&mutexEntries);
-    _eventHandlerStatic->_hnItems.push_back(temp);
-    pthread_mutex_unlock(&mutexEntries);
+            pthread_mutex_lock(&mutexEntries);
+            _eventHandlerStatic->_hnEntries.push_back(temp);
+            pthread_mutex_unlock(&mutexEntries);
+        }
+    }
+    catch (const std::exception &e)
+    {
+        Log::writeLogError(e.what());
+    }
 
     return NULL;
 }
 
-void EventHandler::drawHN(int itemID)
+
+void EventHandler::drawHN(int entryID)
 {
     auto found = false;
 
@@ -534,7 +539,22 @@ void EventHandler::drawHN(int itemID)
     if (!found)
     {
         Util::connectToNetwork();
-        parentItem = Hackernews::getItem(itemID);
+        ShowHourglassForce();
+
+        try
+        {
+            parentItem = Hackernews::getEntry(entryID);
+        }
+        catch (const std::exception &e)
+        {
+            Log::writeLogError(e.what());
+            //change error msg
+            Message(ICON_ERROR, "fuck", e.what(), 1200);
+
+            return;
+        }
+
+        Util::decodeHTML(parentItem.text);
     }
 
     if (parentItem.kids.size() == 0)

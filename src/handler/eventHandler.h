@@ -9,14 +9,22 @@
 #ifndef EVENT_HANDLER
 #define EVENT_HANDLER
 
+#include "inkview.h"
+
 #include "mainMenu.h"
 #include "contextMenu.h"
+#include "hnContextMenu.h"
+
 #include "miniflux.h"
+#include "minifluxModel.h"
 #include "minifluxView.h"
-#include "util.h"
+
 #include "hackernews.h"
+#include "hackernewsModel.h"
 #include "hnCommentView.h"
 
+
+#include <string>
 #include <memory>
 #include <map>
 #include <vector>
@@ -35,6 +43,8 @@ public:
         */
     EventHandler();
 
+    ~EventHandler();
+
     /**
         * Handles events and redirects them
         * 
@@ -49,12 +59,12 @@ private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<MinifluxView> _minifluxView;
     std::unique_ptr<HnCommentView> _hnCommentView;
-    std::unique_ptr<ContextMenu> _contextMenu;
+    //std::unique_ptr<ContextMenu> _contextMenu;
+    std::unique_ptr<HnContextMenu> _hnContextMenu;
     std::unique_ptr<Miniflux> _miniflux;
     MainMenu _menu = MainMenu("Miniflux");
-    int _tempItemID;
-    std::vector<hnItem> _hnItems;
-    std::vector<entry> _entries;
+    ContextMenu _contextMenu = ContextMenu();
+    std::vector<HnEntry> _hnEntries;
     int _minifluxViewShownPage = 1;
     std::map<int, int> _hnShownPage;
 
@@ -71,6 +81,21 @@ private:
         * @param index int of the menu that is set
         */
     void mainMenuHandler(const int index);
+
+    /**
+        * Function needed to call C function, redirects to real function
+        * 
+        *  @param index int of the menu that is set
+        */
+    static void hnContextMenuHandlerStatic(const int index);
+
+    /**
+        * Handlescontext  menu events and redirects them
+        * 
+        * @param index int of the menu that is set
+        */
+
+    void hnContextMenuHandler(const int index);
 
     /**
         * Function needed to call C function, redirects to real function
@@ -109,25 +134,25 @@ private:
 
     /**
      * 
-     * Called by the threads and writes items to _hnitems
+     * Called by the threads and writes items to _HnEntries
      * 
-     * @param void itemId that shall be downloaded
+     * @param void EntryId that shall be downloaded
      */
-    static void *itemToEntries(void *arg);
+    static void *getHnEntry(void *arg);
 
     /**
      * 
      * Draws the miniflux items to an ListView
      * 
      */
-    void drawMiniflux(int page = 1);
+    void drawMiniflux(const std::string &filter, int page = 1);
 
     /**
      * 
      * Draws a HN Comment and its childs to an ListView
      * 
-     * @param int parent itemId
+     * @param int parent entryID
      */
-    void drawHN(int itemID);
+    void drawHN(int entryID);
 };
 #endif
