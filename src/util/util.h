@@ -35,6 +35,15 @@ public:
     static void connectToNetwork();
 
     /**
+    * Write an string to an config file 
+    *
+    * @param name name of the config that shall be written
+    * @param value string that shall be written to the config
+    *  
+    */
+    static void writeToConfig(const std::string &name, const std::string &value);
+    
+    /**
     * Reads an string from the config file 
     *
     * @param name name of the config that shall be read
