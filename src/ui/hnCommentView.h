@@ -28,9 +28,12 @@ public:
         */
     HnCommentView(const irect *contentRect, const std::vector<HnEntry> &readerentries, int page = 1);
 
-    hnItem *getEntry(int itemID) { return &_readerentries.at(itemID); };
+    HnEntry *getCurrentEntry() {
+        return getEntry(_selectedEntry);
+    }
 
-private:
-    std::vector<hnItem> _readerentries;
+    HnEntry *getEntry(int entryID) {
+        return std::dynamic_pointer_cast<HnCommentViewEntry>(_entries.at(entryID))->get();
+    };
 };
 #endif

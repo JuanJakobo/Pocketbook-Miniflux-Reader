@@ -28,10 +28,9 @@ public:
         */
     MinifluxView(const irect *contentRect, const std::vector<MfEntry> &mfEntries, int page = 1);
 
-    //TODO return smart pointer
-    entry *getEntry(int itemID) { return &_readerentries.at(itemID); };
 
-private:
-    std::vector<entry> _readerentries;
+    MfEntry *getCurrentEntry() { return getEntry(_selectedEntry); };
+
+    MfEntry *getEntry(int entryID) { return std::dynamic_pointer_cast<MinifluxViewEntry>(_entries.at(entryID))->get(); };
 };
 #endif

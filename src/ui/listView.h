@@ -29,6 +29,10 @@ public:
 
     virtual ~ListView();
 
+    virtual Entry *getCurrentEntry() = 0;
+    
+    virtual Entry *getEntry(int entryID) = 0;
+
     int getShownPage(){return _shownPage;};
 
     /**
@@ -67,7 +71,7 @@ protected:
     int _footerFontHeight;
     int _entryFontHeight;
     const irect *_contentRect;
-    std::vector<std::unique_ptr<ListViewEntry>> _entries;
+    std::vector<std::shared_ptr<ListViewEntry>> _entries;
     ifont *_footerFont;
     ifont *_entryFont;
     ifont *_entryFontBold;
