@@ -51,36 +51,36 @@ void ListView::draw()
     drawFooter();
 }
 
-void ListView::drawEntry(int itemID)
+void ListView::reDrawCurrentEntry()
 {
-    FillAreaRect(_entries[itemID]->getPosition(), WHITE);
-    _entries[itemID]->draw(_entryFont, _entryFontBold, _entryFontHeight);
-    updateEntry(itemID);
+    FillAreaRect(_entries.at(_selectedEntry)->getPosition(), WHITE);
+    _entries.at(_selectedEntry)->draw(_entryFont, _entryFontBold, _entryFontHeight);
+    updateEntry(_selectedEntry);
 }
 
-void ListView::invertEntryColor(int itemID)
+void ListView::invertCurrentEntryColor()
 {
-    InvertAreaBW(_entries[itemID]->getPosition()->x, _entries[itemID]->getPosition()->y, _entries[itemID]->getPosition()->w, _entries[itemID]->getPosition()->h);
-    updateEntry(itemID);
+    InvertAreaBW(_entries.at(_selectedEntry)->getPosition()->x, _entries.at(_selectedEntry)->getPosition()->y, _entries.at(_selectedEntry)->getPosition()->w, _entries.at(_selectedEntry)->getPosition()->h);
+    updateEntry(_selectedEntry);
 }
 
 void ListView::drawEntries()
 {
     for (unsigned int i = 0; i < _entries.size(); i++)
     {
-        if (_entries[i]->getPage() == _shownPage)
-            _entries[i]->draw(_entryFont, _entryFontBold, _entryFontHeight);
+        if (_entries.at(i)->getPage() == _shownPage)
+            _entries.at(i)->draw(_entryFont, _entryFontBold, _entryFontHeight);
     }
 }
 
-int ListView::listClicked(int x, int y)
+bool ListView::checkIfEntryClicked(int x, int y)
 {
     if (IsInRect(x, y, &_firstPageButton))
     {
         firstPage();
     }
     else if (IsInRect(x, y, &_nextPageButton))
-    {   
+    {
         nextPage();
     }
     else if (IsInRect(x, y, &_prevPageButton))
@@ -95,13 +95,14 @@ int ListView::listClicked(int x, int y)
     {
         for (unsigned int i = 0; i < _entries.size(); i++)
         {
-            if (_entries[i]->getPage() == _shownPage && IsInRect(x, y, _entries[i]->getPosition()) == 1)
+            if (_entries.at(i)->getPage() == _shownPage && IsInRect(x, y, _entries.at(i)->getPosition()) == 1)
             {
-                return i;
+                _selectedEntry = i;
+                return true;
             }
         }
     }
-    return -1;
+    return false;
 }
 
 void ListView::drawFooter()
@@ -121,24 +122,24 @@ void ListView::drawFooter()
     DrawTextRect2(&_lastPageButton, "Last");
 }
 
-void ListView::updateEntry(int itemID)
+void ListView::updateEntry(int entryID)
 {
-    PartialUpdate(_entries[itemID]->getPosition()->x, _entries[itemID]->getPosition()->y, _entries[itemID]->getPosition()->w, _entries[itemID]->getPosition()->h);
+    PartialUpdate(_entries.at(entryID)->getPosition()->x, _entries.at(entryID)->getPosition()->y, _entries.at(entryID)->getPosition()->w, _entries.at(entryID)->getPosition()->h);
 }
 
-void ListView::actualizePage(int pageToShown)
+void ListView::actualizePage(int pageToShow)
 {
-    if (pageToShown > _page)
+    if (pageToShow > _page)
     {
         Message(ICON_INFORMATION, "Info", "You have reached the last page, to return to the first, please click \"first.\"", 1200);
     }
-    else if (pageToShown < 1)
+    else if (pageToShow < 1)
     {
         Message(ICON_INFORMATION, "Info", "You are already on the first page.", 1200);
     }
     else
     {
-        _shownPage = pageToShown;
+        _shownPage = pageToShow;
         FillArea(_contentRect->x, _contentRect->y, _contentRect->w, _contentRect->h, WHITE);
         drawEntries();
         drawFooter();
