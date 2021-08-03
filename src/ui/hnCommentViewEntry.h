@@ -10,11 +10,9 @@
 #define HNCOMMENTVIEWENTRY
 
 #include "listViewEntry.h"
-#include "item.h"
+#include "hackernewsModel.h"
 
-#include <memory>
-
-class HnCommentViewEntry : public ListViewEntry
+class HnCommentViewEntry final : public ListViewEntry
 {
 public:
     /**
@@ -24,7 +22,7 @@ public:
         * @param Rect area of the screen the item is positioned
         * @param entry entry that shall be drawn
         */
-    HnCommentViewEntry(int page, const irect position, const hnItem &item);
+    HnCommentViewEntry(int page, const irect position, const HnEntry &entry);
 
     /**
         * draws the listViewEntry to the screen
@@ -33,9 +31,11 @@ public:
         * @param entryFontBold bold font for the header
         * @param fontHeight height of the font 
         */
-    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight); // const;
+    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) override;
+
+    HnEntry *get() override { return &_entry; };
 
 private:
-    std::unique_ptr<hnItem> _entry;
+    HnEntry _entry;
 };
 #endif
