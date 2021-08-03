@@ -54,24 +54,17 @@ EventHandler::EventHandler()
         if (iv_access(IMAGE_FOLDER.c_str(), W_OK) != 0)
             iv_mkdir(IMAGE_FOLDER.c_str(), 0777);
 
-        try
-        {
+        _miniflux = std::unique_ptr<Miniflux>(new Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token")));
+        Util::connectToNetwork();
+        ShowHourglassForce();
 
-            _miniflux = std::unique_ptr<Miniflux>(new Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token")));
-            Util::connectToNetwork();
-
-            //TODO implement once custom filter is available
-            //filter in menubar ! --> as in PB lib
-            //string filter = Util::readFromConfig("filter");
-            //if(filter.empty())
-            string filter = "status=unread&direction=desc";
-            _entries = _miniflux->getEntries(filter);
-            drawMiniflux();
-        }
-        catch (const std::exception &e)
+        string filter = Util::readFromConfig("filter");
+        if (filter.empty())
         {
-            Message(ICON_ERROR, "Error", e.what(), 1200);
+            filter = "status=unread&direction=asc&limit=1000";
+            Util::writeToConfig("filter", filter);
         }
+        drawMiniflux(filter);
     }
     else
     {
@@ -469,18 +462,27 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
 
 void EventHandler::drawMiniflux(const string &filter, int page)
 {
-
-    if (_entries.size() > 0)
+    //TODO compare if are offline availabke
+    if (!filter.empty())
     {
-        Log::writeLog(std::to_string(_entries.size()));
-        _minifluxView = std::unique_ptr<MinifluxView>(new MinifluxView(_menu.getContentRect(), _entries, page));
-        _hnCommentView.reset();
+        Util::connectToNetwork();
+        ShowHourglassForce();
+        vector<MfEntry> mfEntries = _miniflux->getEntries(filter);
+
+        if (mfEntries.size() > 0)
+        {
+            _minifluxView.reset(new MinifluxView(_menu.getContentRect(), mfEntries, page));
+        }
+        else
+        {
+            FillAreaRect(_menu.getContentRect(), WHITE);
+            DrawTextRect2(_menu.getContentRect(), "no entries to show");
+            _minifluxView.reset();
+        }
     }
     else
     {
-        FillAreaRect(_menu.getContentRect(), WHITE);
-
-        DrawTextRect2(_menu.getContentRect(), "no entries to show");
+        _minifluxView->draw();
     }
 
     _currentView = Views::MFVIEW;
