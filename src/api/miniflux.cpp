@@ -6,10 +6,10 @@
 //
 //-------------------------------------------------------------------
 
-#include "model.h"
 #include "util.h"
 #include "log.h"
 #include "miniflux.h"
+#include "minifluxModel.h"
 
 #include <string>
 #include <vector>
@@ -23,18 +23,38 @@ Miniflux::Miniflux(const string &url, const string &token) : _url(url), _token(t
 {
 }
 
-vector<entry> Miniflux::getEntries(const string &filter)
+MfEntry Miniflux::getEntry(int entryID)
 {
-    //default limit is 100, therefore set limit here to more 
-    //TODO make filter variable
-    nlohmann::json j = get("/v1/entries?" + filter + "&limit=1000");
+    nlohmann::json element = get("/v1/entries/" + std::to_string(entryID));
+    MfEntry temp;
+    if (element["id"].is_number())
+        temp.id = element["id"];
+    if (element["status"].is_string())
+        temp.status = element["status"];
+    if (element["title"].is_string())
+        temp.title = element["title"];
+    if (element["url"].is_string())
+        temp.url = element["url"];
+    if (element["comments_url"].is_string())
+        temp.comments_url = element["comments_url"];
+    if (element["content"].is_string())
+        temp.content = element["content"];
+    if (element["starred"].is_boolean())
+        temp.starred = element["starred"];
+    if (element["reading_time"].is_number())
+        temp.reading_time = element["reading_time"];
+    return temp;
+}
 
-    vector<entry> tempItems;
+vector<MfEntry> Miniflux::getEntries(const string &filter)
+{
+    nlohmann::json j = get("/v1/entries?" + filter);
+
+    vector<MfEntry> tempItems;
 
     for (const auto &element : j["entries"].items())
     {
-        entry temp;
-
+        MfEntry temp;
         if (element.value()["id"].is_number())
             temp.id = element.value()["id"];
         if (element.value()["status"].is_string())
@@ -51,9 +71,11 @@ vector<entry> Miniflux::getEntries(const string &filter)
             temp.starred = element.value()["starred"];
         if (element.value()["reading_time"].is_number())
             temp.reading_time = element.value()["reading_time"];
-
         tempItems.push_back(temp);
+        //for (auto element : j["entries"].items())
+        //    tempItems.push_back(createEntry(element));
     }
+
     return tempItems;
 }
 
@@ -88,17 +110,36 @@ bool Miniflux::markUserEntriesAsRead(int userID)
 
 bool Miniflux::updateEntries(const vector<entry> &entrys)
 {
-    //TODO only can change status read /unread...
-    //string data = "{\"entry_ids\": [6655, 6646], \"status\": \"unread\"}"; //\"starred\": \"true\"}";
-    
-    //return put("/v1/entries/", data);
-    return false;
+
+bool Miniflux::updateEntries(const vector<int> &entries, bool read)
+{
+    if (entries.size() <= 0)
+        throw std::runtime_error("The size of the entries that shall be updated has to be bigger than 0.");
+
+    string data = "{\"entry_ids\": [";
+
+    for (size_t i = 0; i < entries.size(); i++)
+    {
+        if (i == 0)
+            data.append(std::to_string(entries.at(i)));
+        else
+            data.append("," + std::to_string(entries.at(i)));
+    }
+
+    data.append("], \"status\":");
+
+    if (read)
+        data.append("\"read\"");
+    else
+        data.append("\"unread\"");
+    data.append("}");
+
+    return put("/v1/entries", data);
 }
 
 bool Miniflux::put(const std::string &apiEndpoint, const string &data)
 {
     string url = _url + apiEndpoint;
-    Log::writeLog(url);
 
     CURLcode res;
     CURL *curl = curl_easy_init();
@@ -110,7 +151,6 @@ bool Miniflux::put(const std::string &apiEndpoint, const string &data)
         headers = curl_slist_append(headers, "Content-Type: application/json");
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        //curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
         if (!data.empty())
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
@@ -143,7 +183,6 @@ nlohmann::json Miniflux::get(const string &apiEndpoint)
 {
 
     string url = _url + apiEndpoint;
-    Log::writeLog(url);
 
     string readBuffer;
     CURLcode res;
@@ -180,6 +219,5 @@ nlohmann::json Miniflux::get(const string &apiEndpoint)
             throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
         }
     }
-    //TODO write error code here ?
     return {};
 }

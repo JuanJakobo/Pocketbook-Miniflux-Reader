@@ -10,13 +10,10 @@
 #ifndef MINIFLUX
 #define MINIFLUX
 
-#include "model.h"
-#include "util.h"
-#include "log.h"
+#include "minifluxModel.h"
 
 #include <string>
 #include <vector>
-#include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
 class Miniflux
@@ -31,9 +28,11 @@ public:
     */
     Miniflux(const std::string &url, const std::string &token);
 
-    std::vector<entry> getEntries(const std::string &filter);
+    MfEntry getEntry(int entryID);
 
-    feedIcon getFeedIcon(int feedID);
+    std::vector<MfEntry> getEntries(const std::string &filter);
+
+    MfFeedIcon getFeedIcon(int feedID);
 
     /**
     * Refreshes all feeds in the background
@@ -45,7 +44,18 @@ public:
 
     bool markUserEntriesAsRead(int userID);
 
-    bool updateEntries(const std::vector<entry> &entrys);
+
+    bool toggleBookmark(int entryID);
+
+    /**
+    * Upgrades the status (read, unread) of the selected items 
+    *
+    * @param entries entries that shall be updated
+    * @param read true if items should be marked as read, false if unread
+    *  
+    * @return true if feeds upgrade was initiated
+    */
+    bool updateEntries(const std::vector<int> &entries, bool read);
 
 private:
     std::string _url;
