@@ -49,6 +49,7 @@ void ListView::draw()
     FillAreaRect(_contentRect, WHITE);
     drawEntries();
     drawFooter();
+    PartialUpdate(_contentRect->x, _contentRect->y, _contentRect->w, _contentRect->h);
 }
 
 void ListView::reDrawCurrentEntry()
