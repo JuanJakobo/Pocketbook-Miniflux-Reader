@@ -21,36 +21,35 @@ HnEntry Hackernews::getEntry(int entryID)
 {
     nlohmann::json j = get("item/" + std::to_string(entryID) + ".json");
 
-    if (j["dead"].is_boolean() || j["deleted"].is_boolean())
-    {
-        //TODO 
-        //Log::writeLogInfo("Item is either dead or flagged. (" + id + ")");
-        return {};
-    }
-
     HnEntry entry;
 
     if (j["by"].is_string())
         entry.by = j["by"];
-    
+
+    if (j["deleted"].is_boolean())
+        entry.deleted = j["deleted"];
+
+    if (j["dead"].is_boolean())
+        entry.flagged = j["dead"];
+
     if (j["id"].is_number())
         entry.id = j["id"];
-    
+
     if (j["time"].is_number())
         entry.time = j["time"];
-    
+
     if (j["descendants"].is_number())
         entry.descendants = j["descendants"];
-    
+
     if (j["parent"].is_number())
         entry.parent = j["parent"];
-    
+
     if (j["score"].is_number())
         entry.score = j["score"];
-    
+
     if (j["kids"].is_array())
         entry.kids = j["kids"].get<std::vector<int>>();
-    
+
     if (j["text"].is_string())
         entry.text = j["text"];
 
