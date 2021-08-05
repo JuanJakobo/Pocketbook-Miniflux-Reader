@@ -528,11 +528,11 @@ void *EventHandler::getHnEntry(void *arg)
 
                 found = temp.text.find("<a href=\"");
             }
-
-            pthread_mutex_lock(&mutexEntries);
-            _eventHandlerStatic->_hnEntries.push_back(temp);
-            pthread_mutex_unlock(&mutexEntries);
         }
+
+        pthread_mutex_lock(&mutexEntries);
+        _eventHandlerStatic->_hnEntries.push_back(temp);
+        pthread_mutex_unlock(&mutexEntries);
     }
     catch (const std::exception &e)
     {
@@ -664,28 +664,36 @@ void EventHandler::drawHN(int entryID)
             {
                 if (parentItem.kids.at(i) == _hnEntries.at(j).id)
                 {
-                    currentHnComments.push_back(_hnEntries.at(j));
+                    if (!_hnEntries.at(j).deleted || !_hnEntries.at(j).flagged)
+                        currentHnComments.push_back(_hnEntries.at(j));
                     break;
                 }
             }
         }
 
-        if (_hnCommentView != nullptr)
-            _hnShownPage.insert(std::make_pair(_hnCommentView->getEntry(0)->id, _hnCommentView->getShownPage()));
-
-        auto current = _hnShownPage.find(entryID);
-
-        int page;
-
-        if (current != _hnShownPage.end())
+        if (_hnEntries.size() == 0)
         {
-            page = current->second;
-            _hnShownPage.erase(entryID);
+            Message(ICON_INFORMATION, "Info", "All comments are either deleted or flagged", 1000);
+            _hnCommentView->invertCurrentEntryColor();
         }
         else
         {
-            page = 1;
-        }
+            if (_hnCommentView != nullptr)
+                _hnShownPage.insert(std::make_pair(_hnCommentView->getEntry(0)->id, _hnCommentView->getShownPage()));
+
+            auto current = _hnShownPage.find(entryID);
+
+            int page;
+
+            if (current != _hnShownPage.end())
+            {
+                page = current->second;
+                _hnShownPage.erase(entryID);
+            }
+            else
+            {
+                page = 1;
+            }
 
         _minifluxView.reset();
         _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));

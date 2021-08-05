@@ -18,6 +18,8 @@ struct HnEntry final : Entry
 {
   std::string by; 
   int time; //unix timestamp
+  bool deleted = false;
+  bool flagged = false;
   std::string text;
   int parent = 0;
   std::vector<int> kids;
