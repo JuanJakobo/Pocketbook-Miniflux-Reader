@@ -117,6 +117,24 @@ void EventHandler::mainMenuHandler(const int index)
         ShowHourglassForce();
         //no interent chec happens
         //get starred
+        //get unread and starred?
+        vector<MfEntry> entries = _miniflux->getEntries("starred=true&direction=desc&limit=1000");
+        //delete entries, that are no longer there (compare to sql db)
+        //save entries to database
+        if (_sqliteCon.insertMfEntries(entries))
+            Message(ICON_INFORMATION, "Info", "Downloaded items?", 1200);
+        //if comments are available --> download hn comments
+        _sqliteCon.selectMfEntries();
+        for (auto ent : entries)
+        {
+            //if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
+            //get ant save comments;
+            //when to reload and when to show offline
+        }
+        //save hn comments to db
+
+        //clean up --> if read and undstart --> delete
+
         break;
     }
     //Mark as read till page
@@ -163,6 +181,15 @@ void EventHandler::hnContextMenuHandler(const int index)
     case 101:
     {
         //TODO save notes
+        //Log::writeLog(std::to_string(**EnumNotepads()));
+        string path = ARTICLE_FOLDER + "The History of Karate.html";
+        CreateNote(path.c_str(), "test", 2);
+        if (iv_access(path.c_str(), W_OK) == 0)
+            Log::writeLogInfo(path + "path exists");
+        //OpenNotepad("test");
+        //CreateNote("test","test",2);
+        //CreateEmptyNote("test333");
+
         break;
     }
     //author
@@ -188,7 +215,6 @@ void EventHandler::hnContextMenuHandler(const int index)
         _hnCommentView->invertCurrentEntryColor();
         break;
     }
-        _hnContextMenu.reset();
     }
 }
 void EventHandler::contextMenuHandlerStatic(const int index)
@@ -260,8 +286,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             if (_hnCommentView->checkIfEntryClicked(par1, par2))
             {
                 _hnCommentView->invertCurrentEntryColor();
-                _hnContextMenu = std::unique_ptr<HnContextMenu>(new HnContextMenu());
-                _hnContextMenu->createMenu(par2, EventHandler::hnContextMenuHandlerStatic);
+                _hnContextMenu.createMenu(par2, EventHandler::hnContextMenuHandlerStatic);
                 return 1;
             }
         }
@@ -271,8 +296,9 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         //if menu is clicked
         if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
         {
+            //TODO move to menu?
             auto mainView = true;
-            if (_hnCommentView != nullptr)
+            if (_currentView == Views::HNCOMMENTSVIEW)
                 mainView = false;
 
             return _menu.createMenu(mainView, EventHandler::mainMenuHandlerStatic);
@@ -301,6 +327,16 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         drawHN(atoi(parentCommentItemID.c_str()));
                         return 1;
                     }
+
+                    //TODO where to modify? on start or just on open?
+                    //Download mode --> need images already downloaded...
+                    //download everthing and create epub?
+                    //save as temp.html
+                    //title not need
+                    //save not in content?
+                    // first collect image urls and save in database only download here download?
+                    //download in threads
+                    //if url has already been downloaded, recognize --> https://news.ycombinator.com/item?id=28013719
 
                     //remove chars that are not allowed in filenames
                     const std::string forbiddenInFiles = "<>\\/:?\"|";
@@ -433,6 +469,7 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
+                    //TODO change how to pass empty string?
                     drawMiniflux("", _minifluxViewShownPage);
                 }
                 return 1;
@@ -535,6 +572,8 @@ void *EventHandler::getHnEntry(void *arg)
     return NULL;
 }
 
+//TODO where to throw error?
+//TODO  in function where drwaing is not done
 
 void EventHandler::drawHN(int entryID)
 {
@@ -577,7 +616,7 @@ void EventHandler::drawHN(int entryID)
     if (parentItem.kids.size() == 0)
     {
         Message(ICON_INFORMATION, "Info", "This Comment has no childs.", 1000);
-        _minifluxView->invertCurrentEntryColor();
+        _hnCommentView->invertCurrentEntryColor();
     }
     else
     {
@@ -589,6 +628,7 @@ void EventHandler::drawHN(int entryID)
 
         vector<int> tosearch;
 
+        //TODO always load parent, kids if descendantas changed
         //test if items have already been downloaded
         for (size_t i = 0; i < parentItem.kids.size(); ++i)
         {
@@ -690,6 +730,9 @@ void EventHandler::drawHN(int entryID)
             {
                 page = 1;
             }
+            //TODO is missing deleted and flagged
+            Log::writeLogInfo("writing to DB");
+            _sqliteCon.insertHnEntries(currentHnComments);
 
             _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
             _currentView = Views::HNCOMMENTSVIEW;
