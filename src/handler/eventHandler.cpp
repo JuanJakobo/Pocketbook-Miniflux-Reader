@@ -218,14 +218,11 @@ void EventHandler::contextMenuHandler(const int index)
     //Comment
     case 102:
     {
-        ShowHourglassForce();
         auto parentCommentItemID = _minifluxView->getCurrentEntry()->comments_url;
-
         auto end = parentCommentItemID.find("id=");
         parentCommentItemID = parentCommentItemID.substr(end + 3);
         _minifluxViewShownPage = _minifluxView->getShownPage();
         drawHN(atoi(parentCommentItemID.c_str()));
-
         break;
     }
     //Browser
@@ -376,7 +373,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             if (_hnCommentView->checkIfEntryClicked(par1, par2))
             {
                 _hnCommentView->invertCurrentEntryColor();
-                ShowHourglassForce();
 
                 if (_hnCommentView->getCurrentEntryItertator() == 0)
                 {
@@ -431,7 +427,6 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
             //go back one page
             if (par1 == 23)
             {
-                ShowHourglassForce();
                 if (_hnCommentView->getEntry(0)->parent != 0)
                 {
                     drawHN(_hnCommentView->getEntry(0)->parent);
@@ -484,9 +479,7 @@ void EventHandler::drawMiniflux(const string &filter, int page)
     {
         _minifluxView->draw();
     }
-
     _currentView = Views::MFVIEW;
-    FullUpdate();
 }
 
 void *EventHandler::getHnEntry(void *arg)
@@ -614,48 +607,51 @@ void EventHandler::drawHN(int entryID)
                 tosearch.push_back(parentItem.kids.at(i));
         }
 
-        //Download comments
-        mutexEntries = PTHREAD_MUTEX_INITIALIZER;
-        int count;
-
-        Util::connectToNetwork();
-        ShowHourglassForce();
-
-        auto counter = 0;
-
-        //count of threads that can be handled
-        auto threadsPerSession = 4;
-
-        while (counter < tosearch.size())
+        if (tosearch.size() > 0)
         {
-            if (counter % threadsPerSession == 0 || counter < threadsPerSession)
+            //Download comments
+            mutexEntries = PTHREAD_MUTEX_INITIALIZER;
+            int count;
+
+            Util::connectToNetwork();
+            ShowHourglassForce();
+
+            auto counter = 0;
+
+            //count of threads that can be handled
+            auto threadsPerSession = 4;
+
+            while (counter < tosearch.size())
             {
-                if ((tosearch.size() - counter) < threadsPerSession)
-                    threadsPerSession = tosearch.size() - counter;
-
-                pthread_t threads[threadsPerSession];
-
-                for (count = 0; count < threadsPerSession; ++count)
+                if (counter % threadsPerSession == 0 || counter < threadsPerSession)
                 {
-                    if (pthread_create(&threads[count], NULL, getHnEntry, &tosearch.at(counter)) != 0)
+                    if ((tosearch.size() - counter) < threadsPerSession)
+                        threadsPerSession = tosearch.size() - counter;
+
+                    pthread_t threads[threadsPerSession];
+
+                    for (count = 0; count < threadsPerSession; ++count)
                     {
-                        Log::writeLogError("could not create thread");
-                        break;
+                        if (pthread_create(&threads[count], NULL, getHnEntry, &tosearch.at(counter)) != 0)
+                        {
+                            Log::writeLogError("could not create thread");
+                            break;
+                        }
+                        counter++;
                     }
-                    counter++;
-                }
 
-                for (size_t i = 0; i < count; ++i)
-                {
-                    if (pthread_join(threads[i], NULL) != 0)
+                    for (size_t i = 0; i < count; ++i)
                     {
-                        Log::writeLogError("cannot join thread" + std::to_string(i));
+                        if (pthread_join(threads[i], NULL) != 0)
+                        {
+                            Log::writeLogError("cannot join thread" + std::to_string(i));
+                        }
                     }
                 }
             }
-        }
 
-        pthread_mutex_destroy(&mutexEntries);
+            pthread_mutex_destroy(&mutexEntries);
+        }
 
         //sort items in the correct order
         for (size_t i = 0; i < parentItem.kids.size(); ++i)
@@ -695,10 +691,8 @@ void EventHandler::drawHN(int entryID)
                 page = 1;
             }
 
-        _minifluxView.reset();
-        _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
-
-        _currentView = Views::HNCOMMENTSVIEW;
-        PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
+            _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
+            _currentView = Views::HNCOMMENTSVIEW;
+        }
     }
 }

@@ -64,10 +64,9 @@ private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<MinifluxView> _minifluxView;
     std::unique_ptr<HnCommentView> _hnCommentView;
-    //std::unique_ptr<ContextMenu> _contextMenu;
-    std::unique_ptr<HnContextMenu> _hnContextMenu;
     std::unique_ptr<Miniflux> _miniflux;
     MainMenu _menu = MainMenu("Miniflux");
+    HnContextMenu _hnContextMenu = HnContextMenu();
     ContextMenu _contextMenu = ContextMenu();
     std::vector<HnEntry> _hnEntries;
     Views _currentView; 
