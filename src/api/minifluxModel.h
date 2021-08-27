@@ -1,5 +1,5 @@
 //------------------------------------------------------------------
-// MiinifluxModel.h
+// MinifluxModel.h
 //
 // Author:           JuanJakobo
 // Date:             23.04.2021

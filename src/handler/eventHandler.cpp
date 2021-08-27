@@ -44,8 +44,6 @@ EventHandler::EventHandler()
     //create an copy of the eventhandler to handle methods that require static functions
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
 
-    _minifluxView = nullptr;
-
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         if (iv_access(ARTICLE_FOLDER.c_str(), W_OK) != 0)
