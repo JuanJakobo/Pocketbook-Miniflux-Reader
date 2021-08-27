@@ -35,8 +35,16 @@ void MinifluxViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold,
     shortendURL = shortendURL.substr(0, start);
 
     DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, shortendURL.c_str(), ALIGN_LEFT);
+
+		std::string textLeft;
     if (_entry.starred)
-        DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, "starred", ALIGN_LEFT);
+						textLeft = "starred || ";
+		if(_entry.downloaded == IsDownloaded::TOBEDOWNLOADED)
+						textLeft += "to be downloaded";
+		else if(_entry.downloaded == IsDownloaded::DOWNLOADED)
+						textLeft += "downloaded";
+
+		DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, textLeft.c_str(), ALIGN_LEFT);
     DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.status.c_str(), ALIGN_RIGHT);
     if (_entry.reading_time > 0)
         DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, (std::to_string(_entry.reading_time) + " min").c_str(), ALIGN_RIGHT);
