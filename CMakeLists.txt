@@ -69,6 +69,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
       ${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp 
 			${CMAKE_SOURCE_DIR}/src/api/miniflux.cpp 
       ${CMAKE_SOURCE_DIR}/src/api/hackernews.cpp
+      ${CMAKE_SOURCE_DIR}/src/api/sqliteConnector.cpp
       ${CMAKE_SOURCE_DIR}/src/ui/listView.cpp 
       ${CMAKE_SOURCE_DIR}/src/ui/listViewEntry.cpp 
       ${CMAKE_SOURCE_DIR}/src/ui/hnCommentView.cpp 
@@ -88,6 +89,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/api/
 )
 
-target_link_libraries(Miniflux-Reader.app PRIVATE  inkview pthread freetype curl nlohmann_json::nlohmann_json)
+target_link_libraries(Miniflux-Reader.app PRIVATE sqlite3 inkview pthread freetype curl nlohmann_json::nlohmann_json)
 
 INSTALL (TARGETS Miniflux-Reader.app)
