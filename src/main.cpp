@@ -43,7 +43,6 @@ int Inkview_handler(int type, int par1, int par2)
         break;
     }
     }
-
     return 0;
 }
 

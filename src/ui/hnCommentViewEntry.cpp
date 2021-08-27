@@ -10,10 +10,12 @@
 #include "inkview.h"
 #include "hackernewsModel.h"
 
+#include "log.h"
+
 #include <ctime>
 #include <iostream>
 
-HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect,  const HnEntry &entry) : ListViewEntry(page, rect), _entry(entry)
+HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect, const HnEntry &entry) : ListViewEntry(page, rect), _entry(entry)
 {
 }
 
