@@ -40,7 +40,8 @@ MainMenu::~MainMenu()
     CloseFont(_menuFont);
     free(_menu);
     free(_info);
-    free(_downloadStarred);
+    free(_syncDownloaded);
+		free(_showDownloaded);
     free(_showUnread);
     free(_showStarred);
     free(_minifluxOverview);
@@ -59,13 +60,14 @@ int MainMenu::createMenu(bool mainView, const iv_menuhandler &handler)
     imenu mainMenu[] =
         {
             {ITEM_HEADER, 0, _menu, NULL},
-            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _showUnread, NULL},
-            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _showStarred, NULL},
-            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _downloadStarred, NULL},
-            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 104, _markAsReadTillPage, NULL},
-            {mainView ? (short)ITEM_HIDDEN : (short)ITEM_ACTIVE, 105, _minifluxOverview, NULL},
-            {ITEM_ACTIVE, 106, _info, NULL},
-            {ITEM_ACTIVE, 107, _exit, NULL},
+            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _showDownloaded, NULL},
+            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _showUnread, NULL},
+            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _showStarred, NULL},
+            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 104, _syncDownloaded, NULL},
+            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 105, _markAsReadTillPage, NULL},
+            {mainView ? (short)ITEM_HIDDEN : (short)ITEM_ACTIVE, 106, _minifluxOverview, NULL},
+            {ITEM_ACTIVE, 107, _info, NULL},
+            {ITEM_ACTIVE, 108, _exit, NULL},
             {0, 0, NULL, NULL}};
 
     OpenMenu(mainMenu, 0, _panelMenuBeginX, _panelMenuBeginY, handler);
