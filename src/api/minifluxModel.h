@@ -13,6 +13,13 @@
 
 #include <string>
 
+enum IsDownloaded
+{
+				NOTDOWNLOADED,
+				TOBEDOWNLOADED,
+				DOWNLOADED
+};
+
 struct MfEntry : Entry
 {
   std::string status;
@@ -22,6 +29,7 @@ struct MfEntry : Entry
   std::string content;
   bool starred;
   int reading_time; //in min
+	IsDownloaded downloaded = IsDownloaded::NOTDOWNLOADED;
 };
 
 struct MfFeedIcon
