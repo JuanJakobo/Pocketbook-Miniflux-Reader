@@ -49,9 +49,10 @@ private:
     irect _contentRect;
 
     char *_menu = strdup("Menu");
-    char *_downloadStarred = strdup("Download starred");
+    char *_syncDownloaded = strdup("Sync downloaded");
     char *_showUnread = strdup("Show unread");
     char *_showStarred = strdup("Show starred");
+    char *_showDownloaded = strdup("Show downloaded");
     char *_markAsReadTillPage = strdup("Mark as read till page");
     char *_minifluxOverview = strdup("Go back to overview");
     char *_info = strdup("Info");
