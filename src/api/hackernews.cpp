@@ -23,6 +23,9 @@ HnEntry Hackernews::getEntry(int entryID)
 
     HnEntry entry;
 
+    if (j["id"].is_number())
+        entry.id = j["id"];
+
     if (j["by"].is_string())
         entry.by = j["by"];
 
@@ -31,9 +34,6 @@ HnEntry Hackernews::getEntry(int entryID)
 
     if (j["dead"].is_boolean())
         entry.flagged = j["dead"];
-
-    if (j["id"].is_number())
-        entry.id = j["id"];
 
     if (j["time"].is_number())
         entry.time = j["time"];
