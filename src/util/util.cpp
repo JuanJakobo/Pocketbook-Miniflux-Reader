@@ -26,24 +26,30 @@ size_t Util::writeData(void *ptr, size_t size, size_t nmemb, FILE *stream)
 }
 
 //https://github.com/pmartin/pocketbook-demo/blob/master/devutils/wifi.cpp
-void Util::connectToNetwork()
+bool Util::connectToNetwork()
 {
     //NetError, NetErrorMessage
     iv_netinfo *netinfo = NetInfo();
-    if (netinfo->connected)
-        return;
+    if (netinfo->connected){
+				ShowHourglassForce();
+        return true;
+    }
 
     const char *network_name = nullptr;
     int result = NetConnect2(network_name, 1);
     if (result != 0)
     {
-        throw "Could not connect to internet.";
+						Message(ICON_ERROR, "Network Error","Could not connect to the internet.", 5000);
+						return false;
     }
 
     netinfo = NetInfo();
-    if (netinfo->connected)
-        return;
-    throw "Could not connect to internet.";
+    if (netinfo->connected){
+				ShowHourglassForce();
+        return true;
+    }
+		Message(ICON_ERROR, "Network Error","Could not connect to the internet.", 5000);
+		return false;
 }
 
 void Util::writeToConfig(const string &name, const string &value)

@@ -41,6 +41,8 @@ public:
 
     bool insertHnEntries(const std::vector<HnEntry> &entries);
 
+		bool deleteHnEntries(int mfEntryId);
+
     std::vector<HnUser> selectHnUser();
 
 private:

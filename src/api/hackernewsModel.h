@@ -27,6 +27,7 @@ struct HnEntry final : Entry
   int score;
   std::string title;
   int descendants = 0;
+	int mfEntryId;
 };
 
 struct HnUser
