@@ -19,6 +19,11 @@ Once you disconnect the Pocketbook from the PC, the application should be visibi
 
 Furthermore in the Feed options "Fetch original content" has to be activated for each Feed.
 
+## Usage
+
+## Hackernews Comments
+I use the RSS feed https://hnrss.org and set "Fetch original content" to yes. To read the comments a long click on the miniflux items opens a context menu where the comments can be opened. By downloaded the articles the loading times will decrease.
+
 ## How to build
 
 First you need to install the basic build tools for linux.
