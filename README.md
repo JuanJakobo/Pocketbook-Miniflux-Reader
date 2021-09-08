@@ -5,6 +5,7 @@ A basic client to access an existing https://miniflux.app instance via a Pocketb
 
 ## Features
 
+* Download articles and hackernews comments to read them later offline
 * Show unread and starred items
 * Open content in Pocketbook reader
 * Display Hackernews comments
