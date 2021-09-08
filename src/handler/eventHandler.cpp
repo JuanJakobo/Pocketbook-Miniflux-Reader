@@ -57,8 +57,8 @@ EventHandler::EventHandler()
         vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
 				if(!drawMinifluxEntries(mfEntries))
         {
-    				Util::connectToNetwork();
-						ShowHourglassForce();
+				   if(!Util::connectToNetwork())
+				       return;
 
             string filter = Util::readFromConfig("filter");
             if (filter.empty())
@@ -80,7 +80,7 @@ EventHandler::EventHandler()
 EventHandler::~EventHandler()
 {
     //TODO stop database
-    Log::writeLogInfo("delete eventHandler");
+    Log::writeInfoLog("delete eventHandler");
 }
 
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
@@ -124,9 +124,9 @@ void EventHandler::mainMenuHandler(const int index)
     //sync items
     case 104:
     {
-        ShowHourglassForce();
-        Util::connectToNetwork();
-        OpenProgressbar(ICON_INFORMATION, "Syncing items", "downloading Miniflux Entries", 0, NULL);
+				if(!Util::connectToNetwork())
+								break;
+        OpenProgressbar(ICON_INFORMATION, "Syncing items", "Downloading Miniflux Entries", 0, NULL);
 				
 				//only actualizes new items
 				//TODO get the items multiple times
@@ -135,40 +135,49 @@ void EventHandler::mainMenuHandler(const int index)
 			 for (size_t i = 0; i < entriesToSync.size(); i++)
 				{
 								entriesToSync.at(i) = _miniflux->getEntry(entriesToSync.at(i).id);
-								//TODO only if above is sucessull
 								entriesToSync.at(i).downloaded = IsDownloaded::DOWNLOADED;
 								_sqliteCon.updateDownloadStatusMfEntry(entriesToSync.at(i).id,entriesToSync.at(i).downloaded);
 				}
 
         //TODO make the percentage bar 
         int move = 1 / entriesToSync.size() * 100;
-				Log::writeLogInfo(" size " + std::to_string(entriesToSync.size()));
-        Log::writeLogInfo(" move " + std::to_string(move));
+				//make less than 100
+				Log::writeInfoLog(" size " + std::to_string(entriesToSync.size()));
+        Log::writeInfoLog(" move " + std::to_string(move));
         _currentPerc = 0;
         for (auto ent : entriesToSync)
         {
             _currentPerc += move;
-            //get comments for hn
-						//download images
-						UpdateProgressbar(("downloading images and article for " + ent.title).c_str(), _currentPerc);
-						MfDownload(ent);
-						//TODO only if above is sucessull
+						UpdateProgressbar(("Downloading images and article for " + ent.title).c_str(), _currentPerc);
+						createHtml(ent.title, ent.content);
 
+						//TODO doppelt
             if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
             {
-                UpdateProgressbar(("downloading hnComments for " + ent.title).c_str(), _currentPerc);
+                UpdateProgressbar(("Downloading Hackernews comments for " + ent.title).c_str(), _currentPerc);
 
 								//drawHnCommentView(ent.comments_url);
                 auto parentCommentItemID = ent.comments_url;
                 auto end = parentCommentItemID.find("id=");
                 parentCommentItemID = parentCommentItemID.substr(end + 3);
+								//TODO use local variable?
                 _hnEntries.clear();
                 HnDownload(std::stoi(parentCommentItemID));
 
+								Log::writeInfoLog("ent id " + std::to_string(ent.id));
+								
+								for(size_t i = 0; i < _hnEntries.size(); ++i)
+								{
+												_hnEntries.at(i).mfEntryId = ent.id;
+								}
+								//insert also mfentry number
                 _sqliteCon.insertHnEntries(_hnEntries);
                 _hnEntries.clear();
             }
         }
+
+				//TODO clean up mf entries and hn entries
+
         CloseProgressbar();
 				//get all downloaded items and show
         vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
@@ -178,10 +187,10 @@ void EventHandler::mainMenuHandler(const int index)
     //Mark as read till page
     case 105:
     {
-        ShowHourglassForce();
-        Util::connectToNetwork();
+				if(!Util::connectToNetwork())
+								break;
         if (!_miniflux->updateEntries(_minifluxView->getEntriesTillPage(), true))
-            Log::writeLogError("Could not mark entries as read.");
+            Log::writeErrorLog("Could not mark entries as read.");
         filterAndDrawMiniflux(Util::readFromConfig("filter"));
         break;
     }
@@ -218,23 +227,45 @@ void EventHandler::hnContextMenuHandler(const int index)
     //Save note
     case 101:
     {
+				//open boomarks?
+//typedef void (*iv_bmkhandler)(int action, int page, long long position);
+				//void OpenBookmarks(int page, long long position, int *bmklist, long long *poslist, int *bmkcount, int maxbmks, iv_bmkhandler hproc);
+//void SwitchBookmark(int page, long long position, int *bmklist, long long *poslist, int *bmkcount, int maxbmks, iv_bmkhandler hproc);
+//
+				//OpenBookmarks(1,1,NULL,NULL,NULL,1,NULL);
+
         //TODO save notes
-        //Log::writeLog(std::to_string(**EnumNotepads()));
-        string path = ARTICLE_FOLDER + "test";
-        CreateNote(path.c_str(), "test", 2);
-        if (iv_access(path.c_str(), W_OK) == 0)
-            Log::writeLogInfo(path + "path exists");
-        //OpenNotepad("test");
+				char **tester = EnumFonts();
+				string a;
+				int i = 0;
+
+				while(*tester)
+				{
+								tester++;
+								Log::writeInfoLog(std::to_string(i));
+								i++;
+				}
+				/*
+				//auto test = "title";
+				string path = "/mnt/ext1/Notes";
+				path.append("/LPT_LISA.html");
+				Log::writeInfoLog(path);
+				//OpenNotepad(path.c_str());
+				CreateNote(path.c_str(),"test",20);
+        //CreateNote(path.c_str(), "test", 2);
+        //if (iv_access(path.c_str(), W_OK) == 0)
+        //    Log::writeInfoLog(path + "path exists");
         //CreateNote("test","test",2);
-        //CreateEmptyNote("test333");
+				*/
+        _hnCommentView->reDrawCurrentEntry();
 
         break;
     }
     //author
     case 102:
     {
-        Util::connectToNetwork();
-        ShowHourglassForce();
+				if(!Util::connectToNetwork())
+								break;
         HnUser user = Hackernews::getUser(_hnCommentView->getCurrentEntry()->by);
         Util::decodeHTML(user.about);
         string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) + "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
@@ -274,9 +305,25 @@ void EventHandler::contextMenuHandler(const int index)
 		case 102:
 		{
 				if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED || _minifluxView->getCurrentEntry()->downloaded == IsDownloaded::DOWNLOADED)
+				{
+								_sqliteCon.deleteHnEntries(_minifluxView->getCurrentEntry()->id);
+								const std::string forbiddenInFiles = "<>\\/:?\"|";
+								string title = _minifluxView->getCurrentEntry()->title;
+								//TODO move into function
+								std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
+																{ return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
+
+								string path = ARTICLE_FOLDER + "/" + title + ".html";
+								remove(path.c_str());
+								string cmd = "rm -rf \"" + ARTICLE_FOLDER + "/img/" + title + "/\"";
+								Log::writeInfoLog(cmd);
+								system(cmd.c_str());
 								_minifluxView->getCurrentEntry()->downloaded = IsDownloaded::NOTDOWNLOADED;
+				}
 				else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::NOTDOWNLOADED)
+				{
 								_minifluxView->getCurrentEntry()->downloaded = IsDownloaded::TOBEDOWNLOADED;
+				}
 				_sqliteCon.updateDownloadStatusMfEntry(_minifluxView->getCurrentEntry()->id, _minifluxView->getCurrentEntry()->downloaded);
 				_minifluxView->reDrawCurrentEntry();	
 				break;
@@ -284,8 +331,8 @@ void EventHandler::contextMenuHandler(const int index)
     //Unstar/Star
     case 103:
     {
-        Util::connectToNetwork();
-				//TODO does ever return false as error is thrown, catch error
+				if(!Util::connectToNetwork())
+								break;
         if (_miniflux->toggleBookmark(_minifluxView->getCurrentEntry()->id))
         {
             _minifluxView->getCurrentEntry()->starred = !_minifluxView->getCurrentEntry()->starred;
@@ -332,7 +379,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 								else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::NOTDOWNLOADED)
 												downloaded = "Add download mark";
 								else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::DOWNLOADED)
-												downloaded = "Add remove mark";
+												downloaded = "Remove item";
 										
             _contextMenu.createMenu(par2, EventHandler::contextMenuHandlerStatic, comments, _minifluxView->getCurrentEntry()->starred, downloaded);
             return 1;
@@ -363,7 +410,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             if (_minifluxView->checkIfEntryClicked(par1, par2))
             {
                 _minifluxView->invertCurrentEntryColor();
-                ShowHourglassForce();
 
                 if (_minifluxView->getCurrentEntry()->reading_time == 0)
                 {
@@ -379,6 +425,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     }
 
                     //remove chars that are not allowed in filenames
+										//TODO use function
                     const std::string forbiddenInFiles = "<>\\/:?\"|";
 
                     string title = _minifluxView->getCurrentEntry()->title;
@@ -386,64 +433,17 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
                                    { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
 
-										//TODO use MfDownload method
-
                     string path = ARTICLE_FOLDER + "/" + title + ".html";
+										//if path is empty
                     if (iv_access(path.c_str(), W_OK) != 0)
                     {
-                        Log::writeLogInfo("creating book on path" + path);
-                        string content = _minifluxView->getCurrentEntry()->content;
-                        string result = content;
-
-                        auto found = content.find("<img");
-                        auto counter = 0;
-                        while (found != std::string::npos)
-                        {
-                            auto imageFolder = "img/" + title;
-
-                            if (iv_access((ARTICLE_FOLDER + "/" + imageFolder).c_str(), W_OK) != 0)
-                                iv_mkdir((ARTICLE_FOLDER + "/" + imageFolder).c_str(), 0777);
-
-                            auto imagePath = imageFolder + "/" + std::to_string(counter);
-
-                            content = content.substr(found);
-                            auto src = content.find("src=\"");
-                            content = content.substr(src + 5);
-                            auto end = content.find("\"");
-                            auto imageURL = content.substr(0, end);
-
-                            if (iv_access((ARTICLE_FOLDER + "/" + imagePath).c_str(), W_OK) != 0)
-                            {
-                                try
-                                {
-                                    std::ofstream img;
-                                    img.open(ARTICLE_FOLDER + "/" + imagePath);
-                                    //TODO feedback
-                                    img << Util::getData(imageURL);
-                                    img.close();
-                                }
-                                catch (const std::exception &e)
-                                {
-                                    Log::writeLogError(e.what());
-                                }
-
-                                auto toReplace = result.find(imageURL);
-
-                                if (toReplace != std::string::npos)
-                                    result.replace(toReplace, imageURL.length(), imagePath);
-                            }
-                            counter++;
-                            found = content.find("<img");
-                        }
-
-                        std::ofstream htmlfile;
-                        htmlfile.open(path);
-                        htmlfile << result;
-                        htmlfile.close();
+												if(!Util::connectToNetwork())
+														return 1;
+				    						createHtml(_minifluxView->getCurrentEntry()->title, _minifluxView->getCurrentEntry()->content);
                     }
                     else
                     {
-                        Log::writeLogInfo("book found on disk.");
+                        Log::writeInfoLog(title + "found on disk.");
                     }
                     OpenBook(path.c_str(), "", 0);
 
@@ -541,12 +541,11 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     return 0;
 }
 
-void EventHandler::MfDownload(const MfEntry &test)
+void EventHandler::createHtml(string title, string content)
 {
-				//TODO save locations of path and img
+				//TODO into function "forbidden in files
+				//remove chars that are not allowed in filenames
     const std::string forbiddenInFiles = "<>\\/:?\"|";
-
-    string title = test.title;
 
     std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
                    { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
@@ -554,9 +553,8 @@ void EventHandler::MfDownload(const MfEntry &test)
     string path = ARTICLE_FOLDER + "/" + title + ".html";
     if (iv_access(path.c_str(), W_OK) != 0)
     {
-        Log::writeLogInfo("adding " + path);
+        Log::writeInfoLog("adding " + path);
 
-        string content = test.content;
         string result = content;
 
         auto found = content.find("<img");
@@ -587,7 +585,7 @@ void EventHandler::MfDownload(const MfEntry &test)
                 }
                 catch (const std::exception &e)
                 {
-                    Log::writeLogError(e.what());
+                    Log::writeErrorLog(e.what());
                 }
 
                 auto toReplace = result.find(imageURL);
@@ -604,15 +602,10 @@ void EventHandler::MfDownload(const MfEntry &test)
         htmlfile << result;
         htmlfile.close();
     }
-    else
-    {
-        Log::writeLogInfo("book already stored");
-    }
 }
 
 bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
 {
-				//TODO add to database?
 				if (mfEntries.size() > 0)
 				{
 								_sqliteCon.insertMfEntries(mfEntries);
@@ -637,8 +630,8 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
 {
     if (!filter.empty())
     {
-        Util::connectToNetwork();
-        ShowHourglassForce();
+				if(!Util::connectToNetwork())
+				   return;
         vector<MfEntry> mfEntries = _miniflux->getEntries(filter);
 				//TODO optimize
 				vector<MfEntry> oldEntries = _sqliteCon.selectMfEntries();
@@ -701,7 +694,7 @@ void EventHandler::HnDownload(int entryID)
             catch (const std::exception &e)
             {
 
-                Log::writeLogError(e.what());
+                Log::writeErrorLog(e.what());
                 return;
             }
 
@@ -754,7 +747,7 @@ void EventHandler::HnDownload(int entryID)
                         {
                             if (pthread_create(&threads[count], NULL, getHnEntry, &tosearch.at(counter)) != 0)
                             {
-                                Log::writeLogError("could not create thread");
+                                Log::writeErrorLog("could not create thread");
                                 break;
                             }
                             counter++;
@@ -764,7 +757,7 @@ void EventHandler::HnDownload(int entryID)
                         {
                             if (pthread_join(threads[i], NULL) != 0)
                             {
-                                Log::writeLogError("cannot join thread" + std::to_string(i));
+                                Log::writeErrorLog("cannot join thread" + std::to_string(i));
                             }
                         }
                     }
@@ -783,7 +776,7 @@ void EventHandler::HnDownload(int entryID)
     }
     catch (const std::exception &e)
     {
-        Log::writeLogInfo(e.what());
+        Log::writeErrorLog(e.what());
     }
 }
 
@@ -792,6 +785,9 @@ void *EventHandler::getHnEntry(void *arg)
     try
     {
         HnEntry temp = Hackernews::getEntry(*(int *)arg);
+
+				if (!temp.title.empty())
+								Util::decodeHTML(temp.title);
 
         if (!temp.text.empty())
         {
@@ -829,18 +825,17 @@ void *EventHandler::getHnEntry(void *arg)
 
         pthread_mutex_lock(&mutexEntries);
         _eventHandlerStatic->_hnEntries.push_back(temp);
-        UpdateProgressbar(("Downloading  hn item " + std::to_string(temp.id)).c_str(), _eventHandlerStatic->_currentPerc);
+        //UpdateProgressbar(("Downloading  hn item " + std::to_string(temp.id)).c_str(), _eventHandlerStatic->_currentPerc);
         pthread_mutex_unlock(&mutexEntries);
     }
     catch (const std::exception &e)
     {
-        Log::writeLogError(e.what());
+        Log::writeErrorLog(e.what());
     }
 
     return NULL;
 }
 
-//TODO where to throw error?
 void EventHandler::drawHN(int entryID)
 {
     auto found = false;
@@ -872,8 +867,8 @@ void EventHandler::drawHN(int entryID)
 
     if (!found)
     {
-        Util::connectToNetwork();
-        ShowHourglassForce();
+				if(!Util::connectToNetwork())
+						return;
 
         try
         {
@@ -883,7 +878,7 @@ void EventHandler::drawHN(int entryID)
         }
         catch (const std::exception &e)
         {
-            Log::writeLogError(e.what());
+            Log::writeErrorLog(e.what());
             //change error msg
             Message(ICON_ERROR, "fuck", e.what(), 1200);
 
@@ -935,8 +930,8 @@ void EventHandler::drawHN(int entryID)
             mutexEntries = PTHREAD_MUTEX_INITIALIZER;
             int count;
 
-            Util::connectToNetwork();
-            ShowHourglassForce();
+						if(!Util::connectToNetwork())
+								return;
 
             auto counter = 0;
 
@@ -956,7 +951,7 @@ void EventHandler::drawHN(int entryID)
                     {
                         if (pthread_create(&threads[count], NULL, getHnEntry, &tosearch.at(counter)) != 0)
                         {
-                            Log::writeLogError("could not create thread");
+                            Log::writeErrorLog("could not create thread");
                             break;
                         }
                         counter++;
@@ -966,7 +961,7 @@ void EventHandler::drawHN(int entryID)
                     {
                         if (pthread_join(threads[i], NULL) != 0)
                         {
-                            Log::writeLogError("cannot join thread" + std::to_string(i));
+                            Log::writeErrorLog("cannot join thread" + std::to_string(i));
                         }
                     }
                 }
@@ -982,7 +977,7 @@ void EventHandler::drawHN(int entryID)
             {
                 if (parentItem.kids.at(i) == _hnEntries.at(j).id)
                 {
-                    if (!_hnEntries.at(j).deleted || !_hnEntries.at(j).flagged)
+                    if (!_hnEntries.at(j).deleted)
                         currentHnComments.push_back(_hnEntries.at(j));
                     break;
                 }
@@ -991,7 +986,7 @@ void EventHandler::drawHN(int entryID)
 
         if (currentHnComments.size() == 0)
         {
-            Message(ICON_INFORMATION, "Info", "All comments are either deleted", 1000);
+            Message(ICON_INFORMATION, "Info", "All comments are deleted", 1000);
             _hnCommentView->invertCurrentEntryColor();
         }
         else

@@ -21,14 +21,14 @@ public:
         * 
         * @param text that shall be written to the log
         */
-    static void writeLogError(const std::string &text);
+    static void writeErrorLog(const std::string &text);
 
     /**
         * Writes a info log entry to the log file
         * 
         * @param text that shall be written to the log
         */
-    static void writeLogInfo(const std::string &text);
+    static void writeInfoLog(const std::string &text);
 
 private:
     Log() {}

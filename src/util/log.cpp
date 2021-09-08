@@ -12,12 +12,12 @@
 #include <string>
 #include <fstream>
 
-void Log::writeLogInfo(const std::string &text)
+void Log::writeInfoLog(const std::string &text)
 {
     writeLog("Info:" + text);
 }
 
-void Log::writeLogError(const std::string &text)
+void Log::writeErrorLog(const std::string &text)
 {
     writeLog("Error:" + text);
 }

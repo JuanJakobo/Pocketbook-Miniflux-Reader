@@ -142,7 +142,13 @@ private:
         */
     int keyHandler(const int type, const int par1, const int par2);
 
-    void MfDownload(const MfEntry &test);
+    /**
+        * create a html and store it
+        * 
+        * @param title name of the file
+        * @param content content that shall be written to the html
+        */
+		void createHtml(std::string title, std::string content);
 
 		bool drawMinifluxEntries(const std::vector<MfEntry> &mfEntries);
     /**

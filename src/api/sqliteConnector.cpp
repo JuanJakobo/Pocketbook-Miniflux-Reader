@@ -74,7 +74,6 @@ vector<MfEntry> SqliteConnector::selectMfEntries(IsDownloaded downloaded)
 						MfEntry temp;
 
 						temp.id = sqlite3_column_int(stmt,0);
-						Log::writeLogInfo(std::to_string(temp.id));
 						temp.status = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
 						temp.title = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
 						temp.url =reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
@@ -83,7 +82,6 @@ vector<MfEntry> SqliteConnector::selectMfEntries(IsDownloaded downloaded)
 						temp.starred = (sqlite3_column_int(stmt, 6) == 1) ? true : false;
 						temp.reading_time = sqlite3_column_int(stmt, 7);
 						temp.downloaded =  static_cast<IsDownloaded>(sqlite3_column_int(stmt,8));
-						Log::writeLogInfo(std::to_string(temp.downloaded));
 						entries.push_back(temp);
 
     }
@@ -256,20 +254,17 @@ bool SqliteConnector::updateDownloadStatusMfEntry(int entryID, IsDownloaded down
     sqlite3_stmt *stmt = 0;
 
     rs = sqlite3_prepare_v2(_db, "UPDATE 'MfEntries' SET downloaded=? WHERE id=?", -1, &stmt, 0);
-		Log::writeLogInfo("writing status downloaded");
     rs = sqlite3_bind_int(stmt, 1, downloaded);
-		Log::writeLogInfo("wrote status downloaded");
     rs = sqlite3_bind_int(stmt, 2, entryID);
     rs = sqlite3_step(stmt);
 
     if (rs != SQLITE_DONE)
     {
-        Log::writeLogError(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
 
-    //TODO move
     sqlite3_finalize(stmt);
     sqlite3_close(_db);
 
@@ -282,8 +277,6 @@ bool SqliteConnector::updateMfEntry(int entryID, bool starred)
     int rs;
     sqlite3_stmt *stmt = 0;
 
-    //TODO path and image path --> to make delete possible
-
     rs = sqlite3_prepare_v2(_db, "UPDATE 'MfEntries' SET starred=? WHERE id=?", -1, &stmt, 0);
     rs = sqlite3_bind_int(stmt, 1, (starred) ? 1 : 0);
     rs = sqlite3_bind_int(stmt, 2, entryID);
@@ -291,12 +284,11 @@ bool SqliteConnector::updateMfEntry(int entryID, bool starred)
 
     if (rs != SQLITE_DONE)
     {
-        Log::writeLogError(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
 
-    //TODO move
     sqlite3_finalize(stmt);
     sqlite3_close(_db);
 
@@ -331,7 +323,7 @@ bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
         }
         else if (rs != SQLITE_DONE)
         {
-            Log::writeLogError(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+            Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
         }
         rs = sqlite3_clear_bindings(stmt);
         rs = sqlite3_reset(stmt);
@@ -350,7 +342,7 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
     open();
     int rs;
     sqlite3_stmt *stmt = 0;
-    rs = sqlite3_prepare_v2(_db, "INSERT INTO 'HnItems' (id,by, time,text,parent,kids,urls,score,title,descendants) VALUES (?,?,?,?,?,?,?,?,?,?);", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db, "INSERT INTO 'HnItems' (id,by, time,text,parent,kids,urls,score,title,descendants,mfEntryId) VALUES (?,?,?,?,?,?,?,?,?,?,?);", -1, &stmt, 0);
     rs = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 
     for (auto hn : entries)
@@ -390,11 +382,12 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
         rs = sqlite3_bind_int(stmt, 8, hn.score);
         rs = sqlite3_bind_text(stmt, 9, hn.title.c_str(), hn.title.length(), NULL);
         rs = sqlite3_bind_int(stmt, 10, hn.descendants);
+        rs = sqlite3_bind_int(stmt, 11, hn.mfEntryId);
         rs = sqlite3_step(stmt);
 
         if (rs != SQLITE_DONE)
         {
-            Log::writeLogError(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+            Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
         }
         rs = sqlite3_clear_bindings(stmt);
         rs = sqlite3_reset(stmt);
@@ -408,6 +401,28 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
     return true;
 }
 
+bool SqliteConnector::deleteHnEntries(int mfEntryId)
+{
+    open();
+    int rs;
+    sqlite3_stmt *stmt = 0;
+
+    rs = sqlite3_prepare_v2(_db, "DELETE FROM 'HnItems' WHERE mfEntryId=?", -1, &stmt, 0);
+    rs = sqlite3_bind_int(stmt, 1, mfEntryId);
+    rs = sqlite3_step(stmt);
+
+    if (rs != SQLITE_DONE)
+    {
+        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+    }
+    rs = sqlite3_clear_bindings(stmt);
+    rs = sqlite3_reset(stmt);
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(_db);
+
+    return true;
+}
 bool SqliteConnector::open()
 {
     int rs;
@@ -420,7 +435,7 @@ bool SqliteConnector::open()
         //TODO could not open
     }
     rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS MfEntries (id INT PRIMARY KEY, status TEXT, title TEXT, url TEXT, comments_url TEXT, content TEXT, starred INT, reading_time INT, downloaded INT);", NULL, 0, NULL);
-    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS HnItems (id INT PRIMARY KEY, by TEXT, time INT, text TEXT, parent INT, kids TEXT, urls TEXT, score INT, title TEXT, descendants INT);", NULL, 0, NULL);
+    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS HnItems (id INT PRIMARY KEY, by TEXT, time INT, text TEXT, parent INT, kids TEXT, urls TEXT, score INT, title TEXT, descendants INT, mfEntryId INT);", NULL, 0, NULL);
     rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS HnUser (id STRING PRIMARY KEY, about TEXT, created INT, karma INT, submitted TEXT);", NULL, 0, NULL);
 
     return true;
