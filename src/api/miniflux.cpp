@@ -170,11 +170,13 @@ bool Miniflux::put(const std::string &apiEndpoint, const string &data)
                 return true;
                 break;
             default:
+                Log::writeErrorLog("Miniflux API: " + url + " Response Code: " + std::to_string(res));
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
             }
         }
         else
         {
+            Log::writeErrorLog("Miniflux API: " + url + " RES Error Code: " + std::to_string(res));
             throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
         }
     }
@@ -213,11 +215,13 @@ nlohmann::json Miniflux::get(const string &apiEndpoint)
             case 200:
                 return nlohmann::json::parse(readBuffer);
             default:
+                Log::writeErrorLog("Miniflux API: " + url + " Response Code: " + std::to_string(res));
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
             }
         }
         else
         {
+            Log::writeErrorLog("Miniflux API: " + url + " RES Error Code: " + std::to_string(res));
             throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
         }
     }

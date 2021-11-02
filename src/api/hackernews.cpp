@@ -113,9 +113,14 @@ nlohmann::json Hackernews::get(const string &apiEndpoint)
             }
             default:
             {
+                Log::writeErrorLog("Hackernews API: " + url + " Response Code: " + std::to_string(res));
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
             }
             }
+        }
+        else if(res == CURLE_OPERATION_TIMEDOUT)
+        {
+            throw std::runtime_error("Firebaseio.com is blocked on some DNS. The Hackernews API therefore cannot be served. (Curl Error Code " + std::to_string(res) + ")");
         }
         else
         {
