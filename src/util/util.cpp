@@ -31,7 +31,7 @@ bool Util::connectToNetwork()
     //NetError, NetErrorMessage
     iv_netinfo *netinfo = NetInfo();
     if (netinfo->connected){
-				ShowHourglassForce();
+        ShowHourglassForce();
         return true;
     }
 

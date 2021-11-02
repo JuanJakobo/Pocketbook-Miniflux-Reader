@@ -49,7 +49,7 @@ private:
     *  
     * @return returns a json object receivt from the api
     */
-    static nlohmann::json get(const std::string &ApiEndpoint);
+    static nlohmann::json get(const std::string &apiEndpoint);
 };
 
 #endif

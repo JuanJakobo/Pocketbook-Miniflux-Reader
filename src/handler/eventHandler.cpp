@@ -53,20 +53,20 @@ EventHandler::EventHandler()
             iv_mkdir(IMAGE_FOLDER.c_str(), 0777);
 
         _miniflux = std::unique_ptr<Miniflux>(new Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token")));
-				
+
         vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
-				if(!drawMinifluxEntries(mfEntries))
+        if(!drawMinifluxEntries(mfEntries))
         {
-				   if(!Util::connectToNetwork())
-				       return;
+            if(!Util::connectToNetwork())
+                return;
 
             string filter = Util::readFromConfig("filter");
             if (filter.empty())
             {
-              filter = "status=unread&direction=asc&limit=1000";
-              Util::writeToConfig("filter", filter);
+                filter = "status=unread&direction=asc&limit=1000";
+                Util::writeToConfig("filter", filter);
             }
-						filterAndDrawMiniflux(filter);
+            filterAndDrawMiniflux(filter);
         }
     }
     else
@@ -79,7 +79,6 @@ EventHandler::EventHandler()
 
 EventHandler::~EventHandler()
 {
-    //TODO stop database
     Log::writeInfoLog("delete eventHandler");
 }
 
@@ -102,32 +101,25 @@ void EventHandler::mainMenuHandler(const int index)
 {
     switch (index)
     {
-    //show downloaded
-  	case 101:
-		{
-				vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
-				drawMinifluxEntries(mfEntries);
-				break;
-		}
-    //show unread
-    case 102:
-    {
-				filterAndDrawMiniflux(Util::readFromConfig("filter"));
-        break;
-    }
-    //show starred
-    case 103:
-    {
-        filterAndDrawMiniflux("starred=true&direction=asc&limit=1000");
-        break;
-    }
-    //sync items
-    case 104:
-    {
-				if(!Util::connectToNetwork())
-								break;
-        OpenProgressbar(ICON_INFORMATION, "Syncing items", "Downloading Miniflux Entries", 0, NULL);
-				
+        //show downloaded
+        case 101:
+            {
+                vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
+                drawMinifluxEntries(mfEntries);
+                break;
+            }
+            //show unread
+        case 102:
+            {
+                filterAndDrawMiniflux(Util::readFromConfig("filter"));
+                break;
+            }
+            //show starred
+        case 103:
+            {
+                filterAndDrawMiniflux("starred=true&direction=asc&limit=1000");
+                break;
+            }
 				//only actualizes new items
 				//TODO get the items multiple times
 				vector<MfEntry> entriesToSync =  _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
@@ -180,38 +172,35 @@ void EventHandler::mainMenuHandler(const int index)
 
         CloseProgressbar();
 				//get all downloaded items and show
-        vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
-				drawMinifluxEntries(mfEntries);
-        break;
-    }
-    //Mark as read till page
-    case 105:
-    {
-				if(!Util::connectToNetwork())
-								break;
-        if (!_miniflux->updateEntries(_minifluxView->getEntriesTillPage(), true))
-            Log::writeErrorLog("Could not mark entries as read.");
-        filterAndDrawMiniflux(Util::readFromConfig("filter"));
-        break;
-    }
-    //Go back to miniflux overview
-    case 106:
-    {
-		   _minifluxView->draw();
-		   _currentView = Views::MFVIEW;
-        break;
-    }
-    case 107:
-    {
-        Message(ICON_INFORMATION, "Info", "Info", 1200);
-        break;
-    }
-    //Exit
-    case 108:
-        CloseApp();
-        break;
-    default:
-        break;
+            //Mark as read till page
+        case 105:
+            {
+                //TODO try
+                if(!Util::connectToNetwork())
+                    break;
+                if (!_miniflux->updateEntries(_minifluxView->getEntriesTillPage(), true))
+                    Log::writeErrorLog("Could not mark entries as read.");
+                filterAndDrawMiniflux(Util::readFromConfig("filter"));
+                break;
+            }
+            //Go back to miniflux overview
+        case 106:
+            {
+                _minifluxView->draw();
+                _currentView = Views::MFVIEW;
+                break;
+            }
+        case 107:
+            {
+                Message(ICON_INFORMATION, "Info", "Info", 1200);
+                break;
+            }
+            //Exit
+        case 108:
+            CloseApp();
+            break;
+        default:
+            break;
     }
 }
 
@@ -259,31 +248,29 @@ void EventHandler::hnContextMenuHandler(const int index)
 				*/
         _hnCommentView->reDrawCurrentEntry();
 
-        break;
-    }
-    //author
-    case 102:
-    {
-				if(!Util::connectToNetwork())
-								break;
-        HnUser user = Hackernews::getUser(_hnCommentView->getCurrentEntry()->by);
-        Util::decodeHTML(user.about);
-        string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) + "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
-        DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
-        _hnCommentView->reDrawCurrentEntry();
-        break;
-    }
-    //urls
-    case 103:
-    {
-        //TODO show urls off the command and make clickable,  also in dialog, can then be clicked?
-        // open hackernews in comments again
-    }
-    default:
-    {
-        _hnCommentView->invertCurrentEntryColor();
-        break;
-    }
+            //author
+        case 102:
+            {
+                if(!Util::connectToNetwork())
+                    break;
+                HnUser user = Hackernews::getUser(_hnCommentView->getCurrentEntry()->by);
+                Util::decodeHTML(user.about);
+                string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) + "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
+                DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
+                _hnCommentView->reDrawCurrentEntry();
+                break;
+            }
+            //urls
+        case 103:
+            {
+                //TODO show urls off the command and make clickable,  also in dialog, can then be clicked?
+                // open hackernews in comments again
+            }
+        default:
+            {
+                _hnCommentView->invertCurrentEntryColor();
+                break;
+            }
     }
 }
 void EventHandler::contextMenuHandlerStatic(const int index)
@@ -295,68 +282,71 @@ void EventHandler::contextMenuHandler(const int index)
 {
     switch (index)
     {
-    //Comment
-    case 101:
-    {
-						drawHnCommentView(_minifluxView->getCurrentEntry()->comments_url);
-        break;
-    }
-		//Mark/Unmark to download
-		case 102:
-		{
-				if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED || _minifluxView->getCurrentEntry()->downloaded == IsDownloaded::DOWNLOADED)
-				{
-								_sqliteCon.deleteHnEntries(_minifluxView->getCurrentEntry()->id);
-								const std::string forbiddenInFiles = "<>\\/:?\"|";
-								string title = _minifluxView->getCurrentEntry()->title;
-								//TODO move into function
-								std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
-																{ return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
+        //Comment
+        case 101:
+            {
+                drawHnCommentView(_minifluxView->getCurrentEntry()->comments_url);
+                break;
+            }
+            //Mark/Unmark to download
+        case 102:
+            {
+                if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED || _minifluxView->getCurrentEntry()->downloaded == IsDownloaded::DOWNLOADED)
+                {
+                    _sqliteCon.deleteHnEntries(_minifluxView->getCurrentEntry()->id);
+                    const std::string forbiddenInFiles = "<>\\/:?\"|";
+                    string title = _minifluxView->getCurrentEntry()->title;
+                    std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
+                            { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
 
-								string path = ARTICLE_FOLDER + "/" + title + ".html";
-								remove(path.c_str());
-								string cmd = "rm -rf \"" + ARTICLE_FOLDER + "/img/" + title + "/\"";
-								Log::writeInfoLog(cmd);
-								system(cmd.c_str());
-								_minifluxView->getCurrentEntry()->downloaded = IsDownloaded::NOTDOWNLOADED;
-				}
-				else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::NOTDOWNLOADED)
-				{
-								_minifluxView->getCurrentEntry()->downloaded = IsDownloaded::TOBEDOWNLOADED;
-				}
-				_sqliteCon.updateDownloadStatusMfEntry(_minifluxView->getCurrentEntry()->id, _minifluxView->getCurrentEntry()->downloaded);
-				_minifluxView->reDrawCurrentEntry();	
-				break;
-    }
-    //Unstar/Star
-    case 103:
-    {
-				if(!Util::connectToNetwork())
-								break;
-        if (_miniflux->toggleBookmark(_minifluxView->getCurrentEntry()->id))
-        {
-            _minifluxView->getCurrentEntry()->starred = !_minifluxView->getCurrentEntry()->starred;
-            _sqliteCon.updateMfEntry(_minifluxView->getCurrentEntry()->id, _minifluxView->getCurrentEntry()->starred);
-            _minifluxView->reDrawCurrentEntry();
-        }
-        else
-        {
-            Message(ICON_ERROR, "Error", "Could not starr the selected item.", 1200);
-            _minifluxView->invertCurrentEntryColor();
-        }
-        break;
-    }
-    //Browser
-    case 104:
-    {
-        Util::openInBrowser(_minifluxView->getCurrentEntry()->url);
-        break;
-    }
-    default:
-    {
-        _minifluxView->invertCurrentEntryColor();
-        break;
-    }
+                    string path = ARTICLE_FOLDER + "/" + title + ".html";
+                    remove(path.c_str());
+                    string cmd = "rm -rf \"" + ARTICLE_FOLDER + "/img/" + title + "/\"";
+                    Log::writeInfoLog(cmd);
+                    system(cmd.c_str());
+                    _minifluxView->getCurrentEntry()->downloaded = IsDownloaded::NOTDOWNLOADED;
+
+                    //TODO delete miniflux entry?
+                }
+                else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::NOTDOWNLOADED)
+                {
+                    _minifluxView->getCurrentEntry()->downloaded = IsDownloaded::TOBEDOWNLOADED;
+                }
+                _sqliteCon.updateDownloadStatusMfEntry(_minifluxView->getCurrentEntry()->id, _minifluxView->getCurrentEntry()->downloaded);
+                _minifluxView->reDrawCurrentEntry();	
+                break;
+            }
+            //Unstar/Star
+        case 103:
+            {
+                //TODO try
+                if(!Util::connectToNetwork())
+                    break;
+                if (_miniflux->toggleBookmark(_minifluxView->getCurrentEntry()->id))
+                {
+                    _minifluxView->getCurrentEntry()->starred = !_minifluxView->getCurrentEntry()->starred;
+                    _sqliteCon.updateMfEntry(_minifluxView->getCurrentEntry()->id, _minifluxView->getCurrentEntry()->starred);
+                    _minifluxView->reDrawCurrentEntry();
+                }
+                else
+                {
+                    Message(ICON_ERROR, "Error", "Could not starr the selected item.", 1200);
+                    _minifluxView->invertCurrentEntryColor();
+                }
+                HideHourglass();
+                break;
+            }
+            //Browser
+        case 104:
+            {
+                Util::openInBrowser(_minifluxView->getCurrentEntry()->url);
+                break;
+            }
+        default:
+            {
+                _minifluxView->invertCurrentEntryColor();
+                break;
+            }
     }
 }
 
@@ -373,14 +363,16 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             if (_minifluxView->getCurrentEntry()->comments_url.find("news.ycombinator.com") != std::string::npos)
                 comments = true;
 
-								string downloaded;
+            string downloaded;
+            if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED) 
 								if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED) 
-												downloaded = "Remove download mark";
-								else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::NOTDOWNLOADED)
-												downloaded = "Add download mark";
-								else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::DOWNLOADED)
-												downloaded = "Remove item";
-										
+            if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED) 
+                downloaded = "Remove download mark";
+            else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::NOTDOWNLOADED)
+                downloaded = "Add download mark";
+            else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::DOWNLOADED)
+                downloaded = "Remove item";
+
             _contextMenu.createMenu(par2, EventHandler::contextMenuHandlerStatic, comments, _minifluxView->getCurrentEntry()->starred, downloaded);
             return 1;
         }
@@ -420,26 +412,24 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     //open the comment view directly if is HN
                     if (_minifluxView->getCurrentEntry()->url.find("news.ycombinator.com") != std::string::npos)
                     {
-														drawHnCommentView(_minifluxView->getCurrentEntry()->comments_url);
+                        drawHnCommentView(_minifluxView->getCurrentEntry()->comments_url);
                         return 1;
                     }
 
-                    //remove chars that are not allowed in filenames
-										//TODO use function
                     const std::string forbiddenInFiles = "<>\\/:?\"|";
 
                     string title = _minifluxView->getCurrentEntry()->title;
 
                     std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
-                                   { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
+                            { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
 
                     string path = ARTICLE_FOLDER + "/" + title + ".html";
-										//if path is empty
+
                     if (iv_access(path.c_str(), W_OK) != 0)
                     {
-												if(!Util::connectToNetwork())
-														return 1;
-				    						createHtml(_minifluxView->getCurrentEntry()->title, _minifluxView->getCurrentEntry()->content);
+                        if(!Util::connectToNetwork())
+                            return 1;
+                        createHtml(_minifluxView->getCurrentEntry()->title, _minifluxView->getCurrentEntry()->content);
                     }
                     else
                     {
@@ -466,8 +456,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     }
                     else
                     {
-												_minifluxView->draw();
-											 _currentView = Views::MFVIEW;
+                        _minifluxView->draw();
+                        _currentView = Views::MFVIEW;
                     }
                 }
                 else
@@ -518,8 +508,8 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
                 }
                 else
                 {
-				            _minifluxView->draw();
-								    _currentView = Views::MFVIEW;
+                    _minifluxView->draw();
+                    _currentView = Views::MFVIEW;
                 }
                 return 1;
             }
@@ -543,12 +533,10 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
 
 void EventHandler::createHtml(string title, string content)
 {
-				//TODO into function "forbidden in files
-				//remove chars that are not allowed in filenames
     const std::string forbiddenInFiles = "<>\\/:?\"|";
 
     std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
-                   { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
+            { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
 
     string path = ARTICLE_FOLDER + "/" + title + ".html";
     if (iv_access(path.c_str(), W_OK) != 0)
@@ -606,23 +594,23 @@ void EventHandler::createHtml(string title, string content)
 
 bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
 {
-				if (mfEntries.size() > 0)
-				{
-								_sqliteCon.insertMfEntries(mfEntries);
-								_minifluxView.reset(new MinifluxView(_menu.getContentRect(),mfEntries,1));
-								_minifluxView->draw();
-								_currentView = Views::MFVIEW;
-								return true;
-				}
-				else
-				{
-								FillAreaRect(_menu.getContentRect(), WHITE);
-								DrawTextRect2(_menu.getContentRect(), "no entries to show");
-								_minifluxView.reset();
-								_currentView = Views::DEFAULTVIEW;
-								PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
-								return false;
-				}
+    if (mfEntries.size() > 0)
+    {
+        _sqliteCon.insertMfEntries(mfEntries);
+        _minifluxView.reset(new MinifluxView(_menu.getContentRect(),mfEntries,1));
+        _minifluxView->draw();
+        _currentView = Views::MFVIEW;
+        return true;
+    }
+    else
+    {
+        FillAreaRect(_menu.getContentRect(), WHITE);
+        DrawTextRect2(_menu.getContentRect(), "no entries to show");
+        _minifluxView.reset();
+        _currentView = Views::DEFAULTVIEW;
+        PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
+        return false;
+    }
 
 }
 
@@ -630,23 +618,23 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
 {
     if (!filter.empty())
     {
-				if(!Util::connectToNetwork())
-				   return;
+        //TODO try
+        if(!Util::connectToNetwork())
+            return;
         vector<MfEntry> mfEntries = _miniflux->getEntries(filter);
-				//TODO optimize
-				vector<MfEntry> oldEntries = _sqliteCon.selectMfEntries();
-				for(size_t i = 0; i < mfEntries.size(); i++)
-				{
-								for(size_t j = 0; j < oldEntries.size();j++)
-								{
-												if(mfEntries.at(i).id == oldEntries.at(j).id)
-												{
-																mfEntries.at(i).downloaded = oldEntries.at(j).downloaded;
-																break;
-												}
-								}
-				}
-				drawMinifluxEntries(mfEntries);
+        vector<MfEntry> oldEntries = _sqliteCon.selectMfEntries();
+        for(size_t i = 0; i < mfEntries.size(); i++)
+        {
+            for(size_t j = 0; j < oldEntries.size();j++)
+            {
+                if(mfEntries.at(i).id == oldEntries.at(j).id)
+                {
+                    mfEntries.at(i).downloaded = oldEntries.at(j).downloaded;
+                    break;
+                }
+            }
+        }
+        drawMinifluxEntries(mfEntries);
     }
 }
 

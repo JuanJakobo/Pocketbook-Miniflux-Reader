@@ -21,7 +21,6 @@ EventHandler *events = nullptr;
 */
 int Inkview_handler(int type, int par1, int par2)
 {
-    Log::writeLogInfo(std::to_string(type));
     switch (type)
     {
     case EVT_INIT:

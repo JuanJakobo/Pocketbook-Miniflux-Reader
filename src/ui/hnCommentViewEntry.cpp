@@ -10,8 +10,6 @@
 #include "inkview.h"
 #include "hackernewsModel.h"
 
-#include "log.h"
-
 #include <ctime>
 #include <iostream>
 
