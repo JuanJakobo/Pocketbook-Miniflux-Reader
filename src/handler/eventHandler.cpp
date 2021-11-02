@@ -131,17 +131,13 @@ void EventHandler::mainMenuHandler(const int index)
 								_sqliteCon.updateDownloadStatusMfEntry(entriesToSync.at(i).id,entriesToSync.at(i).downloaded);
 				}
 
-        //TODO make the percentage bar 
-        int move = 1 / entriesToSync.size() * 100;
-				//make less than 100
-				Log::writeInfoLog(" size " + std::to_string(entriesToSync.size()));
-        Log::writeInfoLog(" move " + std::to_string(move));
-        _currentPerc = 0;
-        for (auto ent : entriesToSync)
-        {
-            _currentPerc += move;
-						UpdateProgressbar(("Downloading images and article for " + ent.title).c_str(), _currentPerc);
-						createHtml(ent.title, ent.content);
+                double percentageMove = entriesToSync.size();
+                percentageMove = 1/ percentageMove * 99;
+                auto currentPercentage = 0;
+                for (auto ent : entriesToSync)
+                {
+                    currentPercentage += percentageMove;
+                    UpdateProgressbar(("Downloading \"" + ent.title + "\"").c_str(), currentPercentage);
 
 						//TODO doppelt
             if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
