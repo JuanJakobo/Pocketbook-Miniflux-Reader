@@ -138,6 +138,8 @@ void Util::decodeHTML(string &data)
     replaceAll(data, "&#x27;", "\'");
     replaceAll(data, "&#x2F;", "/");
     replaceAll(data, "<p>", "\n");
+    replaceAll(data, "<i>", "\"");
+    replaceAll(data, "</i>", "\"");
 }
 
 void Util::replaceAll(std::string &data, const std::string &replace, const std::string &by)
