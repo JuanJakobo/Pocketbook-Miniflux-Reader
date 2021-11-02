@@ -26,25 +26,9 @@ Miniflux::Miniflux(const string &url, const string &token) : _url(url), _token(t
 MfEntry Miniflux::getEntry(int entryID)
 {
     nlohmann::json element = get("/v1/entries/" + std::to_string(entryID));
-    MfEntry temp;
-    if (element["id"].is_number())
-        temp.id = element["id"];
-    if (element["status"].is_string())
-        temp.status = element["status"];
-    if (element["title"].is_string())
-        temp.title = element["title"];
-    if (element["url"].is_string())
-        temp.url = element["url"];
-    if (element["comments_url"].is_string())
-        temp.comments_url = element["comments_url"];
-    if (element["content"].is_string())
-        temp.content = element["content"];
-    if (element["starred"].is_boolean())
-        temp.starred = element["starred"];
-    if (element["reading_time"].is_number())
-        temp.reading_time = element["reading_time"];
-    return temp;
+    return getEntryLocal(element);
 }
+
 
 vector<MfEntry> Miniflux::getEntries(const string &filter)
 {
@@ -53,28 +37,7 @@ vector<MfEntry> Miniflux::getEntries(const string &filter)
     vector<MfEntry> tempItems;
 
     for (const auto &element : j["entries"].items())
-    {
-        MfEntry temp;
-        if (element.value()["id"].is_number())
-            temp.id = element.value()["id"];
-        if (element.value()["status"].is_string())
-            temp.status = element.value()["status"];
-        if (element.value()["title"].is_string())
-            temp.title = element.value()["title"];
-        if (element.value()["url"].is_string())
-            temp.url = element.value()["url"];
-        if (element.value()["comments_url"].is_string())
-            temp.comments_url = element.value()["comments_url"];
-        if (element.value()["content"].is_string())
-            temp.content = element.value()["content"];
-        if (element.value()["starred"].is_boolean())
-            temp.starred = element.value()["starred"];
-        if (element.value()["reading_time"].is_number())
-            temp.reading_time = element.value()["reading_time"];
-        tempItems.push_back(temp);
-        //for (auto element : j["entries"].items())
-        //    tempItems.push_back(createEntry(element));
-    }
+        tempItems.push_back(getEntryLocal(element.value()));
 
     return tempItems;
 }
@@ -137,6 +100,30 @@ bool Miniflux::updateEntries(const vector<int> &entries, bool read)
     data.append("}");
 
     return put("/v1/entries", data);
+}
+
+MfEntry Miniflux::getEntryLocal(const nlohmann::json &element)
+{
+    MfEntry temp;
+
+    if (element["id"].is_number())
+        temp.id = element["id"];
+    if (element["status"].is_string())
+        temp.status = element["status"];
+    if (element["title"].is_string())
+        temp.title = element["title"];
+    if (element["url"].is_string())
+        temp.url = element["url"];
+    if (element["comments_url"].is_string())
+        temp.comments_url = element["comments_url"];
+    if (element["content"].is_string())
+        temp.content = element["content"];
+    if (element["starred"].is_boolean())
+        temp.starred = element["starred"];
+    if (element["reading_time"].is_number())
+        temp.reading_time = element["reading_time"];
+
+    return temp;
 }
 
 bool Miniflux::put(const std::string &apiEndpoint, const string &data)

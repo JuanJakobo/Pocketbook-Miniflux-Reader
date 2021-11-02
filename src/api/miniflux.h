@@ -23,13 +23,7 @@ class Miniflux
          * creatas a new Miniflux object containing the url and token to access the api
          *
          * @param url 
-    * @param url 
-         * @param url 
          * @param token 
-    * @param token 
-         * @param token 
-         *  
-    *  
          *  
          */
         Miniflux(const std::string &url, const std::string &token);
@@ -44,8 +38,6 @@ class Miniflux
          * Refreshes all feeds in the background
          *
          *  
-    *  
-         *  
          * @return true if feeds upgrade was initiated
          */
         bool refreshAllFeeds();
@@ -57,13 +49,9 @@ class Miniflux
 
         /**
          * Upgrades the status (read, unread) of the selected items 
-    * Upgrades the status (read, unread) of the selected items 
-         * Upgrades the status (read, unread) of the selected items 
          *
          * @param entries entries that shall be updated
          * @param read true if items should be marked as read, false if unread
-         *  
-    *  
          *  
          * @return true if feeds upgrade was initiated
          */
@@ -72,6 +60,8 @@ class Miniflux
     private:
         std::string _url;
         std::string _token;
+
+        MfEntry getEntryLocal(const nlohmann::json &element);
 
         bool put(const std::string &apiEndpoint, const std::string &data);
 
