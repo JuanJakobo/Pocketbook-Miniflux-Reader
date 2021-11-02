@@ -29,10 +29,10 @@ MainMenu::MainMenu(const string &name)
     DrawTextRect2(&_menuButtonRect, "Menu");
     DrawLine(0, _panelMenuHeight - 1, ScreenWidth(), _panelMenuHeight - 1, BLACK);
 
-    _contentRect = iRect(0, _panelMenuHeight, ScreenWidth(), (ScreenHeight() - PanelHeight() - _panelMenuHeight), 0);
-
-    SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
-    DrawPanel(NULL, "", NULL, -1);
+    _contentRect = iRect(0, _panelMenuHeight, ScreenWidth(), (ScreenHeight() - _panelMenuHeight), 0);
+    
+    SetPanelType(0);
+    PartialUpdate(0, _panelMenuBeginY, ScreenWidth(), _panelMenuHeight);
 }
 
 MainMenu::~MainMenu()
@@ -47,12 +47,6 @@ MainMenu::~MainMenu()
     free(_minifluxOverview);
     free(_markAsReadTillPage);
     free(_exit);
-}
-
-void MainMenu::panelHandlerStatic()
-{
-    DrawPanel(NULL, "", NULL, -1);
-    SetHardTimer("PANELUPDATE", panelHandlerStatic, 110000);
 }
 
 int MainMenu::createMenu(bool mainView, const iv_menuhandler &handler)

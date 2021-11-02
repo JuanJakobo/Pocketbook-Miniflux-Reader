@@ -49,7 +49,7 @@ private:
     irect _contentRect;
 
     char *_menu = strdup("Menu");
-    char *_syncDownloaded = strdup("Sync downloaded");
+    char *_syncDownloaded = strdup("Sync marked");
     char *_showUnread = strdup("Show unread");
     char *_showStarred = strdup("Show starred");
     char *_showDownloaded = strdup("Show downloaded");
@@ -58,9 +58,5 @@ private:
     char *_info = strdup("Info");
     char *_exit = strdup("Close App");
 
-    /**
-        * Functions needed to call C function, handles the panel
-        */
-    static void panelHandlerStatic();
 };
 #endif
