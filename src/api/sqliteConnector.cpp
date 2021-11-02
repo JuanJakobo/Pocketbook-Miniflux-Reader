@@ -432,7 +432,7 @@ bool SqliteConnector::open()
 
     if (rs)
     {
-        //TODO could not open
+        Log::writeErrorLog("Could not open DB at " + _dbpath);
     }
     rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS MfEntries (id INT PRIMARY KEY, status TEXT, title TEXT, url TEXT, comments_url TEXT, content TEXT, starred INT, reading_time INT, downloaded INT);", NULL, 0, NULL);
     rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS HnItems (id INT PRIMARY KEY, by TEXT, time INT, text TEXT, parent INT, kids TEXT, urls TEXT, score INT, title TEXT, descendants INT, mfEntryId INT);", NULL, 0, NULL);
