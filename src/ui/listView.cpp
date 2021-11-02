@@ -22,7 +22,7 @@ ListView::ListView(const irect *contentRect, int page) : _contentRect(contentRec
 
     _footerHeight = _contentRect->h / 10;
     _footerFontHeight = 0.3 * _footerHeight;
-    _entryFontHeight = 30; //0.2 * _footerFontHeight;//entrySize; //TODO how much? 
+    _entryFontHeight = 30; 
 
     _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
     _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);

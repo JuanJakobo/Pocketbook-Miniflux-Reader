@@ -18,52 +18,63 @@
 
 class Miniflux
 {
-public:
-    /**
-    * creatas a new Miniflux object containing the url and token to access the api
-    *
+    public:
+        /**
+         * creatas a new Miniflux object containing the url and token to access the api
+         *
+         * @param url 
     * @param url 
+         * @param url 
+         * @param token 
     * @param token 
+         * @param token 
+         *  
     *  
-    */
-    Miniflux(const std::string &url, const std::string &token);
+         *  
+         */
+        Miniflux(const std::string &url, const std::string &token);
 
-    MfEntry getEntry(int entryID);
+        MfEntry getEntry(int entryID);
 
-    std::vector<MfEntry> getEntries(const std::string &filter);
+        std::vector<MfEntry> getEntries(const std::string &filter);
 
-    MfFeedIcon getFeedIcon(int feedID);
+        MfFeedIcon getFeedIcon(int feedID);
 
-    /**
-    * Refreshes all feeds in the background
-    *
+        /**
+         * Refreshes all feeds in the background
+         *
+         *  
     *  
-    * @return true if feeds upgrade was initiated
-    */
-    bool refreshAllFeeds();
+         *  
+         * @return true if feeds upgrade was initiated
+         */
+        bool refreshAllFeeds();
 
-    bool markUserEntriesAsRead(int userID);
+        bool markUserEntriesAsRead(int userID);
 
 
-    bool toggleBookmark(int entryID);
+        bool toggleBookmark(int entryID);
 
-    /**
+        /**
+         * Upgrades the status (read, unread) of the selected items 
     * Upgrades the status (read, unread) of the selected items 
-    *
-    * @param entries entries that shall be updated
-    * @param read true if items should be marked as read, false if unread
+         * Upgrades the status (read, unread) of the selected items 
+         *
+         * @param entries entries that shall be updated
+         * @param read true if items should be marked as read, false if unread
+         *  
     *  
-    * @return true if feeds upgrade was initiated
-    */
-    bool updateEntries(const std::vector<int> &entries, bool read);
+         *  
+         * @return true if feeds upgrade was initiated
+         */
+        bool updateEntries(const std::vector<int> &entries, bool read);
 
-private:
-    std::string _url;
-    std::string _token;
+    private:
+        std::string _url;
+        std::string _token;
 
-    bool put(const std::string &apiEndpoint, const std::string &data);
+        bool put(const std::string &apiEndpoint, const std::string &data);
 
-    nlohmann::json get(const std::string &apiEndpoint);
+        nlohmann::json get(const std::string &apiEndpoint);
 };
-
 #endif

@@ -111,7 +111,6 @@ HnEntry SqliteConnector::selectHnEntry(int id)
         temp.time = sqlite3_column_int(stmt, 2);
         temp.text = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
         temp.parent = sqlite3_column_int(stmt, 4);
-        //test all
         if (!(sqlite3_column_type(stmt, 5) == SQLITE_NULL))
         {
             std::string kids = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 5));

@@ -16,8 +16,8 @@ using std::string;
 MainMenu::MainMenu(const string &name)
 {
     _panelMenuHeight = ScreenHeight() / 18;
-    _panelMenuBeginY = 0;
     _mainMenuWidth = ScreenWidth() / 3;
+    _panelMenuBeginY = 0;
     _panelMenuBeginX = ScreenWidth() - _mainMenuWidth;
 
     _menuButtonRect = iRect(_mainMenuWidth * 2, _panelMenuBeginY, _mainMenuWidth, _panelMenuHeight, ALIGN_RIGHT);
@@ -41,7 +41,7 @@ MainMenu::~MainMenu()
     free(_menu);
     free(_info);
     free(_syncDownloaded);
-		free(_showDownloaded);
+    free(_showDownloaded);
     free(_showUnread);
     free(_showStarred);
     free(_minifluxOverview);
