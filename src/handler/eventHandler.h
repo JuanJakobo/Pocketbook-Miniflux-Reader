@@ -74,7 +74,6 @@ private:
     SqliteConnector _sqliteCon = SqliteConnector(DB_PATH);
     std::vector<HnEntry> _hnEntries;
     Views _currentView;
-    int _currentPerc;
     int _minifluxViewShownPage = 1;
     std::map<int, int> _hnShownPage;
 
