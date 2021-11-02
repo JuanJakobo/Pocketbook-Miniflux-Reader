@@ -120,16 +120,19 @@ void EventHandler::mainMenuHandler(const int index)
                 filterAndDrawMiniflux("starred=true&direction=asc&limit=1000");
                 break;
             }
-				//only actualizes new items
-				//TODO get the items multiple times
-				vector<MfEntry> entriesToSync =  _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
+            //sync items
+        case 104:
+            {
+                if(!Util::connectToNetwork())
+                    break;
+                OpenProgressbar(ICON_INFORMATION, "Syncing items", "Downloading Miniflux Entries", 0, NULL);
 
-			 for (size_t i = 0; i < entriesToSync.size(); i++)
-				{
-								entriesToSync.at(i) = _miniflux->getEntry(entriesToSync.at(i).id);
-								entriesToSync.at(i).downloaded = IsDownloaded::DOWNLOADED;
-								_sqliteCon.updateDownloadStatusMfEntry(entriesToSync.at(i).id,entriesToSync.at(i).downloaded);
-				}
+                vector<MfEntry> entriesToSync =  _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
+
+                //for (size_t i = 0; i < entriesToSync.size(); i++)
+                //{
+                    //entriesToSync.at(i) = _miniflux->getEntry(entriesToSync.at(i).id);
+                //}
 
                 double percentageMove = entriesToSync.size();
                 percentageMove = 1/ percentageMove * 99;
@@ -138,36 +141,38 @@ void EventHandler::mainMenuHandler(const int index)
                 {
                     currentPercentage += percentageMove;
                     UpdateProgressbar(("Downloading \"" + ent.title + "\"").c_str(), currentPercentage);
+                    createHtml(ent.title, ent.content);
 
-						//TODO doppelt
-            if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
-            {
-                UpdateProgressbar(("Downloading Hackernews comments for " + ent.title).c_str(), _currentPerc);
+                    try
+                    {
+                        if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
+                        {
+                            //TODO use local variable? and saerch in hnEntries?
+                            _hnEntries.clear();
+                            BanSleep(2000);
+                            downloadHnEntries(getHnIDFromURL(ent.comments_url));
 
-								//drawHnCommentView(ent.comments_url);
-                auto parentCommentItemID = ent.comments_url;
-                auto end = parentCommentItemID.find("id=");
-                parentCommentItemID = parentCommentItemID.substr(end + 3);
-								//TODO use local variable?
-                _hnEntries.clear();
-                HnDownload(std::stoi(parentCommentItemID));
+                            for(size_t i = 0; i < _hnEntries.size(); ++i)
+                            {
+                                _hnEntries.at(i).mfEntryId = ent.id;
+                            }
+                            _sqliteCon.insertHnEntries(_hnEntries);
+                        }
 
-								Log::writeInfoLog("ent id " + std::to_string(ent.id));
-								
-								for(size_t i = 0; i < _hnEntries.size(); ++i)
-								{
-												_hnEntries.at(i).mfEntryId = ent.id;
-								}
-								//insert also mfentry number
-                _sqliteCon.insertHnEntries(_hnEntries);
-                _hnEntries.clear();
+                        _sqliteCon.updateDownloadStatusMfEntry(ent.id,IsDownloaded::DOWNLOADED);
+                    }
+                    catch (const std::exception &e)
+                    {
+                        Log::writeErrorLog(e.what());
+                        Message(ICON_INFORMATION, "Error while downloading", e.what(), 1200);
+                    }
+                }
+
+                CloseProgressbar();
+                vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
+                drawMinifluxEntries(mfEntries);
+                break;
             }
-        }
-
-				//TODO clean up mf entries and hn entries
-
-        CloseProgressbar();
-				//get all downloaded items and show
             //Mark as read till page
         case 105:
             {
