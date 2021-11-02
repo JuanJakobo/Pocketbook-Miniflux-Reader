@@ -22,7 +22,7 @@ public:
         * @param Rect area of the screen the item is positioned
         * @param entry entry that shall be drawn
         */
-    HnCommentViewEntry(int page, const irect position, const HnEntry &entry);
+    HnCommentViewEntry(int page, const irect position, const HnEntry &entry, bool drawHeader);
 
     /**
         * draws the listViewEntry to the screen
@@ -37,5 +37,6 @@ public:
 
 private:
     HnEntry _entry;
+    bool _drawHeader;
 };
 #endif
