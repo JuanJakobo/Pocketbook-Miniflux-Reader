@@ -209,41 +209,16 @@ void EventHandler::hnContextMenuHandler(const int index)
 {
     switch (index)
     {
-    //Save note
-    case 101:
-    {
-				//open boomarks?
-//typedef void (*iv_bmkhandler)(int action, int page, long long position);
-				//void OpenBookmarks(int page, long long position, int *bmklist, long long *poslist, int *bmkcount, int maxbmks, iv_bmkhandler hproc);
-//void SwitchBookmark(int page, long long position, int *bmklist, long long *poslist, int *bmkcount, int maxbmks, iv_bmkhandler hproc);
-//
-				//OpenBookmarks(1,1,NULL,NULL,NULL,1,NULL);
+        //Save note
+        case 101:
+            {
+                std::ofstream note(ARTICLE_FOLDER + "/notes.txt", std::ios_base::app | std::ios_base::out);
+                note << "by=" << _hnCommentView->getCurrentEntry()->by << " id=" << _hnCommentView->getCurrentEntry()->id << "\ncontent=\n" << _hnCommentView->getCurrentEntry()->text << "\n\n";
+                note.close();
+                _hnCommentView->reDrawCurrentEntry();
 
-        //TODO save notes
-				char **tester = EnumFonts();
-				string a;
-				int i = 0;
-
-				while(*tester)
-				{
-								tester++;
-								Log::writeInfoLog(std::to_string(i));
-								i++;
-				}
-				/*
-				//auto test = "title";
-				string path = "/mnt/ext1/Notes";
-				path.append("/LPT_LISA.html");
-				Log::writeInfoLog(path);
-				//OpenNotepad(path.c_str());
-				CreateNote(path.c_str(),"test",20);
-        //CreateNote(path.c_str(), "test", 2);
-        //if (iv_access(path.c_str(), W_OK) == 0)
-        //    Log::writeInfoLog(path + "path exists");
-        //CreateNote("test","test",2);
-				*/
-        _hnCommentView->reDrawCurrentEntry();
-
+                break;
+            }
             //author
         case 102:
             {
