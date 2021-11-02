@@ -157,7 +157,7 @@ private:
      */
     void filterAndDrawMiniflux(const std::string &filter);
 
-    void HnDownload(int entryID);
+    HnEntry HnDownload(int entryID);
 
     /**
      * 
@@ -175,6 +175,11 @@ private:
      */
     void drawHN(int entryID);
 
-		void drawHnCommentView(const std::string &commentsURL);
+    void drawHnCommentView(const std::string &commentsURL);
+
+    void downloadHnEntries(int entryID);
+
+    int getHnIDFromURL(const std::string &url);
+    
 };
 #endif
