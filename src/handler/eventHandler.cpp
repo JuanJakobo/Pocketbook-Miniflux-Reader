@@ -634,12 +634,8 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
     }
 }
 
-void EventHandler::HnDownload(int entryID)
+HnEntry EventHandler::HnDownload(int entryID)
 {
-
-    BanSleep(2000);
-    //TODO make local?
-    //to many requests?
     vector<HnEntry> temp = _sqliteCon.selectHnEntries(entryID);
 
     for (size_t i = 0; i < temp.size(); i++)
@@ -651,193 +647,8 @@ void EventHandler::HnDownload(int entryID)
     if (test.id > 0)
         _hnEntries.push_back(test);
 
-    try
-    {
-        auto found = false;
-
-        HnEntry parentItem;
-
-        for (size_t i = 0; i < _hnEntries.size(); i++)
-        {
-            if (_hnEntries.at(i).id == entryID)
-            {
-                parentItem = _hnEntries.at(i);
-                found = true;
-                break;
-            }
-        }
-
-        if (!found)
-        {
-
-            try
-            {
-                parentItem = Hackernews::getEntry(entryID);
-                _hnEntries.push_back(parentItem);
-            }
-            catch (const std::exception &e)
-            {
-
-                Log::writeErrorLog(e.what());
-                return;
-            }
-
-            Util::decodeHTML(parentItem.text);
-        }
-
-        if (parentItem.kids.size() > 0)
-        {
-
-            vector<int> tosearch;
-
-            for (size_t i = 0; i < parentItem.kids.size(); ++i)
-            {
-                found = false;
-
-                for (size_t j = 0; j < _hnEntries.size(); ++j)
-                {
-                    if (parentItem.kids.at(i) == _hnEntries.at(j).id)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
-                    tosearch.push_back(parentItem.kids.at(i));
-            }
-
-            if (tosearch.size() > 0)
-            {
-                //Download comments
-                mutexEntries = PTHREAD_MUTEX_INITIALIZER;
-                int count;
-
-                auto counter = 0;
-
-                //count of threads that can be handled
-                auto threadsPerSession = 4;
-
-                while (counter < tosearch.size())
-                {
-                    if (counter % threadsPerSession == 0 || counter < threadsPerSession)
-                    {
-                        if ((tosearch.size() - counter) < threadsPerSession)
-                            threadsPerSession = tosearch.size() - counter;
-
-                        pthread_t threads[threadsPerSession];
-
-                        for (count = 0; count < threadsPerSession; ++count)
-                        {
-                            if (pthread_create(&threads[count], NULL, getHnEntry, &tosearch.at(counter)) != 0)
-                            {
-                                Log::writeErrorLog("could not create thread");
-                                break;
-                            }
-                            counter++;
-                        }
-
-                        for (size_t i = 0; i < count; ++i)
-                        {
-                            if (pthread_join(threads[i], NULL) != 0)
-                            {
-                                Log::writeErrorLog("cannot join thread" + std::to_string(i));
-                            }
-                        }
-                    }
-                }
-
-                pthread_mutex_destroy(&mutexEntries);
-            }
-
-            for (size_t i = 0; i < parentItem.kids.size(); ++i)
-            {
-                HnDownload(parentItem.kids.at(i));
-            }
-
-            return;
-        }
-    }
-    catch (const std::exception &e)
-    {
-        Log::writeErrorLog(e.what());
-    }
-}
-
-void *EventHandler::getHnEntry(void *arg)
-{
-    try
-    {
-        HnEntry temp = Hackernews::getEntry(*(int *)arg);
-
-				if (!temp.title.empty())
-								Util::decodeHTML(temp.title);
-
-        if (!temp.text.empty())
-        {
-            Util::decodeHTML(temp.text);
-            auto found = temp.text.find("<a href=\"");
-            while (found != std::string::npos)
-            {
-                auto end3 = temp.text.find("</a>");
-
-                string toFind = temp.text.substr(found, (end3 + 4) - found);
-
-                auto url = toFind.substr(9);
-
-                auto src = url.find("\"");
-
-                url = url.substr(0, src);
-
-                temp.urls.push_back(url);
-
-                auto end1 = toFind.find(">");
-                auto end2 = toFind.find("</a>");
-
-                auto imageURL = toFind.substr(end1 + 1, end2 - end1 - 1);
-
-                auto toReplace = temp.text.find(toFind);
-
-                if (toReplace != std::string::npos)
-                {
-                    temp.text.replace(toReplace, toFind.size(), imageURL);
-                }
-
-                found = temp.text.find("<a href=\"");
-            }
-        }
-
-        pthread_mutex_lock(&mutexEntries);
-        _eventHandlerStatic->_hnEntries.push_back(temp);
-        //UpdateProgressbar(("Downloading  hn item " + std::to_string(temp.id)).c_str(), _eventHandlerStatic->_currentPerc);
-        pthread_mutex_unlock(&mutexEntries);
-    }
-    catch (const std::exception &e)
-    {
-        Log::writeErrorLog(e.what());
-    }
-
-    return NULL;
-}
-
-void EventHandler::drawHN(int entryID)
-{
     auto found = false;
-
     HnEntry parentItem;
-    std::vector<HnEntry> currentHnComments;
-
-    //TODO hn entries local
-    vector<HnEntry> temp = _sqliteCon.selectHnEntries(entryID);
-
-    for (size_t i = 0; i < temp.size(); i++)
-    {
-        _hnEntries.push_back(temp.at(i));
-    }
-
-    HnEntry test = _sqliteCon.selectHnEntry(entryID);
-    if (test.id > 0)
-        _hnEntries.push_back(test);
 
     for (size_t i = 0; i < _hnEntries.size(); i++)
     {
@@ -851,47 +662,23 @@ void EventHandler::drawHN(int entryID)
 
     if (!found)
     {
-				if(!Util::connectToNetwork())
-						return;
+        //throw error!
+        if(!Util::connectToNetwork())
+            throw std::runtime_error("Could not establish internet connection");
 
-        try
-        {
-            parentItem = Hackernews::getEntry(entryID);
-            _hnEntries.push_back(parentItem);
-            //TODO write to DB?
-        }
-        catch (const std::exception &e)
-        {
-            Log::writeErrorLog(e.what());
-            //change error msg
-            Message(ICON_ERROR, "fuck", e.what(), 1200);
+        parentItem = Hackernews::getEntry(entryID);
+        if(!parentItem.title.empty())
+            Util::decodeHTML(parentItem.title);
+        if(!parentItem.text.empty())
+            Util::decodeHTML(parentItem.text);
+        _hnEntries.push_back(parentItem);
 
-            return;
-        }
-
-        Util::decodeHTML(parentItem.text);
     }
-
-    if (parentItem.kids.size() == 0)
+    if (parentItem.kids.size() > 0)
     {
-        Message(ICON_INFORMATION, "Info", "This Comment has no childs.", 1000);
-        if (_currentView == Views::HNCOMMENTSVIEW)
-            _hnCommentView->invertCurrentEntryColor();
-        else
-            _minifluxView->invertCurrentEntryColor();
-    }
-    else
-    {
-        if (parentItem.parent > 0 && !parentItem.text.empty())
-            parentItem.text = "...";
-
-        currentHnComments.push_back(parentItem);
-
         vector<int> tosearch;
 
-        //TODO always load parent, kids if descendantas changed
-        //test if items have already been downloaded
-				for(size_t i = 0; i < parentItem.kids.size(); ++i)
+        for (size_t i = 0; i < parentItem.kids.size(); ++i)
         {
             found = false;
 
@@ -914,8 +701,9 @@ void EventHandler::drawHN(int entryID)
             mutexEntries = PTHREAD_MUTEX_INITIALIZER;
             int count;
 
-						if(!Util::connectToNetwork())
-								return;
+            //TODO throw diffrent
+            if(!Util::connectToNetwork())
+                throw std::runtime_error("Could not establish internet connection");
 
             auto counter = 0;
 
@@ -954,56 +742,148 @@ void EventHandler::drawHN(int entryID)
             pthread_mutex_destroy(&mutexEntries);
         }
 
-        //sort items in the correct order
-        for (size_t i = 0; i < parentItem.kids.size(); ++i)
+    }
+    return parentItem;
+}
+
+void EventHandler::downloadHnEntries(int parentCommentItemID)
+{
+    auto parentItem = HnDownload(parentCommentItemID);
+    for (size_t i = 0; i < parentItem.kids.size(); ++i)
+    {
+        downloadHnEntries(parentItem.kids.at(i));
+    }
+}
+
+void *EventHandler::getHnEntry(void *arg)
+{
+    //try
+    //{
+    HnEntry temp = Hackernews::getEntry(*(int *)arg);
+
+    if (!temp.text.empty())
+    {
+        Util::decodeHTML(temp.text);
+        auto found = temp.text.find("<a href=\"");
+        while (found != std::string::npos)
         {
-            for (size_t j = 0; j < _hnEntries.size(); ++j)
+            auto end3 = temp.text.find("</a>");
+
+            string toFind = temp.text.substr(found, (end3 + 4) - found);
+
+            auto url = toFind.substr(9);
+
+            auto src = url.find("\"");
+
+            url = url.substr(0, src);
+
+            temp.urls.push_back(url);
+
+            auto end1 = toFind.find(">");
+            auto end2 = toFind.find("</a>");
+
+            auto imageURL = toFind.substr(end1 + 1, end2 - end1 - 1);
+
+            auto toReplace = temp.text.find(toFind);
+
+            if (toReplace != std::string::npos)
             {
-                if (parentItem.kids.at(i) == _hnEntries.at(j).id)
-                {
-                    if (!_hnEntries.at(j).deleted)
-                        currentHnComments.push_back(_hnEntries.at(j));
-                    break;
-                }
+                temp.text.replace(toReplace, toFind.size(), imageURL);
+            }
+
+            found = temp.text.find("<a href=\"");
+        }
+    }
+
+    pthread_mutex_lock(&mutexEntries);
+    _eventHandlerStatic->_hnEntries.push_back(temp);
+    pthread_mutex_unlock(&mutexEntries);
+    /*    }
+          catch (const std::exception &e)
+          {
+          Log::writeErrorLog(e.what());
+          }
+
+*/
+    return NULL;
+}
+
+void EventHandler::drawHN(int entryID)
+{
+    //TODO try!
+    std::vector<HnEntry> currentHnComments;
+
+    _hnEntries.clear();
+    auto parentItem = HnDownload(entryID);
+
+    if (parentItem.kids.size() == 0)
+    {
+        Message(ICON_INFORMATION, "Info", "This Comment has no childs.", 1000);
+        if (_currentView == Views::HNCOMMENTSVIEW)
+            _hnCommentView->invertCurrentEntryColor();
+        else
+            _minifluxView->invertCurrentEntryColor();
+    }
+    if (parentItem.parent > 0 && !parentItem.text.empty())
+        parentItem.text = "...";
+
+    currentHnComments.push_back(parentItem);
+
+    for (size_t i = 0; i < parentItem.kids.size(); ++i)
+    {
+        for (size_t j = 0; j < _hnEntries.size(); ++j)
+        {
+            if (parentItem.kids.at(i) == _hnEntries.at(j).id)
+            {
+                if (!_hnEntries.at(j).deleted)
+                    currentHnComments.push_back(_hnEntries.at(j));
+                break;
             }
         }
+    }
 
-        if (currentHnComments.size() == 0)
+    if (currentHnComments.size() == 0)
+    {
+        Message(ICON_INFORMATION, "Info", "All comments are deleted", 1000);
+        _hnCommentView->invertCurrentEntryColor();
+    }
+    else
+    {
+        if (_hnCommentView != nullptr)
+            _hnShownPage.insert(std::make_pair(_hnCommentView->getEntry(0)->id, _hnCommentView->getShownPage()));
+
+        auto current = _hnShownPage.find(entryID);
+
+        int page;
+
+        if (current != _hnShownPage.end())
         {
-            Message(ICON_INFORMATION, "Info", "All comments are deleted", 1000);
-            _hnCommentView->invertCurrentEntryColor();
+            page = current->second;
+            _hnShownPage.erase(entryID);
         }
         else
         {
-            if (_hnCommentView != nullptr)
-                _hnShownPage.insert(std::make_pair(_hnCommentView->getEntry(0)->id, _hnCommentView->getShownPage()));
-
-            auto current = _hnShownPage.find(entryID);
-
-            int page;
-
-            if (current != _hnShownPage.end())
-            {
-                page = current->second;
-                _hnShownPage.erase(entryID);
-            }
-            else
-            {
-                page = 1;
-            }
-
-            _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
-            _currentView = Views::HNCOMMENTSVIEW;
+            page = 1;
         }
+
+        _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
+        _currentView = Views::HNCOMMENTSVIEW;
     }
 }
 
 void EventHandler::drawHnCommentView(const string &commentsURL)
 {
-        auto parentCommentItemID = commentsURL;
-        auto end = parentCommentItemID.find("id=");
-        parentCommentItemID = parentCommentItemID.substr(end + 3);
-        _minifluxViewShownPage = _minifluxView->getShownPage();
-				_hnEntries.clear();
-        drawHN(std::stoi(parentCommentItemID));
+    _minifluxViewShownPage = _minifluxView->getShownPage();
+    _hnEntries.clear();
+    drawHN(getHnIDFromURL(commentsURL));
 }
+
+int EventHandler::getHnIDFromURL(const string &url)
+{
+    auto parentCommentItemID = url;
+    auto end = parentCommentItemID.find("id=");
+    parentCommentItemID = parentCommentItemID.substr(end + 3);
+    return std::stoi(parentCommentItemID);
+    
+}
+
