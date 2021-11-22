@@ -129,25 +129,18 @@ void EventHandler::mainMenuHandler(const int index)
                 if(!Util::connectToNetwork())
                     break;
                 OpenProgressbar(ICON_INFORMATION, "Syncing items", "Downloading Miniflux Entries", 0, NULL);
-
                 vector<MfEntry> entriesToSync =  _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
 
-                //for (size_t i = 0; i < entriesToSync.size(); i++)
-                //{
-                    //entriesToSync.at(i) = _miniflux->getEntry(entriesToSync.at(i).id);
-                //}
-
                 double percentageMove = entriesToSync.size();
-                percentageMove = 1/ percentageMove * 99;
+                    percentageMove = 1/ percentageMove * 98;
                 auto currentPercentage = 0;
                 for (auto ent : entriesToSync)
                 {
+                        try
+                        {
                     currentPercentage += percentageMove;
                     UpdateProgressbar(("Downloading \"" + ent.title + "\"").c_str(), currentPercentage);
                     createHtml(ent.title, ent.content);
-
-                    try
-                    {
                         if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
                         {
                             //TODO use local variable? and saerch in hnEntries?
@@ -170,10 +163,24 @@ void EventHandler::mainMenuHandler(const int index)
                         Message(ICON_INFORMATION, "Error while downloading", e.what(), 1200);
                     }
                 }
+                    UpdateProgressbar("Updating downloaded items.", 99);
+                    vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
+                    for (size_t i = 0; i < mfEntries.size(); i++)
+                    {
+                        try{
+                            mfEntries.at(i) = _miniflux->getEntry(mfEntries.at(i).id);
+                            _sqliteCon.updateMfEntry(mfEntries.at(i).id, mfEntries.at(i).starred, mfEntries.at(i).status);
+                        }
+                        catch (const std::exception &e)
+                        {
+                            Log::writeErrorLog(e.what());
+                        }
+                    }
+                    mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
 
                 CloseProgressbar();
-                vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
                 drawMinifluxEntries(mfEntries);
+                }
                 break;
             }
             //Mark as read till page
