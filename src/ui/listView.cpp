@@ -20,7 +20,7 @@ ListView::ListView(const irect *contentRect, int page) : _contentRect(contentRec
 {
     _entries.clear();
 
-    _footerHeight = _contentRect->h / 10;
+    _footerHeight = _contentRect->h / 15;
     _footerFontHeight = 0.3 * _footerHeight;
     _entryFontHeight = 30; 
 
