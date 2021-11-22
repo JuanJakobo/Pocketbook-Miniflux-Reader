@@ -270,15 +270,16 @@ bool SqliteConnector::updateDownloadStatusMfEntry(int entryID, IsDownloaded down
     return true;
 }
 
-bool SqliteConnector::updateMfEntry(int entryID, bool starred)
+bool SqliteConnector::updateMfEntry(int entryID, bool starred, const std::string &status)
 {
     open();
     int rs;
     sqlite3_stmt *stmt = 0;
 
-    rs = sqlite3_prepare_v2(_db, "UPDATE 'MfEntries' SET starred=? WHERE id=?", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db, "UPDATE 'MfEntries' SET starred=?, status=? WHERE id=?", -1, &stmt, 0);
     rs = sqlite3_bind_int(stmt, 1, (starred) ? 1 : 0);
-    rs = sqlite3_bind_int(stmt, 2, entryID);
+    rs = sqlite3_bind_text(stmt, 2, status.c_str(), status.length(), NULL);
+    rs = sqlite3_bind_int(stmt, 3, entryID);
     rs = sqlite3_step(stmt);
 
     if (rs != SQLITE_DONE)
