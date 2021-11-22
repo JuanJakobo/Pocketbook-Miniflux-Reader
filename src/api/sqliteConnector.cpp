@@ -353,7 +353,6 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
         rs = sqlite3_bind_text(stmt, 4, hn.text.c_str(), hn.text.length(), NULL);
         rs = sqlite3_bind_int(stmt, 5, hn.parent);
 
-        //TODO make function
         if (hn.kids.size() > 0)
         {
             string kidsString = "[";
