@@ -108,6 +108,8 @@ void EventHandler::mainMenuHandler(const int index)
         case 101:
             {
                 vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
+                vector<MfEntry> toBeDownloaded = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
+                mfEntries.insert(mfEntries.end(),toBeDownloaded.begin(),toBeDownloaded.end());
                 drawMinifluxEntries(mfEntries);
                 break;
             }
