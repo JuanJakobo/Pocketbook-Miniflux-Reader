@@ -55,6 +55,9 @@ EventHandler::EventHandler()
         _miniflux = std::unique_ptr<Miniflux>(new Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token")));
 
         vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
+        vector<MfEntry> toBeDownloaded = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
+        mfEntries.insert(mfEntries.end(),toBeDownloaded.begin(),toBeDownloaded.end());
+
         if(!drawMinifluxEntries(mfEntries))
         {
             if(!Util::connectToNetwork())
@@ -288,7 +291,6 @@ void EventHandler::contextMenuHandler(const int index)
                     string path = ARTICLE_FOLDER + "/" + title + ".html";
                     remove(path.c_str());
                     string cmd = "rm -rf \"" + ARTICLE_FOLDER + "/img/" + title + "/\"";
-                    Log::writeInfoLog(cmd);
                     system(cmd.c_str());
                     _minifluxView->getCurrentEntry()->downloaded = IsDownloaded::NOTDOWNLOADED;
 
@@ -350,8 +352,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 comments = true;
 
             string downloaded;
-            if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED) 
-								if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED) 
             if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED) 
                 downloaded = "Remove download mark";
             else if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::NOTDOWNLOADED)
@@ -846,6 +846,8 @@ void EventHandler::drawHN(int entryID)
         else
             _minifluxView->invertCurrentEntryColor();
     }
+    else
+    {
     if (parentItem.parent > 0 && !parentItem.text.empty())
         parentItem.text = "...";
 
@@ -890,6 +892,7 @@ void EventHandler::drawHN(int entryID)
 
         _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
         _currentView = Views::HNCOMMENTSVIEW;
+        }
     }
 }
 
