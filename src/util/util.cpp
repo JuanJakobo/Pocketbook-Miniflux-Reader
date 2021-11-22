@@ -75,7 +75,8 @@ string Util::getData(const string &url)
     CURLcode res;
     CURL *curl = curl_easy_init();
 
-    Util::connectToNetwork();
+    if (!Util::connectToNetwork())
+        throw std::runtime_error("getData " + url + " Could not connect to the internet");
 
     if (curl)
     {
@@ -99,12 +100,12 @@ string Util::getData(const string &url)
             case 200:
                 return readBuffer;
             default:
-                throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
+                throw std::runtime_error("getData " + url + " HTML Error Code" + std::to_string(response_code));
             }
         }
         else
         {
-            throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
+            throw std::runtime_error("getData " + url + " Curl RES Error Code " + std::to_string(res));
         }
     }
     return {};
@@ -113,6 +114,7 @@ string Util::getData(const string &url)
 void Util::openInBrowser(const string &url)
 {
     //TODO use browser --> in child??
+    ////REMOVE as is not working=
     //string cmd = "exec /ebrmain/bin/webbrowser.sh www.google.de";
     //string cmd = "/ebrmain/bin/browser.app \"" + _minifluxView->getEntry(_tempItemID)->url + "\"";
     ///ebrmain/bin/webbrowser.sh "https://insideevs.com/news/514727/tesla-towing-70mph-fast-charging/"
