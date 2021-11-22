@@ -60,8 +60,7 @@ EventHandler::EventHandler()
 
         if(!drawMinifluxEntries(mfEntries))
         {
-            if(!Util::connectToNetwork())
-                return;
+            if(Util::connectToNetwork()){
 
             string filter = Util::readFromConfig("filter");
             if (filter.empty())
@@ -70,6 +69,7 @@ EventHandler::EventHandler()
                 Util::writeToConfig("filter", filter);
             }
             filterAndDrawMiniflux(filter);
+            }
         }
     }
     else
@@ -128,8 +128,8 @@ void EventHandler::mainMenuHandler(const int index)
             //sync items
         case 104:
             {
-                if(!Util::connectToNetwork())
-                    break;
+                if(Util::connectToNetwork())
+                {
                 OpenProgressbar(ICON_INFORMATION, "Syncing items", "Downloading Miniflux Entries", 0, NULL);
                 vector<MfEntry> entriesToSync =  _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
 
@@ -249,13 +249,13 @@ void EventHandler::hnContextMenuHandler(const int index)
             //author
         case 102:
             {
-                if(!Util::connectToNetwork())
-                    break;
+                if(Util::connectToNetwork()){
                 HnUser user = Hackernews::getUser(_hnCommentView->getCurrentEntry()->by);
                 Util::decodeHTML(user.about);
                 string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) + "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
                 DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
                 _hnCommentView->reDrawCurrentEntry();
+                }
                 break;
             }
             //urls
@@ -656,9 +656,8 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
 {
     if (!filter.empty())
     {
-        //TODO try
-        if(!Util::connectToNetwork())
-            return;
+        try{
+            if(Util::connectToNetwork()){
         vector<MfEntry> mfEntries = _miniflux->getEntries(filter);
         vector<MfEntry> oldEntries = _sqliteCon.selectMfEntries();
         for(size_t i = 0; i < mfEntries.size(); i++)
@@ -673,6 +672,13 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
             }
         }
         drawMinifluxEntries(mfEntries);
+            }
+        }
+        catch (const std::exception &e)
+        {
+            //TODO use errro message 
+            Message(ICON_INFORMATION, "Error","An error occured", 1000);
+        }
     }
 }
 
