@@ -37,15 +37,12 @@ class Miniflux
         /**
          * Refreshes all feeds in the background
          *
-         *  
-         * @return true if feeds upgrade was initiated
          */
-        bool refreshAllFeeds();
+        void refreshAllFeeds();
 
-        bool markUserEntriesAsRead(int userID);
+        void markUserEntriesAsRead(int userID);
 
-
-        bool toggleBookmark(int entryID);
+        void toggleBookmark(int entryID);
 
         /**
          * Upgrades the status (read, unread) of the selected items 
@@ -53,9 +50,8 @@ class Miniflux
          * @param entries entries that shall be updated
          * @param read true if items should be marked as read, false if unread
          *  
-         * @return true if feeds upgrade was initiated
          */
-        bool updateEntries(const std::vector<int> &entries, bool read);
+        void updateEntries(const std::vector<int> &entries, bool read);
 
     private:
         std::string _url;
@@ -63,7 +59,7 @@ class Miniflux
 
         MfEntry getEntryLocal(const nlohmann::json &element);
 
-        bool put(const std::string &apiEndpoint, const std::string &data);
+        void put(const std::string &apiEndpoint, const std::string &data);
 
         nlohmann::json get(const std::string &apiEndpoint);
 };

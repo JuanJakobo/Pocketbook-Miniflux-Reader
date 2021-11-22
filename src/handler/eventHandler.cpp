@@ -176,12 +176,22 @@ void EventHandler::mainMenuHandler(const int index)
             //Mark as read till page
         case 105:
             {
-                //TODO try
-                if(!Util::connectToNetwork())
-                    break;
-                if (!_miniflux->updateEntries(_minifluxView->getEntriesTillPage(), true))
-                    Log::writeErrorLog("Could not mark entries as read.");
+                try{
+                    if(_currentView == Views::MFVIEW){
+                        //TODO move to put
+                        if(Util::connectToNetwork()){
+                            _miniflux->updateEntries(_minifluxView->getEntriesTillPage(), true);
                 filterAndDrawMiniflux(Util::readFromConfig("filter"));
+                        }
+                    }
+                    else
+                        Message(ICON_ERROR, "Error", "Could not mark entries as read", 1200);
+                }
+                catch (const std::exception &e)
+                {
+                    Log::writeErrorLog(e.what());
+                    Message(ICON_ERROR, "Error", e.what(), 1200);
+                }
                 break;
             }
             //Go back to miniflux overview

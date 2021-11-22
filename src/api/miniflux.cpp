@@ -61,22 +61,22 @@ MfFeedIcon Miniflux::getFeedIcon(int feedID)
     return temp;
 }
 
-bool Miniflux::refreshAllFeeds()
+void Miniflux::refreshAllFeeds()
 {
-    return put("/v1/feeds/refresh", "");
+    put("/v1/feeds/refresh", "");
 }
 
-bool Miniflux::markUserEntriesAsRead(int userID)
+void Miniflux::markUserEntriesAsRead(int userID)
 {
-    return put("/v1/users/" + std::to_string(userID) + "/mark-all-as-read", "");
+    put("/v1/users/" + std::to_string(userID) + "/mark-all-as-read", "");
 }
 
-bool Miniflux::toggleBookmark(int entryID)
+void Miniflux::toggleBookmark(int entryID)
 {
-    return put("/v1/entries/" + std::to_string(entryID) + "/bookmark", "");
+    put("/v1/entries/" + std::to_string(entryID) + "/bookmark", "");
 }
 
-bool Miniflux::updateEntries(const vector<int> &entries, bool read)
+void Miniflux::updateEntries(const vector<int> &entries, bool read)
 {
     if (entries.size() <= 0)
         throw std::runtime_error("The size of the entries that shall be updated has to be bigger than 0.");
@@ -99,7 +99,7 @@ bool Miniflux::updateEntries(const vector<int> &entries, bool read)
         data.append("\"unread\"");
     data.append("}");
 
-    return put("/v1/entries", data);
+    put("/v1/entries", data);
 }
 
 MfEntry Miniflux::getEntryLocal(const nlohmann::json &element)
@@ -126,7 +126,7 @@ MfEntry Miniflux::getEntryLocal(const nlohmann::json &element)
     return temp;
 }
 
-bool Miniflux::put(const std::string &apiEndpoint, const string &data)
+void Miniflux::put(const std::string &apiEndpoint, const string &data)
 {
     string url = _url + apiEndpoint;
 
@@ -154,20 +154,18 @@ bool Miniflux::put(const std::string &apiEndpoint, const string &data)
             switch (response_code)
             {
             case 204:
-                return true;
                 break;
             default:
-                Log::writeErrorLog("Miniflux API: " + url + " Response Code: " + std::to_string(res));
-                throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
+                Log::writeErrorLog("Miniflux API: " + url + " Curl Response Code: " + std::to_string(response_code));
+                throw std::runtime_error("Miniflux API: " + url + " Curl Response Code: " + std::to_string(response_code));
             }
         }
         else
         {
             Log::writeErrorLog("Miniflux API: " + url + " RES Error Code: " + std::to_string(res));
-            throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
+            throw std::runtime_error("Minifllux API: " + url + " RES Error Code: " + std::to_string(res));
         }
     }
-    return false;
 }
 
 nlohmann::json Miniflux::get(const string &apiEndpoint)
