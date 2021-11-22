@@ -29,7 +29,7 @@ public:
 
 		std::vector<MfEntry> selectMfEntries(IsDownloaded downloaded);
 
-    bool updateMfEntry(int entryID, bool starred);
+    bool updateMfEntry(int entryID, bool starred, const std::string &status);
 
     bool updateDownloadStatusMfEntry(int entryID, IsDownloaded downloaded);
 
