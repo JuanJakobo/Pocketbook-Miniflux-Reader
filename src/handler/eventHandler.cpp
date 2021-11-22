@@ -388,41 +388,72 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             if (_minifluxView->checkIfEntryClicked(par1, par2))
             {
                 _minifluxView->invertCurrentEntryColor();
-
-                if (_minifluxView->getCurrentEntry()->reading_time == 0)
+                if (_minifluxView->getCurrentEntry()->url.find("news.ycombinator.com") != std::string::npos)
                 {
-                    Util::openInBrowser(_minifluxView->getCurrentEntry()->url);
+                    drawHnCommentView(_minifluxView->getCurrentEntry()->comments_url);
                 }
                 else
                 {
-                    //open the comment view directly if is HN
-                    if (_minifluxView->getCurrentEntry()->url.find("news.ycombinator.com") != std::string::npos)
+
+                    string excerpt = _minifluxView->getCurrentEntry()->content;
+
+                    if(excerpt.size() > 1500)
+                        excerpt = excerpt.substr(0,1500);
+
+                    Util::replaceAll(excerpt,"\n", "");
+                    Util::decodeHTML(excerpt);
+
+                    auto found = excerpt.find('<');
+                    while (found != std::string::npos)
                     {
-                        drawHnCommentView(_minifluxView->getCurrentEntry()->comments_url);
-                        return 1;
+                        auto end = excerpt.find('>');
+                        if(end != std::string::npos)
+                        {
+                            string replaceString = excerpt.substr(found, (end + 1) - found);
+
+                            auto replaceBegin = excerpt.find(replaceString);
+
+                            if (replaceBegin != std::string::npos)
+                                excerpt.replace(replaceBegin, replaceString.size(), "");
+
+
+                            found = excerpt.find("<");
+                        }
+                        else
+                        {
+                            found = std::string::npos;
+                        }
+                        if(end > 800)
+                            found = std::string::npos;
                     }
 
-                    const std::string forbiddenInFiles = "<>\\/:?\"|";
+                    if(excerpt.size() > 500)
+                        excerpt = excerpt.substr(0,500);
+                    else if(excerpt.empty())
+                        excerpt = "no excerpt";
 
-                    string title = _minifluxView->getCurrentEntry()->title;
-
-                    std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
-                            { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
-
-                    string path = ARTICLE_FOLDER + "/" + title + ".html";
-
-                    if (iv_access(path.c_str(), W_OK) != 0)
+                    int dialogResult = DialogSynchro(ICON_INFORMATION, "Action",("Excerpt\n" + excerpt + "...").c_str(), "Read article", "Send to Pocket", "Cancel");
+                    switch (dialogResult)
                     {
-                        if(!Util::connectToNetwork())
-                            return 1;
-                        createHtml(_minifluxView->getCurrentEntry()->title, _minifluxView->getCurrentEntry()->content);
+                        case 1:
+                            {
+                                if (_minifluxView->getCurrentEntry()->reading_time == 0)
+                                {
+                                    Util::openInBrowser(_minifluxView->getCurrentEntry()->url);
                     }
                     else
                     {
-                        Log::writeInfoLog(title + "found on disk.");
-                    }
-                    OpenBook(path.c_str(), "", 0);
 
+                                    auto path = createHtml(_minifluxView->getCurrentEntry()->title, _minifluxView->getCurrentEntry()->content);
+                    OpenBook(path.c_str(), "", 0);
+                                }
+                                break;
+                            }
+                        case 2:
+                            break;
+                        default:
+                            break;
+                    }
                     _minifluxView->invertCurrentEntryColor();
                 }
             }
