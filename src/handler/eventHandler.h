@@ -146,8 +146,10 @@ private:
         * 
         * @param title name of the file
         * @param content content that shall be written to the html
+        *
+        * @return path of the created file
         */
-		void createHtml(std::string title, std::string content);
+    std::string createHtml(std::string title, std::string content);
 
 		bool drawMinifluxEntries(const std::vector<MfEntry> &mfEntries);
     /**

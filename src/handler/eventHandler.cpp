@@ -517,7 +517,7 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     return 0;
 }
 
-void EventHandler::createHtml(string title, string content)
+string EventHandler::createHtml(string title, string content)
 {
     const std::string forbiddenInFiles = "<>\\/:?\"|";
 
@@ -576,6 +576,7 @@ void EventHandler::createHtml(string title, string content)
         htmlfile << result;
         htmlfile.close();
     }
+    return path;
 }
 
 bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
