@@ -307,17 +307,28 @@ void EventHandler::contextMenuHandler(const int index)
             //Unstar/Star
         case 103:
             {
-                //TODO try
-                if(!Util::connectToNetwork())
-                    break;
-                if (_miniflux->toggleBookmark(_minifluxView->getCurrentEntry()->id))
+                try{
+                    if(Util::connectToNetwork()){
+
+                        MfEntry entry = _miniflux->getEntry(_minifluxView->getCurrentEntry()->id);
+                        _minifluxView->getCurrentEntry()->status = entry.status;
+
+                        if(entry.starred != _minifluxView->getCurrentEntry()->starred)
                 {
+                            _minifluxView->getCurrentEntry()->starred = entry.starred;
+                        }
+                        else
+                        {
+                            _miniflux->toggleBookmark(_minifluxView->getCurrentEntry()->id);
                     _minifluxView->getCurrentEntry()->starred = !_minifluxView->getCurrentEntry()->starred;
-                    _sqliteCon.updateMfEntry(_minifluxView->getCurrentEntry()->id, _minifluxView->getCurrentEntry()->starred);
+                        }
+                        _sqliteCon.updateMfEntry(_minifluxView->getCurrentEntry()->id, _minifluxView->getCurrentEntry()->starred, entry.status);
                     _minifluxView->reDrawCurrentEntry();
                 }
-                else
+                }
+                catch (const std::exception &e)
                 {
+                    Log::writeErrorLog(e.what());
                     Message(ICON_ERROR, "Error", "Could not starr the selected item.", 1200);
                     _minifluxView->invertCurrentEntryColor();
                 }
