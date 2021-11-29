@@ -128,6 +128,8 @@ MfEntry Miniflux::getEntryLocal(const nlohmann::json &element)
 
 void Miniflux::put(const std::string &apiEndpoint, const string &data)
 {
+
+    Util::connectToNetwork();
     string url = _url + apiEndpoint;
 
     CURLcode res;
@@ -171,6 +173,7 @@ void Miniflux::put(const std::string &apiEndpoint, const string &data)
 nlohmann::json Miniflux::get(const string &apiEndpoint)
 {
 
+    Util::connectToNetwork();
     string url = _url + apiEndpoint;
 
     string readBuffer;
