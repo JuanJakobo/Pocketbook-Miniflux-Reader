@@ -54,13 +54,6 @@ public:
 
     static std::string getData(const std::string &url);
 
-    /**
-    * Opens a webpage in a browser 
-    * 
-    * @param url webpage address that shall be opened
-    */
-    static void openInBrowser(const std::string &url);
-
     static void decodeHTML(std::string &data);
 
     static void replaceAll(std::string &data, const std::string &replace, const std::string &by);

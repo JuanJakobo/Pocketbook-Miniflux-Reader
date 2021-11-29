@@ -37,6 +37,5 @@ private:
     char *_star;
 		char *_download;
     char *_comments = strdup("Comments");
-    char *_browser = strdup("Browser");
 };
 #endif

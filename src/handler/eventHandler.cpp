@@ -344,12 +344,6 @@ void EventHandler::contextMenuHandler(const int index)
                 HideHourglass();
                 break;
             }
-            //Browser
-        case 104:
-            {
-                Util::openInBrowser(_minifluxView->getCurrentEntry()->url);
-                break;
-            }
         default:
             {
                 _minifluxView->invertCurrentEntryColor();
@@ -459,7 +453,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                             {
                                 if (_minifluxView->getCurrentEntry()->reading_time == 0)
                                 {
-                                    Util::openInBrowser(_minifluxView->getCurrentEntry()->url);
+                                    Message(ICON_INFORMATION, "Info", "The content of the article has not been provided by miniflux.", 1000);
                                 }
                                 else
                                 {

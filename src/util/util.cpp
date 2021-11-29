@@ -111,24 +111,6 @@ string Util::getData(const string &url)
     return {};
 }
 
-void Util::openInBrowser(const string &url)
-{
-    //TODO use browser --> in child??
-    ////REMOVE as is not working=
-    //string cmd = "exec /ebrmain/bin/webbrowser.sh www.google.de";
-    //string cmd = "/ebrmain/bin/browser.app \"" + _minifluxView->getEntry(_tempItemID)->url + "\"";
-    ///ebrmain/bin/webbrowser.sh "https://insideevs.com/news/514727/tesla-towing-70mph-fast-charging/"
-
-    string cmd = "/ebrmain/bin/webbrowser.sh \"google.de\"";
-
-    cmd = "/ebrmain/bin/browser.app \"google.de\"";
-
-    //string cmd = "/ebrmain/bin/webbrowser.sh \"" + url + "\"";
-
-    system(cmd.c_str());
-    //execlp(cmd.c_str(), cmd.c_str(), (char *)NULL);
-}
-
 void Util::decodeHTML(string &data)
 {
     replaceAll(data, "&quot;", "\"");
