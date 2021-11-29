@@ -891,7 +891,7 @@ void EventHandler::drawHN(int entryID)
                 page = 1;
             }
 
-            _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
+            _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), &currentHnComments, page));
             _currentView = Views::HNCOMMENTSVIEW;
         }
     }

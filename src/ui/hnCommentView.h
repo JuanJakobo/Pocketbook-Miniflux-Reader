@@ -26,7 +26,7 @@ public:
         * @param Items items that shall be shown in the listview
         * @param page page that is shown, default is 1
         */
-    HnCommentView(const irect *contentRect, std::vector<HnEntry> readerentries, int page = 1);
+    HnCommentView(const irect *contentRect, std::vector<HnEntry> *readerentries, int page = 1);
 
     HnEntry *getCurrentEntry() {
         return getEntry(_selectedEntry);
