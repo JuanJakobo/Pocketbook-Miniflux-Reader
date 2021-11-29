@@ -32,7 +32,7 @@ public:
     * Checks if a network connection can be established
     * 
     */
-    static bool connectToNetwork();
+    static void connectToNetwork();
 
     /**
     * Write an string to an config file 
