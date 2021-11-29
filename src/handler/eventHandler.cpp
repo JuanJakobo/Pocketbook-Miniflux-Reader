@@ -259,8 +259,25 @@ void EventHandler::hnContextMenuHandler(const int index)
             //urls
         case 103:
             {
-                //TODO show urls off the command and make clickable,  also in dialog, can then be clicked?
-                // open hackernews in comments again
+                if(!_hnCommentView->getCurrentEntry()->urls.empty())
+                {
+                    string text;
+                    for(int i = 0; i < _hnCommentView->getCurrentEntry()->urls.size();i++)
+                    {
+                        text = text + '[' + std::to_string(i+1) + "] " + _hnCommentView->getCurrentEntry()->urls[i] + "\n";
+                    }
+                    int dialogResult = DialogSynchro(ICON_INFORMATION, "Action",text.c_str(), "Send to Pocket", "Cancel", NULL);
+                    switch (dialogResult)
+                    {
+                        case 1:
+                            //TODO type in numbers that should be saved to pocket
+                            //TODO show urls off the command and make clickable,  also in dialog, can then be clicked?
+                            // open hackernews in comments again
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
         default:
             {
