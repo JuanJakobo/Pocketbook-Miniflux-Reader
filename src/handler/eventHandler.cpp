@@ -243,6 +243,7 @@ void EventHandler::hnContextMenuHandler(const int index)
         case 102:
             {
                 try{
+                    Util::connectToNetwork();
                     HnUser user = Hackernews::getUser(_hnCommentView->getCurrentEntry()->by);
                     Util::decodeHTML(user.about);
                     string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) + "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
@@ -451,8 +452,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                             found = std::string::npos;
                     }
 
-                    if(excerpt.size() > 500)
-                        excerpt = excerpt.substr(0,500);
+                    if(excerpt.size() > 800)
+                        excerpt = excerpt.substr(0,800);
                     else if(excerpt.empty())
                         excerpt = "no excerpt";
 
@@ -638,7 +639,6 @@ bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
 {
     if (mfEntries.size() > 0)
     {
-        _sqliteCon.insertMfEntries(mfEntries);
         _minifluxView.reset(new MinifluxView(_menu.getContentRect(),mfEntries,1));
         _minifluxView->draw();
         _currentView = Views::MFVIEW;
@@ -674,6 +674,7 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
                     }
                 }
             }
+            _sqliteCon.insertMfEntries(mfEntries);
             drawMinifluxEntries(mfEntries);
         }
         catch (const std::exception &e)
@@ -712,6 +713,7 @@ HnEntry EventHandler::HnDownload(int entryID)
 
     if (!found)
     {
+        Util::connectToNetwork();
         parentItem = Hackernews::getEntry(entryID);
         if(!parentItem.title.empty())
             Util::decodeHTML(parentItem.title);
@@ -743,6 +745,7 @@ HnEntry EventHandler::HnDownload(int entryID)
 
         if (tosearch.size() > 0)
         {
+            Util::connectToNetwork();
             //Download comments
             mutexEntries = PTHREAD_MUTEX_INITIALIZER;
             int count;

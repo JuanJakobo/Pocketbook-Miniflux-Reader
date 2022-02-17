@@ -82,7 +82,6 @@ HnUser Hackernews::getUser(const string &username)
 nlohmann::json Hackernews::get(const string &apiEndpoint)
 {
 
-    Util::connectToNetwork();
 
     string url = HACKERNEWS_API_URL + apiEndpoint;
 
