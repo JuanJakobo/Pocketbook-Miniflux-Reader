@@ -151,7 +151,7 @@ private:
         */
     std::string createHtml(std::string title, std::string content);
 
-		bool drawMinifluxEntries(const std::vector<MfEntry> &mfEntries);
+    bool drawMinifluxEntries(const std::vector<MfEntry> &mfEntries);
     /**
      * 
      * Draws the miniflux items to an ListView
