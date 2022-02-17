@@ -25,6 +25,8 @@ public:
     */
     SqliteConnector(const std::string &DBpath);
 
+    ~SqliteConnector();
+
     std::vector<MfEntry> selectMfEntries();
 
 		std::vector<MfEntry> selectMfEntries(IsDownloaded downloaded);
