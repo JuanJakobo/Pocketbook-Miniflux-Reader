@@ -98,7 +98,7 @@ HnEntry SqliteConnector::selectHnEntry(int id)
     sqlite3_stmt *stmt = 0;
     HnEntry temp;
 
-    rs = sqlite3_prepare_v2(_db, "SELECT id, by, time, text, parent, kids, urls, score, title, descendants FROM 'HnItems' WHERE id = ?;", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db, "SELECT id, by, time, text, parent, kids, urls, score, title, descendants, deleted, flagged FROM 'HnItems' WHERE id = ?;", -1, &stmt, 0);
 
     rs = sqlite3_bind_int(stmt, 1, id);
 
@@ -156,6 +156,8 @@ HnEntry SqliteConnector::selectHnEntry(int id)
         temp.score = sqlite3_column_int(stmt, 7);
         temp.title = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 8));
         temp.descendants = sqlite3_column_int(stmt, 9);
+        temp.deleted = sqlite3_column_int(stmt,10);
+        temp.flagged = sqlite3_column_int(stmt,11);
 
     }
 
@@ -171,7 +173,7 @@ vector<HnEntry> SqliteConnector::selectHnEntries(int parentId)
     sqlite3_stmt *stmt = 0;
     vector<HnEntry> entries;
 
-    rs = sqlite3_prepare_v2(_db, "SELECT id, by, time, text, parent, kids, urls, score, title, descendants FROM 'HnItems' WHERE parent = ?;", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db, "SELECT id, by, time, text, parent, kids, urls, score, title, descendants,deleted,flagged FROM 'HnItems' WHERE parent = ?;", -1, &stmt, 0);
 
     rs = sqlite3_bind_int(stmt, 1, parentId);
 
@@ -231,6 +233,8 @@ vector<HnEntry> SqliteConnector::selectHnEntries(int parentId)
         temp.score = sqlite3_column_int(stmt, 7);
         temp.title = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 8));
         temp.descendants = sqlite3_column_int(stmt, 9);
+        temp.deleted = sqlite3_column_int(stmt,10);
+        temp.flagged = sqlite3_column_int(stmt,11);
 
         entries.push_back(temp);
     }
@@ -339,10 +343,11 @@ bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
 
 bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
 {
+    try{
     open();
     int rs;
     sqlite3_stmt *stmt = 0;
-    rs = sqlite3_prepare_v2(_db, "INSERT INTO 'HnItems' (id,by, time,text,parent,kids,urls,score,title,descendants,mfEntryId) VALUES (?,?,?,?,?,?,?,?,?,?,?);", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db, "INSERT INTO 'HnItems' (id,by, time,text,parent,kids,urls,score,title,descendants,mfEntryId,deleted,flagged) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);", -1, &stmt, 0);
     rs = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 
     for (auto hn : entries)
@@ -382,6 +387,8 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
         rs = sqlite3_bind_text(stmt, 9, hn.title.c_str(), hn.title.length(), NULL);
         rs = sqlite3_bind_int(stmt, 10, hn.descendants);
         rs = sqlite3_bind_int(stmt, 11, hn.mfEntryId);
+        rs = sqlite3_bind_int(stmt, 12, hn.deleted);
+        rs = sqlite3_bind_int(stmt, 13, hn.flagged);
         rs = sqlite3_step(stmt);
 
         if (rs != SQLITE_DONE)
@@ -396,6 +403,11 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
 
     sqlite3_finalize(stmt);
     sqlite3_close(_db);
+
+    }catch (const std::exception &e)
+    {
+        Log::writeErrorLog(e.what());
+    }
 
     return true;
 }
@@ -434,7 +446,7 @@ bool SqliteConnector::open()
         Log::writeErrorLog("Could not open DB at " + _dbpath);
     }
     rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS MfEntries (id INT PRIMARY KEY, status TEXT, title TEXT, url TEXT, comments_url TEXT, content TEXT, starred INT, reading_time INT, downloaded INT);", NULL, 0, NULL);
-    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS HnItems (id INT PRIMARY KEY, by TEXT, time INT, text TEXT, parent INT, kids TEXT, urls TEXT, score INT, title TEXT, descendants INT, mfEntryId INT);", NULL, 0, NULL);
+    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS HnItems (id INT PRIMARY KEY, by TEXT, time INT, text TEXT, parent INT, kids TEXT, urls TEXT, score INT, title TEXT, descendants INT, mfEntryId INT, deleted BOOLEAN NOT NULL CHECK (deleted IN (0,1)), flagged BOOLEAN NOT NULL CHECK (flagged IN (0,1)));", NULL, 0, NULL);
     rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS HnUser (id STRING PRIMARY KEY, about TEXT, created INT, karma INT, submitted TEXT);", NULL, 0, NULL);
 
     return true;
