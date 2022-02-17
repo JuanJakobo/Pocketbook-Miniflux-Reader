@@ -23,6 +23,13 @@ SqliteConnector::SqliteConnector(const string &DBpath) : _dbpath(DBpath)
 {
 }
 
+SqliteConnector::~SqliteConnector()
+{
+    sqlite3_close(_db);
+    Log::writeInfoLog("closed DB");
+}
+
+
 vector<MfEntry> SqliteConnector::selectMfEntries()
 {
     open();
@@ -324,6 +331,8 @@ bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
         if (rs == SQLITE_CONSTRAINT)
         {
             //TODO what if item is already there? update? --> use replace?
+            //Log::writeInfoLog("item exists already: " + std::to_string(ent.id) + std::to_string(ent.starred) + ent.status);
+            //updateMfEntry(ent.id, ent.starred, ent.status); --> database is locked, therefore only updated needed, no
         }
         else if (rs != SQLITE_DONE)
         {
@@ -434,6 +443,8 @@ bool SqliteConnector::deleteHnEntries(int mfEntryId)
 
     return true;
 }
+
+//TODO returns bool?
 bool SqliteConnector::open()
 {
     int rs;
