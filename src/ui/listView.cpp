@@ -22,7 +22,7 @@ ListView::ListView(const irect *contentRect, int page) : _contentRect(contentRec
 
     _footerHeight = _contentRect->h / 15;
     _footerFontHeight = 0.3 * _footerHeight;
-    _entryFontHeight = 30; 
+    _entryFontHeight = contentRect->h/45;
 
     _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
     _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);
@@ -30,11 +30,17 @@ ListView::ListView(const irect *contentRect, int page) : _contentRect(contentRec
 
     SetFont(_entryFont, BLACK);
 
-    _pageIcon = iRect(_contentRect->w - 100, _contentRect->h + _contentRect->y - _footerHeight, 100, _footerHeight, ALIGN_CENTER);
-    _firstPageButton = iRect(_contentRect->x, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-    _prevPageButton = iRect(_contentRect->x + 150, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-    _nextPageButton = iRect(_contentRect->x + 300, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
-    _lastPageButton = iRect(_contentRect->x + 450, _contentRect->h + _contentRect->y - _footerHeight, 130, _footerHeight, ALIGN_CENTER);
+    int footerWidth = contentRect->w/20;
+
+    _pageIcon = iRect(_contentRect->w - footerWidth*2, _contentRect->h + _contentRect->y - _footerHeight, contentRect->w/10, _footerHeight, ALIGN_CENTER);
+
+    _firstPageButton = iRect(_contentRect->x, _contentRect->h + _contentRect->y - _footerHeight, contentRect->w/8, _footerHeight, ALIGN_CENTER);
+
+    _prevPageButton = iRect(_contentRect->x + footerWidth*3, _contentRect->h + _contentRect->y - _footerHeight, contentRect->w/8, _footerHeight, ALIGN_CENTER);
+
+    _nextPageButton = iRect(_contentRect->x + footerWidth*6, _contentRect->h + _contentRect->y - _footerHeight, contentRect->w/8, _footerHeight, ALIGN_CENTER);
+
+    _lastPageButton = iRect(_contentRect->x + footerWidth*9, _contentRect->h + _contentRect->y - _footerHeight, contentRect->w/8, _footerHeight, ALIGN_CENTER);
 }
 
 ListView::~ListView()
