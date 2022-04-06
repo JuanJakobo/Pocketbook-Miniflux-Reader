@@ -34,5 +34,5 @@ int HnContextMenu::createMenu(int y, const iv_menuhandler &handler)
 
     OpenMenu(contextMenu, 0, ScreenWidth(), y, handler);
 
-    return 1;
+    return 0;
 }
