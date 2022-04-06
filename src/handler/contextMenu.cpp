@@ -30,7 +30,7 @@ int ContextMenu::createMenu(int y, const iv_menuhandler &handler, bool comments,
         text = "Unstar";
 
     _star = strdup(text.c_str());
-	
+
 		_download = strdup(downloaded.c_str());
 
     imenu contextMenu[] =
@@ -44,5 +44,5 @@ int ContextMenu::createMenu(int y, const iv_menuhandler &handler, bool comments,
 
     OpenMenu(contextMenu, 0, ScreenWidth(), y, handler);
 
-    return 1;
+    return 0;
 }

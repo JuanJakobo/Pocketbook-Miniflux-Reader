@@ -89,7 +89,7 @@ int EventHandler::eventDistributor(const int type, const int par1, const int par
     else if (ISKEYEVENT(type))
         return EventHandler::keyHandler(type, par1, par2);
 
-    return 0;
+    return 1;
 }
 
 void EventHandler::mainMenuHandlerStatic(const int index)
@@ -324,7 +324,7 @@ void EventHandler::contextMenuHandler(const int index)
                     _minifluxView->getCurrentEntry()->downloaded = IsDownloaded::TOBEDOWNLOADED;
                 }
                 _sqliteCon.updateDownloadStatusMfEntry(_minifluxView->getCurrentEntry()->id, _minifluxView->getCurrentEntry()->downloaded);
-                _minifluxView->reDrawCurrentEntry();	
+                _minifluxView->reDrawCurrentEntry();
                 break;
             }
             //Unstar/Star
@@ -385,7 +385,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                 downloaded = "Remove item";
 
             _contextMenu.createMenu(par2, EventHandler::contextMenuHandlerStatic, comments, _minifluxView->getCurrentEntry()->starred, downloaded);
-            return 1;
+            return 0;
         }
         else if (_currentView == Views::HNCOMMENTSVIEW)
         {
@@ -393,7 +393,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             {
                 _hnCommentView->invertCurrentEntryColor();
                 _hnContextMenu.createMenu(par2, EventHandler::hnContextMenuHandlerStatic);
-                return 1;
+                return 0;
             }
         }
     }
@@ -482,7 +482,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     _minifluxView->invertCurrentEntryColor();
                 }
             }
-            return 1;
+            return 0;
         }
         else if (_currentView == Views::HNCOMMENTSVIEW)
         {
@@ -507,7 +507,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     drawHN(_hnCommentView->getCurrentEntry()->id);
                 }
             }
-            return 1;
+            return 0;
         }
     }
     return 0;
@@ -524,19 +524,19 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
             if (par1 == 23)
             {
                 _minifluxView->firstPage();
-                return 1;
+                return 0;
             }
             //left button -> pre page
             else if (par1 == 24)
             {
                 _minifluxView->prevPage();
-                return 1;
+                return 0;
             }
             //right button -> next page
             else if (par1 == 25)
             {
                 _minifluxView->nextPage();
-                return 1;
+                return 0;
             }
         }
         else if (_currentView == Views::HNCOMMENTSVIEW)
@@ -553,24 +553,24 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
                     _minifluxView->draw();
                     _currentView = Views::MFVIEW;
                 }
-                return 1;
+                return 0;
             }
             //left button -> pre page
             else if (par1 == 24)
             {
                 _hnCommentView->prevPage();
-                return 1;
+                return 0;
             }
             //right button -> next page
             else if (par1 == 25)
             {
                 _hnCommentView->nextPage();
-                return 1;
+                return 0;
             }
         }
     }
 
-    return 0;
+    return 1;
 }
 
 string EventHandler::createHtml(string title, string content)
