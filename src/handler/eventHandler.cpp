@@ -475,6 +475,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                                 break;
                             }
                         case 2:
+                            //TODO Send to Pocket
                             break;
                         default:
                             break;
