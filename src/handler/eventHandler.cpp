@@ -17,6 +17,8 @@
 #include "minifluxModel.h"
 #include "minifluxView.h"
 
+#include "pocket.h"
+
 #include "hackernews.h"
 #include "hackernewsModel.h"
 #include "hnCommentView.h"
@@ -467,14 +469,20 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                                 else
                                 {
 
-                                    auto path = createHtml(_minifluxView->getCurrentEntry()->title, _minifluxView->getCurrentEntry()->content);
+                                    auto path = Util::createHtml(_minifluxView->getCurrentEntry()->title, _minifluxView->getCurrentEntry()->content);
                                     OpenBook(path.c_str(), "", 0);
                                 }
                                 break;
                             }
                         case 2:
-                            //TODO Send to Pocket
+                            {
+                                //TODO make pocket global var?
+                                std::unique_ptr<Pocket> _pocket = std::unique_ptr<Pocket>(new Pocket());
+                                Log::writeInfoLog(_minifluxView->getCurrentEntry()->url);
+                                _pocket->addItems(_minifluxView->getCurrentEntry()->url);
+                                HideHourglass();
                             break;
+                            }
                         default:
                             break;
                     }
