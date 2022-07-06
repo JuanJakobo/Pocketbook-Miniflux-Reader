@@ -8,8 +8,11 @@
 #include "util.h"
 #include "inkview.h"
 #include "eventHandler.h"
+#include "log.h"
 
 #include <string>
+#include <iostream>
+#include <fstream>
 
 using std::string;
 
@@ -49,21 +52,36 @@ void Util::connectToNetwork()
     throw std::runtime_error("Could not connect to the internet.");
 }
 
-void Util::writeToConfig(const string &name, const string &value)
-{ 
-    iconfigedit *temp = nullptr;
-    iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);
-    WriteString(config, name.c_str(), value.c_str());
-    CloseConfig(config);
-}
-
-string Util::readFromConfig(const string &name)
+string Util::accessConfig(const Action &action, const string &name, const string &value)
 {
     iconfigedit *temp = nullptr;
     iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);
-    string url = ReadString(config, name.c_str(), "");
-    CloseConfigNoSave(config);
-    return url;
+    string returnValue;
+
+    switch (action)
+    {
+    case Action::IWriteSecret:
+        if (!value.empty())
+            WriteSecret(config, name.c_str(), value.c_str());
+        returnValue = {};
+        break;
+    case Action::IReadSecret:
+        returnValue = ReadSecret(config, name.c_str(), "");
+        break;
+    case Action::IWriteString:
+        if (!value.empty())
+            WriteString(config, name.c_str(), value.c_str());
+        returnValue = {};
+        break;
+    case Action::IReadString:
+        returnValue = ReadString(config, name.c_str(), "");
+        break;
+    default:
+        break;
+    }
+    CloseConfig(config);
+
+    return returnValue;
 }
 
 string Util::getData(const string &url)

@@ -13,6 +13,14 @@
 
 #include <string>
 
+enum Action
+{
+    IWriteSecret,
+    IReadSecret,
+    IWriteString,
+    IReadString
+};
+
 class Util
 {
 public:

@@ -30,7 +30,6 @@
 #include <map>
 #include <vector>
 
-#include <iostream>
 #include <fstream>
 
 using std::string;
@@ -52,7 +51,7 @@ EventHandler::EventHandler()
         if (iv_access(IMAGE_FOLDER.c_str(), W_OK) != 0)
             iv_mkdir(IMAGE_FOLDER.c_str(), 0777);
 
-        _miniflux = std::unique_ptr<Miniflux>(new Miniflux(Util::readFromConfig("url"), Util::readFromConfig("token")));
+        _miniflux = std::unique_ptr<Miniflux>(new Miniflux(Util::accessConfig(Action::IReadString,"url"), Util::accessConfig(Action::IReadSecret,"token")));
 
         vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
         vector<MfEntry> toBeDownloaded = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
@@ -60,11 +59,11 @@ EventHandler::EventHandler()
 
         if(!drawMinifluxEntries(mfEntries))
         {
-            string filter = Util::readFromConfig("filter");
+            string filter = Util::accessConfig(Action::IReadString,"filter");
             if (filter.empty())
             {
                 filter = "status=unread&direction=asc&limit=1000";
-                Util::writeToConfig("filter", filter);
+                Util::accessConfig(Action::IWriteString, "filter", filter);
             }
             filterAndDrawMiniflux(filter);
         }
@@ -113,7 +112,7 @@ void EventHandler::mainMenuHandler(const int index)
             //show unread
         case 102:
             {
-                filterAndDrawMiniflux(Util::readFromConfig("filter"));
+                filterAndDrawMiniflux(Util::accessConfig(Action::IReadString,"filter"));
                 break;
             }
             //show starred
@@ -185,7 +184,7 @@ void EventHandler::mainMenuHandler(const int index)
                 try{
                     if(_currentView == Views::MFVIEW){
                         _miniflux->updateEntries(_minifluxView->getEntriesTillPage(), true);
-                        filterAndDrawMiniflux(Util::readFromConfig("filter"));
+                        filterAndDrawMiniflux(Util::accessConfig(Action::IReadString,"filter"));
                     }
                     else
                     {
