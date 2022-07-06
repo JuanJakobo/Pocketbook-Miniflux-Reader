@@ -62,22 +62,23 @@ list(APPEND PB_LINK_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnueabi/
 list(APPEND PB_INCLUDE_DIRECTORIES "${TOOLCHAIN_PATH}/usr/arm-obreey-linux-gnueabi/sysroot/usr/include")
 
 
-set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp 
-			${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp 		
-			${CMAKE_SOURCE_DIR}/src/handler/contextMenu.cpp 		
-			${CMAKE_SOURCE_DIR}/src/handler/hnContextMenu.cpp 		
-      ${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp 
-			${CMAKE_SOURCE_DIR}/src/api/miniflux.cpp 
-      ${CMAKE_SOURCE_DIR}/src/api/hackernews.cpp
-      ${CMAKE_SOURCE_DIR}/src/api/sqliteConnector.cpp
-      ${CMAKE_SOURCE_DIR}/src/ui/listView.cpp 
-      ${CMAKE_SOURCE_DIR}/src/ui/listViewEntry.cpp 
-      ${CMAKE_SOURCE_DIR}/src/ui/hnCommentView.cpp 
-      ${CMAKE_SOURCE_DIR}/src/ui/hnCommentViewEntry.cpp
-			${CMAKE_SOURCE_DIR}/src/ui/minifluxView.cpp 
-			${CMAKE_SOURCE_DIR}/src/ui/minifluxViewEntry.cpp 
-			${CMAKE_SOURCE_DIR}/src/util/util.cpp 
-			${CMAKE_SOURCE_DIR}/src/util/log.cpp 
+set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_SOURCE_DIR}/src/handler/eventHandler.cpp
+    ${CMAKE_SOURCE_DIR}/src/handler/contextMenu.cpp
+    ${CMAKE_SOURCE_DIR}/src/handler/hnContextMenu.cpp
+    ${CMAKE_SOURCE_DIR}/src/handler/mainMenu.cpp
+    ${CMAKE_SOURCE_DIR}/src/api/miniflux.cpp
+    ${CMAKE_SOURCE_DIR}/src/api/hackernews.cpp
+    ${CMAKE_SOURCE_DIR}/src/api/sqliteConnector.cpp
+    ${CMAKE_SOURCE_DIR}/src/api/pocket.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/listView.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/listViewEntry.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/hnCommentView.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/hnCommentViewEntry.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/minifluxView.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/minifluxViewEntry.cpp
+    ${CMAKE_SOURCE_DIR}/src/util/util.cpp
+    ${CMAKE_SOURCE_DIR}/src/util/log.cpp
 )
 
 add_executable(Miniflux-Reader.app ${SOURCES})

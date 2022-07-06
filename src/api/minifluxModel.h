@@ -29,7 +29,7 @@ struct MfEntry : Entry
   std::string content;
   bool starred;
   int reading_time; //in min
-	IsDownloaded downloaded = IsDownloaded::NOTDOWNLOADED;
+  IsDownloaded downloaded = IsDownloaded::NOTDOWNLOADED;
 };
 
 struct MfFeedIcon

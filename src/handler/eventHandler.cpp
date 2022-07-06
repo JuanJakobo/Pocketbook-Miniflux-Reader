@@ -931,5 +931,4 @@ int EventHandler::getHnIDFromURL(const string &url)
     auto end = parentCommentItemID.find("id=");
     parentCommentItemID = parentCommentItemID.substr(end + 3);
     return std::stoi(parentCommentItemID);
-    
 }
