@@ -140,6 +140,72 @@ void Util::decodeHTML(string &data)
     replaceAll(data, "</i>", "\"");
 }
 
+string Util::clearString(string title)
+{
+    const std::string forbiddenInFiles = "<>\\/:?\"|";
+    std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
+            { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
+    return title;
+}
+
+string Util::createHtml(string title, string content)
+{
+
+    title = clearString(title);
+
+    string path = ARTICLE_FOLDER + "/" + title + ".html";
+    if (iv_access(path.c_str(), W_OK) != 0)
+    {
+        string result = content;
+
+        auto found = content.find("<img");
+        auto counter = 0;
+        while (found != std::string::npos)
+        {
+            auto imageFolder = "img/" + title;
+
+            if (iv_access((ARTICLE_FOLDER + "/" + imageFolder).c_str(), W_OK) != 0)
+                iv_mkdir((ARTICLE_FOLDER + "/" + imageFolder).c_str(), 0777);
+
+            auto imagePath = imageFolder + "/" + std::to_string(counter);
+
+            content = content.substr(found);
+            auto src = content.find("src=\"");
+            content = content.substr(src + 5);
+            auto end = content.find("\"");
+            auto imageURL = content.substr(0, end);
+
+            if (iv_access((ARTICLE_FOLDER + "/" + imagePath).c_str(), W_OK) != 0)
+            {
+                try
+                {
+                    std::ofstream img;
+                    img.open(ARTICLE_FOLDER + "/" + imagePath);
+                    img << Util::getData(imageURL);
+                    img.close();
+                }
+                catch (const std::exception &e)
+                {
+                    Log::writeErrorLog(e.what());
+                }
+
+                auto toReplace = result.find(imageURL);
+
+                if (toReplace != std::string::npos)
+                    result.replace(toReplace, imageURL.length(), imagePath);
+            }
+            counter++;
+            found = content.find("<img");
+        }
+
+        std::ofstream htmlfile;
+        htmlfile.open(path);
+        htmlfile << result;
+        htmlfile.close();
+    }
+    return path;
+}
+
 void Util::replaceAll(std::string &data, const std::string &replace, const std::string &by)
 {
     auto start = 0;

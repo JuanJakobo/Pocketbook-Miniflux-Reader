@@ -141,16 +141,6 @@ private:
         */
     int keyHandler(const int type, const int par1, const int par2);
 
-    /**
-        * create a html and store it
-        * 
-        * @param title name of the file
-        * @param content content that shall be written to the html
-        *
-        * @return path of the created file
-        */
-    std::string createHtml(std::string title, std::string content);
-
     bool drawMinifluxEntries(const std::vector<MfEntry> &mfEntries);
     /**
      * 

@@ -43,26 +43,37 @@ public:
     static void connectToNetwork();
 
     /**
-    * Write an string to an config file 
+    * Enables the access to the config file
     *
-    * @param name name of the config that shall be written
-    * @param value string that shall be written to the config
-    *  
-    */
-    static void writeToConfig(const std::string &name, const std::string &value);
-    
-    /**
-    * Reads an string from the config file 
+    * @param actions taht shall be performed
+    * @param name of the config that shall be read
+    * @param value that shall be written to the config
     *
-    * @param name name of the config that shall be read
-    *  
-    * @return string that has been found in the config file 
+    * @return string that has been found in the config file
     */
-    static std::string readFromConfig(const std::string &name);
+    static std::string accessConfig(const Action &action, const std::string &name, const std::string &value = std::string());
 
     static std::string getData(const std::string &url);
 
     static void decodeHTML(std::string &data);
+
+    /**
+     * Removes chars that are forbidden in an path
+     *
+     * @param string that has to be changed
+     * @return string that has been adjusted
+     */
+    static std::string clearString(std::string title);
+
+    /**
+     * Creates an html file, downloades the pictures and saves it to path
+     *
+     * @param title the name the html should be saved
+     * @param content the html content
+     *
+     * @return path where the html file is saved to
+     */
+    static std::string createHtml(std::string title, std::string content);
 
     static void replaceAll(std::string &data, const std::string &replace, const std::string &by);
 

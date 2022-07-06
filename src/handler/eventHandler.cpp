@@ -137,7 +137,7 @@ void EventHandler::mainMenuHandler(const int index)
                         currentPercentage += percentageMove;
                         UpdateProgressbar(("Downloading \"" + ent.title + "\"").c_str(), currentPercentage);
                         if (ent.url.find("news.ycombinator.com") == std::string::npos)
-                            createHtml(ent.title, ent.content);
+                            Util::createHtml(ent.title, ent.content);
                         if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
                         {
                             _hnEntries.clear();
@@ -307,10 +307,9 @@ void EventHandler::contextMenuHandler(const int index)
                 if(_minifluxView->getCurrentEntry()->downloaded == IsDownloaded::TOBEDOWNLOADED || _minifluxView->getCurrentEntry()->downloaded == IsDownloaded::DOWNLOADED)
                 {
                     _sqliteCon.deleteHnEntries(_minifluxView->getCurrentEntry()->id);
-                    const std::string forbiddenInFiles = "<>\\/:?\"|";
-                    string title = _minifluxView->getCurrentEntry()->title;
-                    std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
-                            { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
+
+
+                    string title = Util::clearString(_minifluxView->getCurrentEntry()->title);
 
                     string path = ARTICLE_FOLDER + "/" + title + ".html";
                     remove(path.c_str());
@@ -571,68 +570,6 @@ int EventHandler::keyHandler(const int type, const int par1, const int par2)
     }
 
     return 1;
-}
-
-string EventHandler::createHtml(string title, string content)
-{
-    const std::string forbiddenInFiles = "<>\\/:?\"|";
-
-    std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
-            { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
-
-    string path = ARTICLE_FOLDER + "/" + title + ".html";
-    if (iv_access(path.c_str(), W_OK) != 0)
-    {
-        Log::writeInfoLog("adding " + path);
-
-        string result = content;
-
-        auto found = content.find("<img");
-        auto counter = 0;
-        while (found != std::string::npos)
-        {
-            auto imageFolder = "img/" + title;
-
-            if (iv_access((ARTICLE_FOLDER + "/" + imageFolder).c_str(), W_OK) != 0)
-                iv_mkdir((ARTICLE_FOLDER + "/" + imageFolder).c_str(), 0777);
-
-            auto imagePath = imageFolder + "/" + std::to_string(counter);
-
-            content = content.substr(found);
-            auto src = content.find("src=\"");
-            content = content.substr(src + 5);
-            auto end = content.find("\"");
-            auto imageURL = content.substr(0, end);
-
-            if (iv_access((ARTICLE_FOLDER + "/" + imagePath).c_str(), W_OK) != 0)
-            {
-                try
-                {
-                    std::ofstream img;
-                    img.open(ARTICLE_FOLDER + "/" + imagePath);
-                    img << Util::getData(imageURL);
-                    img.close();
-                }
-                catch (const std::exception &e)
-                {
-                    Log::writeErrorLog(e.what());
-                }
-
-                auto toReplace = result.find(imageURL);
-
-                if (toReplace != std::string::npos)
-                    result.replace(toReplace, imageURL.length(), imagePath);
-            }
-            counter++;
-            found = content.find("<img");
-        }
-
-        std::ofstream htmlfile;
-        htmlfile.open(path);
-        htmlfile << result;
-        htmlfile.close();
-    }
-    return path;
 }
 
 bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
