@@ -78,7 +78,6 @@ void Pocket::addItems(const string &url)
 {
     //TODO curl url-encode url
     string postData = "{\"consumer_key\":\"" + CONSUMER_KEY + "\", \"access_token\":\"" + _accessToken  + "\",\"url\":\"" + url + "\"}";
-    Log::writeInfoLog(postData);
     nlohmann::json j = post("add",postData);
 }
 

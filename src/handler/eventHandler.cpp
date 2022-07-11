@@ -475,10 +475,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                             }
                         case 2:
                             {
-                                //TODO make pocket global var?
-                                std::unique_ptr<Pocket> _pocket = std::unique_ptr<Pocket>(new Pocket());
-                                Log::writeInfoLog(_minifluxView->getCurrentEntry()->url);
-                                _pocket->addItems(_minifluxView->getCurrentEntry()->url);
+                               Pocket _pocket = Pocket();
+                                _pocket.addItems(_minifluxView->getCurrentEntry()->url);
                                 HideHourglass();
                             break;
                             }
