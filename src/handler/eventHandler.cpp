@@ -422,9 +422,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
                     string excerpt = _minifluxView->getCurrentEntry()->content;
 
-                    if(excerpt.size() > 1500)
-                        excerpt = excerpt.substr(0,1500);
-
                     Util::replaceAll(excerpt,"\n", "");
                     Util::decodeHTML(excerpt);
 
@@ -434,22 +431,24 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                         auto end = excerpt.find('>');
                         if(end != std::string::npos)
                         {
-                            string replaceString = excerpt.substr(found, (end + 1) - found);
+                            auto replaceString = excerpt.substr(found, (end + 1) - found);
 
-                            auto replaceBegin = excerpt.find(replaceString);
-
-                            if (replaceBegin != std::string::npos)
-                                excerpt.replace(replaceBegin, replaceString.size(), "");
-
-
-                            found = excerpt.find("<");
+                            if(!replaceString.empty())
+                            {
+                                auto replaceBegin = excerpt.find(replaceString);
+                                if (replaceBegin != std::string::npos)
+                                    excerpt.replace(replaceBegin, replaceString.size(), "");
+                                found = excerpt.find("<");
+                            }
+                            else
+                            {
+                                found = std::string::npos;
+                            }
                         }
                         else
                         {
                             found = std::string::npos;
                         }
-                        if(end > 800)
-                            found = std::string::npos;
                     }
 
                     if(excerpt.size() > 800)
