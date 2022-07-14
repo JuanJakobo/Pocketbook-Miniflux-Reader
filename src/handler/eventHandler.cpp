@@ -59,6 +59,8 @@ EventHandler::EventHandler()
         vector<MfEntry> toBeDownloaded = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
         mfEntries.insert(mfEntries.end(),toBeDownloaded.begin(),toBeDownloaded.end());
 
+        _menu = std::unique_ptr<MainMenu>(new MainMenu("Miniflux"));
+
         if(!drawMinifluxEntries(mfEntries))
         {
             string filter = Util::accessConfig(Action::IReadString,"filter");
@@ -400,13 +402,13 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     else if (type == EVT_POINTERUP)
     {
         //if menu is clicked
-        if (IsInRect(par1, par2, _menu.getMenuButtonRect()) == 1)
+        if (IsInRect(par1, par2, _menu->getMenuButtonRect()) == 1)
         {
             auto mainView = true;
             if (_currentView == Views::HNCOMMENTSVIEW)
                 mainView = false;
 
-            return _menu.createMenu(mainView, EventHandler::mainMenuHandlerStatic);
+            return _menu->createMenu(mainView, EventHandler::mainMenuHandlerStatic);
         }
         else if (_currentView == Views::MFVIEW)
         {
@@ -581,18 +583,18 @@ bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
 {
     if (mfEntries.size() > 0)
     {
-        _minifluxView.reset(new MinifluxView(_menu.getContentRect(),mfEntries,1));
+        _minifluxView.reset(new MinifluxView(_menu->getContentRect(),mfEntries,1));
         _minifluxView->draw();
         _currentView = Views::MFVIEW;
         return true;
     }
     else
     {
-        FillAreaRect(_menu.getContentRect(), WHITE);
-        DrawTextRect2(_menu.getContentRect(), "no entries to show");
+        FillAreaRect(_menu->getContentRect(), WHITE);
+        DrawTextRect2(_menu->getContentRect(), "no entries to show");
         _minifluxView.reset();
         _currentView = Views::DEFAULTVIEW;
-        PartialUpdate(_menu.getContentRect()->x, _menu.getContentRect()->y, _menu.getContentRect()->w, _menu.getContentRect()->h);
+        PartialUpdate(_menu->getContentRect()->x, _menu->getContentRect()->y, _menu->getContentRect()->w, _menu->getContentRect()->h);
         return false;
     }
 
@@ -853,7 +855,7 @@ void EventHandler::drawHN(int entryID)
                 page = 1;
             }
 
-            _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), &currentHnComments, page));
+            _hnCommentView.reset(new HnCommentView(_menu->getContentRect(), &currentHnComments, page));
             _currentView = Views::HNCOMMENTSVIEW;
         }
     }

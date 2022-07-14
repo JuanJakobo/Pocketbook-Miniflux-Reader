@@ -68,7 +68,7 @@ private:
     std::unique_ptr<MinifluxView> _minifluxView;
     std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<Miniflux> _miniflux;
-    MainMenu _menu = MainMenu("Miniflux");
+    std::unique_ptr<MainMenu> _menu;
     HnContextMenu _hnContextMenu = HnContextMenu();
     ContextMenu _contextMenu = ContextMenu();
     SqliteConnector _sqliteCon = SqliteConnector(DB_PATH);
