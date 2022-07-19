@@ -164,6 +164,8 @@ void EventHandler::mainMenuHandler(const int index)
                     }
                 }
                 UpdateProgressbar("Updating downloaded items.", 99);
+                _sqliteCon.deleteNotDownloadedMfEntries();
+
                 vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
                 for (size_t i = 0; i < mfEntries.size(); i++)
                 {

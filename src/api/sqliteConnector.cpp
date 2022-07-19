@@ -306,6 +306,27 @@ bool SqliteConnector::updateMfEntry(int entryID, bool starred, const std::string
     return true;
 }
 
+bool SqliteConnector::deleteNotDownloadedMfEntries()
+{
+    open();
+    int rs;
+    sqlite3_stmt *stmt = 0;
+
+    rs = sqlite3_prepare_v2(_db, "DELETE FROM 'MfEntries' WHERE downloaded = 0", -1, &stmt, 0);
+    rs = sqlite3_step(stmt);
+
+    if (rs != SQLITE_DONE)
+    {
+        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+    }
+    rs = sqlite3_clear_bindings(stmt);
+    rs = sqlite3_reset(stmt);
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(_db);
+
+    return true;
+}
 bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
 {
     open();

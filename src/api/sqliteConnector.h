@@ -37,6 +37,8 @@ public:
 
     bool updateDownloadStatusMfEntry(int entryID, IsDownloaded downloaded);
 
+    bool deleteNotDownloadedMfEntries();
+
     bool insertMfEntries(const std::vector<MfEntry> &entries);
 
     std::vector<HnEntry> selectHnEntries(int parentId);
