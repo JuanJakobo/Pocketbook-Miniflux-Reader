@@ -67,7 +67,7 @@ public:
     int eventDistributor(const int type, const int par1, const int par2);
 
 private:
-    static std::unique_ptr<EventHandler> _eventHandlerStatic;
+    static std::shared_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<MinifluxView> _minifluxView;
     std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<Miniflux> _miniflux;

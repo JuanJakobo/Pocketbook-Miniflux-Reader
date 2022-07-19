@@ -31,12 +31,13 @@ public:
         * @param entryFontBold bold font for the header
         * @param fontHeight height of the font
         */
-    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) override;
+    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) const override;
 
-    HnEntry *get() override { return &_entry; };
+
+    HnEntry &getHnEntry() { return _entry; };
 
 private:
-    HnEntry _entry;
     bool _drawHeader;
+    HnEntry _entry;
 };
 #endif

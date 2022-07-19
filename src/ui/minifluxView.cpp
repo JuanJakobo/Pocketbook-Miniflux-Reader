@@ -15,10 +15,10 @@
 
 using std::vector;
 
-MinifluxView::MinifluxView(const irect *contentRect, const vector<MfEntry> &mfEntries, int page) : ListView(contentRect, page)
+MinifluxView::MinifluxView(const irect &contentRect, const vector<MfEntry> &mfEntries, int page) : ListView(contentRect, page)
 {
     auto pageHeight = 0;
-    auto contentHeight = _contentRect->h - _footerHeight;
+    auto contentHeight = _contentRect.h - _footerHeight;
     auto entrycount = mfEntries.size();
 
     _entries.reserve(entrycount);
@@ -26,16 +26,16 @@ MinifluxView::MinifluxView(const irect *contentRect, const vector<MfEntry> &mfEn
     auto i = 0;
     while (i < entrycount)
     {
-        auto entrySize = TextRectHeight(contentRect->w, mfEntries.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
+        auto entrySize = TextRectHeight(contentRect.w, mfEntries.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
 
         if ((pageHeight + entrySize) > contentHeight)
         {
             pageHeight = 0;
             _page++;
         }
-        irect rect = iRect(_contentRect->x, _contentRect->y + pageHeight, _contentRect->w, entrySize, 0);
+        irect rect = iRect(_contentRect.x, _contentRect.y + pageHeight, _contentRect.w, entrySize, 0);
 
-        _entries.emplace_back(std::unique_ptr<MinifluxViewEntry>(new MinifluxViewEntry(_page, rect, mfEntries.at(i))));
+        _entries.emplace_back(std::make_unique<MinifluxViewEntry>(MinifluxViewEntry(_page, rect, mfEntries.at(i))));
 
         i++;
         pageHeight = pageHeight + entrySize;
@@ -50,7 +50,7 @@ vector<int> MinifluxView::getEntriesTillPage()
         for (size_t i = 0; i < _entries.size(); i++)
         {
             if (_entries.at(i)->getPage() <= _shownPage)
-                temp.push_back(getEntry(i)->id);
+                temp.push_back(getEntry(i).id);
         }
     }
     return temp;

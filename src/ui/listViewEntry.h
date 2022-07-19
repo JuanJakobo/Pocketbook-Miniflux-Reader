@@ -25,8 +25,8 @@ public:
 
     virtual ~ListViewEntry(){};
 
-    irect *getPosition() { return &_position; }
-    int getPage() const { return _page; }
+    irect &getPosition() { return _position; };
+    int getPage() const { return _page; };
 
     /**
         * draws the listViewEntry to the screen
@@ -35,9 +35,7 @@ public:
         * @param entryFontBold bold font for the header
         * @param fontHeight height of the font
         */
-    virtual void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) = 0;
-    
-    virtual Entry* get() = 0;
+    virtual void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) const = 0;
 
 protected:
     int _page;

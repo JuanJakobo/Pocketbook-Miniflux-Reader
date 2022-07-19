@@ -25,13 +25,9 @@ public:
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
-    ListView(const irect *contentRect, int page);
+    ListView(const irect &contentRect, int page);
 
     virtual ~ListView();
-
-    virtual Entry *getCurrentEntry() = 0;
-    
-    virtual Entry *getEntry(int entryID) = 0;
 
     int getShownPage(){return _shownPage;};
 
@@ -72,16 +68,16 @@ public:
     int getCurrentEntryItertator() const {return _selectedEntry;};
 
     /**
-        * Clears the screen and draws entries and footer 
-        * 
+        * Clears the screen and draws entries and footer
+        *
         */
     void draw();
-    
+
 protected:
     int _footerHeight;
     int _footerFontHeight;
     int _entryFontHeight;
-    const irect *_contentRect;
+    const irect _contentRect;
     std::vector<std::shared_ptr<ListViewEntry>> _entries;
     ifont *_footerFont;
     ifont *_entryFont;

@@ -19,7 +19,7 @@ HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect, const HnEntry
 {
 }
 
-void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight)
+void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) const
 {
     auto beginY = _position.y;
     //header
@@ -74,6 +74,7 @@ void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold
         }
 
         std::string header = _entry.by + " " + time;
+
         if (_entry.flagged)
             header = header + " [flagged]";
 

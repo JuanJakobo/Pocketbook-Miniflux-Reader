@@ -26,12 +26,13 @@ public:
         * @param Items items that shall be shown in the listview
         * @param page page that is shown, default is 1
         */
-    MinifluxView(const irect *contentRect, const std::vector<MfEntry> &mfEntries, int page = 1);
+    MinifluxView(const irect &contentRect, const std::vector<MfEntry> &mfEntries, int page = 1);
 
-    std::vector<int> getEntriesTillPage(); 
+    std::vector<int> getEntriesTillPage();
 
-    MfEntry *getCurrentEntry() { return getEntry(_selectedEntry); };
+    MfEntry& getCurrentEntry() { return getEntry(_selectedEntry); };
 
-    MfEntry *getEntry(int entryID) { return std::dynamic_pointer_cast<MinifluxViewEntry>(_entries.at(entryID))->get(); };
+    MfEntry& getEntry(int entryID) {return std::dynamic_pointer_cast<MinifluxViewEntry>(_entries.at(entryID))->getMfEntry(); };
+
 };
 #endif

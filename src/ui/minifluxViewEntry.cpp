@@ -11,11 +11,11 @@
 
 #include <string>
 
-MinifluxViewEntry::MinifluxViewEntry(int page, const irect &position, const MfEntry &entry) : ListViewEntry(page, position), _entry(entry)
+MinifluxViewEntry::MinifluxViewEntry(int page, const irect &position, const MfEntry &entry) : ListViewEntry(page, position) , _entry(entry)
 {
 }
 
-void MinifluxViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight)
+void MinifluxViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) const
 {
     SetFont(entryFontBold, BLACK);
     int heightOfTitle = TextRectHeight(_position.w, _entry.title.c_str(), 0);

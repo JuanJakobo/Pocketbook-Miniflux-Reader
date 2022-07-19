@@ -31,9 +31,9 @@ public:
         * @param entryFontBold bold font for the header
         * @param fontHeight height of the font
         */
-    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) override;
+    void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) const override;
 
-    MfEntry *get() override { return &_entry; };
+    MfEntry &getMfEntry() { return _entry; };
 
 private:
     MfEntry _entry;

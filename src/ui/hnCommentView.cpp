@@ -14,11 +14,11 @@
 #include <string>
 #include <vector>
 
-HnCommentView::HnCommentView(const irect *contentRect, std::vector<HnEntry> *hnEntries, int page) : ListView(contentRect, page)
+HnCommentView::HnCommentView(const irect &contentRect, const std::vector<HnEntry> &hnEntries, int page) : ListView(contentRect, page)
 {
     auto beginEntry = 0;
-    auto contentHeight = _contentRect->h - _footerHeight;
-    auto entrycount = hnEntries->size();
+    auto contentHeight = _contentRect.h - _footerHeight;
+    auto entrycount = hnEntries.size();
 
     if(entrycount > 50)
         ShowHourglassForce();
@@ -30,28 +30,28 @@ HnCommentView::HnCommentView(const irect *contentRect, std::vector<HnEntry> *hnE
     {
         auto drawHeader = true;
         auto headerDifference = 3.5;
+        auto tempHnEntry = hnEntries.at(i);
 
-        if (!hnEntries->at(i).title.empty())
-            titleSize = TextRectHeight(contentRect->w, hnEntries->at(i).title.c_str(), 0);
+        if (!tempHnEntry.title.empty())
+            titleSize = TextRectHeight(contentRect.w, tempHnEntry.title.c_str(), 0);
         else
             titleSize = 0;
 
-        if (!hnEntries->at(i).text.empty())
-            entrySize = TextRectHeight(contentRect->w, hnEntries->at(i).text.c_str(), 0);
-        else 
+        if (!tempHnEntry.text.empty())
+            entrySize = TextRectHeight(contentRect.w, tempHnEntry.text.c_str(), 0);
+        else
             entrySize = 0;
 
         entrySize = titleSize + entrySize + 2.5 * _entryFontHeight;
 
         while ((beginEntry + entrySize) > contentHeight)
         {
-            //TODO why 5?
             if((beginEntry + 5 * _entryFontHeight) < contentHeight)
             {
 
-                HnEntry tempEntry = hnEntries->at(i);
-                hnEntries->at(i).text.clear();
-                int tempEntrySize = titleSize + TextRectHeight(contentRect->w, tempEntry.text.c_str(), 0);
+                HnEntry tempEntry = tempHnEntry;
+                tempHnEntry.text.clear();
+                int tempEntrySize = titleSize + TextRectHeight(contentRect.w, tempEntry.text.c_str(), 0);
 
                 if(!drawHeader)
                     headerDifference = 1;
@@ -65,14 +65,13 @@ HnCommentView::HnCommentView(const irect *contentRect, std::vector<HnEntry> *hnE
                         space = enter;
 
                     if(space != std::string::npos){
-                        hnEntries->at(i).text =  tempEntry.text.substr(space) + hnEntries->at(i).text;
+                        tempHnEntry.text =  tempEntry.text.substr(space) + tempHnEntry.text;
                         tempEntry.text = tempEntry.text.substr(0,space);
                     }
                     else
                         break;
-                    //TODO without break
 
-                    tempEntrySize = titleSize + TextRectHeight(contentRect->w, tempEntry.text.c_str(), 0);
+                    tempEntrySize = titleSize + TextRectHeight(contentRect.w, tempEntry.text.c_str(), 0);
                 }
 
                 if(!tempEntry.text.empty()){
@@ -80,11 +79,11 @@ HnCommentView::HnCommentView(const irect *contentRect, std::vector<HnEntry> *hnE
                         tempEntry.text.erase(0,1);
                     tempEntrySize = tempEntrySize + headerDifference * _entryFontHeight;
                     tempEntry.text = tempEntry.text + "\n-->";
-                    irect rect = iRect(_contentRect->x, _contentRect->y + beginEntry, _contentRect->w, tempEntrySize, 0);
-                    _entries.emplace_back(std::unique_ptr<HnCommentViewEntry>(new HnCommentViewEntry(_page, rect, tempEntry, drawHeader)));
-                    if(isspace(hnEntries->at(i).text[0]))
-                        hnEntries->at(i).text.erase(0,1);
-                    entrySize = TextRectHeight(contentRect->w, hnEntries->at(i).text.c_str(), 0);
+                    irect rect = iRect(_contentRect.x, _contentRect.y + beginEntry, _contentRect.w, tempEntrySize, 0);
+                    _entries.emplace_back(std::make_unique<HnCommentViewEntry>(HnCommentViewEntry(_page, rect, tempEntry, drawHeader)));
+                    if(isspace(tempHnEntry.text[0]))
+                        tempHnEntry.text.erase(0,1);
+                    entrySize = TextRectHeight(contentRect.w, tempHnEntry.text.c_str(), 0);
                     entrySize = entrySize + 0.5 * _entryFontHeight;
 
                     drawHeader = false;
@@ -95,10 +94,9 @@ HnCommentView::HnCommentView(const irect *contentRect, std::vector<HnEntry> *hnE
             _page++;
         }
 
-        //TODO change
-        if(!hnEntries->at(i).text.empty() || !hnEntries->at(i).title.empty() || hnEntries->at(i).flagged){
-            irect rect = iRect(_contentRect->x, _contentRect->y + beginEntry, _contentRect->w, entrySize, 0);
-            _entries.emplace_back(std::unique_ptr<HnCommentViewEntry>(new HnCommentViewEntry(_page, rect, hnEntries->at(i), drawHeader)));
+        if(!tempHnEntry.text.empty() || !tempHnEntry.title.empty() || tempHnEntry.flagged){
+            irect rect = iRect(_contentRect.x, _contentRect.y + beginEntry, _contentRect.w, entrySize, 0);
+            _entries.emplace_back(std::make_unique<HnCommentViewEntry>(HnCommentViewEntry(_page, rect, tempHnEntry, drawHeader)));
             beginEntry = beginEntry + entrySize;
         }
 
