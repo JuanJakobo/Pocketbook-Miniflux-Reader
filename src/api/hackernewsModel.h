@@ -3,7 +3,7 @@
 //
 // Author:           JuanJakobo
 // Date:             31.05.2021
-// Description:      
+// Description: Model of HnCommentViewEntry
 //-------------------------------------------------------------------
 
 #ifndef HACKERNEWSMODEL

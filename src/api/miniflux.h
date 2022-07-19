@@ -20,16 +20,30 @@ class Miniflux
 {
     public:
         /**
-         * creatas a new Miniflux object containing the url and token to access the api
+         * creats a new Miniflux object containing the url and token to access the api
          *
-         * @param url 
-         * @param token 
-         *  
+         * @param url
+         * @param token
+         *
          */
         Miniflux(const std::string &url, const std::string &token);
 
+        /**
+         * returns the information for an entryID
+         *
+         * @param entryID the id of the item that shall be downloaded
+         * @return MfEntry item containing the information
+         *
+         */
         MfEntry getEntry(int entryID);
 
+        /**
+         * gets multple entries that fit into the requested filter
+         *
+         * @param entryID the id of the item that shall be downloaded
+         * @return vector of MfEntrys that fit into the filter
+         *
+         */
         std::vector<MfEntry> getEntries(const std::string &filter);
 
         MfFeedIcon getFeedIcon(int feedID);
@@ -45,11 +59,11 @@ class Miniflux
         void toggleBookmark(int entryID);
 
         /**
-         * Upgrades the status (read, unread) of the selected items 
+         * Upgrades the status (read, unread) of the selected items
          *
          * @param entries entries that shall be updated
          * @param read true if items should be marked as read, false if unread
-         *  
+         *
          */
         void updateEntries(const std::vector<int> &entries, bool read);
 

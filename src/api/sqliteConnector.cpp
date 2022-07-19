@@ -330,7 +330,7 @@ bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
         rs = sqlite3_step(stmt);
         if (rs == SQLITE_CONSTRAINT)
         {
-            //TODO what if item is already there? update? --> use replace?
+            //If item already exists it is not written
             //Log::writeInfoLog("item exists already: " + std::to_string(ent.id) + std::to_string(ent.starred) + ent.status);
             //updateMfEntry(ent.id, ent.starred, ent.status); --> database is locked, therefore only updated needed, no
         }
@@ -444,7 +444,6 @@ bool SqliteConnector::deleteHnEntries(int mfEntryId)
     return true;
 }
 
-//TODO returns bool?
 bool SqliteConnector::open()
 {
     int rs;

@@ -20,8 +20,8 @@ class ListView
 {
 public:
     /**
-        * Displays a list view 
-        * 
+        * Displays a list view
+        *
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         */
@@ -56,13 +56,13 @@ public:
     void reDrawCurrentEntry();
 
     /**
-        * inverts the color of the currently selected entry 
+        * inverts the color of the currently selected entry
         */
     void invertCurrentEntryColor();
 
     /**
         * Checkes if the listview has been clicked and either changes the page or returns item ID
-        * 
+        *
         * @param x x-coordinate
         * @param y y-coordinate
         * @return true if was clicked
@@ -95,27 +95,26 @@ protected:
     irect _lastPageButton;
     int _selectedEntry;
 
-
     /**
         * Iterates through the items and sends them to the listViewEntry Class for drawing
         */
     void drawEntries();
 
     /**
-        * Draws the footer including a page changer 
+        * Draws the footer including a page changer
         */
     void drawFooter();
 
     /**
-        * updates an entry 
-        * 
+        * updates an entry
+        *
         * @param entryID the id of the item that shall be inverted
         */
     void updateEntry(int entryID);
 
     /**
         * Navigates to the selected page
-        * 
+        *
         * @param pageToShow page that shall be shown
         */
     void actualizePage(int pageToShow);

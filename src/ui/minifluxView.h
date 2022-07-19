@@ -20,8 +20,8 @@ class MinifluxView final : public ListView
 {
 public:
     /**
-        * Displays a list view 
-        * 
+        * Displays a list view
+        *
         * @param ContentRect area of the screen where the list view is placed
         * @param Items items that shall be shown in the listview
         * @param page page that is shown, default is 1

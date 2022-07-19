@@ -13,7 +13,7 @@
 EventHandler *events = nullptr;
 /**
 * Handles events and redirects them
-* 
+*
 * @param type event type
 * @param par1 first argument of the event
 * @param par2 second argument of the event

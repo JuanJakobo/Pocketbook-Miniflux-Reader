@@ -20,16 +20,18 @@
 class SqliteConnector
 {
 public:
+
     /**
-    *  
-    */
+     * Creates a new sqlConnector object containing the path to the DB
+     *
+     */
     SqliteConnector(const std::string &DBpath);
 
     ~SqliteConnector();
 
     std::vector<MfEntry> selectMfEntries();
 
-		std::vector<MfEntry> selectMfEntries(IsDownloaded downloaded);
+    std::vector<MfEntry> selectMfEntries(IsDownloaded downloaded);
 
     bool updateMfEntry(int entryID, bool starred, const std::string &status);
 
@@ -43,7 +45,7 @@ public:
 
     bool insertHnEntries(const std::vector<HnEntry> &entries);
 
-		bool deleteHnEntries(int mfEntryId);
+    bool deleteHnEntries(int mfEntryId);
 
     std::vector<HnUser> selectHnUser();
 

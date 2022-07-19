@@ -26,19 +26,19 @@ class Util
 public:
     /**
     * Handles the return of curl command
-    * 
+    *
     */
     static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
     /**
     * Saves the return of curl command
-    * 
+    *
     */
     static size_t writeData(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
     /**
     * Checks if a network connection can be established
-    * 
+    *
     */
     static void connectToNetwork();
 

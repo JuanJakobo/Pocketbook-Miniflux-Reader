@@ -18,14 +18,14 @@ class Log
 public:
     /**
         * Writes a error log entry to the log file
-        * 
+        *
         * @param text that shall be written to the log
         */
     static void writeErrorLog(const std::string &text);
 
     /**
         * Writes a info log entry to the log file
-        * 
+        *
         * @param text that shall be written to the log
         */
     static void writeInfoLog(const std::string &text);
@@ -35,7 +35,7 @@ private:
 
     /**
         * Writes a log entry to the log file
-        * 
+        *
         * @param text that shall be written to the log
         */
     static void writeLog(const std::string &text);

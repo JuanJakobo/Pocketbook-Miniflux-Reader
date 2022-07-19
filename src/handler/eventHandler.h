@@ -23,6 +23,8 @@
 #include "hackernewsModel.h"
 #include "hnCommentView.h"
 
+#include "pocket.h"
+
 #include "sqliteConnector.h"
 
 #include <string>
@@ -46,21 +48,22 @@ const std::string DB_PATH = ARTICLE_FOLDER + "/data.db";
 class EventHandler
 {
 public:
+
     /**
-        * Defines fonds, sets global Event Handler and starts new content 
-        */
+     * Defines fonds, sets global Event Handler and starts new content
+     */
     EventHandler();
 
     ~EventHandler();
 
     /**
-        * Handles events and redirects them
-        * 
-        * @param type event type
-        * @param par1 first argument of the event
-        * @param par2 second argument of the event
-        * @return int returns if the event was handled
-        */
+     * Handles events and redirects them
+     *
+     * @param type event type
+     * @param par1 first argument of the event
+     * @param par2 second argument of the event
+     * @return int returns if the event was handled
+     */
     int eventDistributor(const int type, const int par1, const int par2);
 
 private:
@@ -78,91 +81,105 @@ private:
     std::map<int, int> _hnShownPage;
 
     /**
-        * Function needed to call C function, redirects to real function
-        * 
-        *  @param index int of the menu that is set
-        */
+     * Function needed to call C function, redirects to real function
+     *
+     *  @param index int of the menu that is set
+     */
     static void mainMenuHandlerStatic(const int index);
 
     /**
-        * Handles menu events and redirects them
-        * 
-        * @param index int of the menu that is set
-        */
+     * Handles menu events and redirects them
+     *
+     * @param index int of the menu that is set
+     */
     void mainMenuHandler(const int index);
 
     /**
-        * Function needed to call C function, redirects to real function
-        * 
-        *  @param index int of the menu that is set
-        */
+     * Function needed to call C function, redirects to real function
+     *
+     *  @param  text typed in by the user to the keyboard
+     */
+    static void sendToPocketKeyboardHandlerStatic(char *text);
+
+    /**
+     *  Function to read in the urls that shall be send to PB
+     *
+     *  @param  text typed in by the user to the keyboard
+     */
+    void sendToPocketKeyboardHandler(char *text);
+
+    /**
+     * Function needed to call C function, redirects to real function
+     *
+     *  @param index int of the menu that is set
+     */
     static void hnContextMenuHandlerStatic(const int index);
 
     /**
-        * Handlescontext  menu events and redirects them
-        * 
-        * @param index int of the menu that is set
-        */
+     * Handlescontext  menu events and redirects them
+     *
+     * @param index int of the menu that is set
+     */
 
     void hnContextMenuHandler(const int index);
 
     /**
-        * Function needed to call C function, redirects to real function
-        * 
-        *  @param index int of the menu that is set
-        */
+     * Function needed to call C function, redirects to real function
+     *
+     *  @param index int of the menu that is set
+     */
     static void contextMenuHandlerStatic(const int index);
 
     /**
-        * Handlescontext  menu events and redirects them
-        * 
-        * @param index int of the menu that is set
-        */
+     * Handles context  menu events and redirects them
+     *
+     * @param index int of the menu that is set
+     */
 
     void contextMenuHandler(const int index);
 
     /**
-        * Handles pointer Events
-        * 
-        * @param type event type
-        * @param par1 first argument of the event
-        * @param par2 second argument of the event
-        * @return int returns if the event was handled
-        */
+     * Handles pointer Events
+     *
+     * @param type event type
+     * @param par1 first argument of the event
+     * @param par2 second argument of the event
+     * @return int returns if the event was handled
+     */
     int pointerHandler(const int type, const int par1, const int par2);
 
     /**
-        * Handles key Events
-        * 
-        * @param type event type
-        * @param par1 first argument of the event (is the key)
-        * @param par2 second argument of the event
-        * @return int returns if the event was handled
-        */
+     * Handles key Events
+     *
+     * @param type event type
+     * @param par1 first argument of the event (is the key)
+     * @param par2 second argument of the event
+     * @return int returns if the event was handled
+     */
     int keyHandler(const int type, const int par1, const int par2);
 
     bool drawMinifluxEntries(const std::vector<MfEntry> &mfEntries);
     /**
-     * 
+     *
      * Draws the miniflux items to an ListView
-     * 
+     *
      */
     void filterAndDrawMiniflux(const std::string &filter);
 
     HnEntry HnDownload(int entryID);
 
     /**
-     * 
+     *
      * Called by the threads and writes items to _HnEntries
-     * 
+     *
      * @param void EntryId that shall be downloaded
      */
     static void *getHnEntry(void *arg);
 
     /**
-     * 
+     *
      * Draws a HN Comment and its childs to an ListView
-     * 
+     *
      * @param int parent entryID
      */
     void drawHN(int entryID);
@@ -172,6 +189,6 @@ private:
     void downloadHnEntries(int entryID);
 
     int getHnIDFromURL(const std::string &url);
-    
+
 };
 #endif
