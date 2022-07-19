@@ -33,6 +33,7 @@
 #include <vector>
 
 #include <fstream>
+#include <sstream>
 
 using std::string;
 using std::vector;
@@ -225,6 +226,36 @@ void EventHandler::mainMenuHandler(const int index)
     }
 }
 
+void EventHandler::sendToPocketKeyboardHandlerStatic(char *text)
+{
+    _eventHandlerStatic->sendToPocketKeyboardHandler(text);
+}
+void EventHandler::sendToPocketKeyboardHandler(char *text)
+{
+    if (!text)
+        return;
+
+    string s(text);
+    if (s.empty())
+        return;
+    string number;
+    std::istringstream ss(s);
+    while (std::getline(ss, number, ','))
+    {
+        try
+        {
+            Log::writeInfoLog("Sending the following Url to Pocket: " + _hnCommentView->getCurrentEntry().urls.at(stoi(number)));
+            _pocket.addItems(_hnCommentView->getCurrentEntry().urls.at(stoi(number)));
+        }
+        catch(std::exception e)
+        {
+            Log::writeErrorLog("Could not read in number of Url.");
+            Log::writeErrorLog(e.what());
+        }
+    }
+    HideHourglass();
+}
+
 void EventHandler::hnContextMenuHandlerStatic(const int index)
 {
     _eventHandlerStatic->hnContextMenuHandler(index);
@@ -265,24 +296,35 @@ void EventHandler::hnContextMenuHandler(const int index)
             //urls
         case 103:
             {
-                if(!_hnCommentView->getCurrentEntry()->urls.empty())
+                if(!_hnCommentView->getCurrentEntry().urls.empty())
                 {
+                    _hnCommentView->invertCurrentEntryColor();
                     string text;
-                    for(int i = 0; i < _hnCommentView->getCurrentEntry()->urls.size();i++)
+                    for(int i = 0; i < _hnCommentView->getCurrentEntry().urls.size();i++)
                     {
-                        text = text + '[' + std::to_string(i+1) + "] " + _hnCommentView->getCurrentEntry()->urls[i] + "\n";
+                        text = text + '[' + std::to_string(i) + "] " + _hnCommentView->getCurrentEntry().urls[i] + "\n";
+                        _keyboardText = std::to_string(i) + ',';
+
                     }
+
+                    text = "When \"Send to Pocket\" is clicked, type in the numbers seperated by comma of the items that shall be synced. (e.g. 0,3,5)\n" + text;
+
                     int dialogResult = DialogSynchro(ICON_INFORMATION, "Action",text.c_str(), "Send to Pocket", "Cancel", NULL);
                     switch (dialogResult)
                     {
                         case 1:
-                            //TODO type in numbers that should be saved to pocket
-                            //TODO show urls off the command and make clickable,  also in dialog, can then be clicked?
-                            // open hackernews in comments again
-                            break;
+                            {
+                                _keyboardText.resize(60);
+                                OpenKeyboard(_keyboardText.c_str(), &_keyboardText[0], 60 - 1, KBD_NORMAL, &sendToPocketKeyboardHandlerStatic);
+                                break;
+                            }
                         default:
                             break;
                     }
+                }
+                else
+                {
+                    Message(ICON_INFORMATION, "Info", "There are no Urls in this comment.", 1000);
                 }
             }
         default:
@@ -479,8 +521,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                             }
                         case 2:
                             {
-                               Pocket _pocket = Pocket();
-                                _pocket.addItems(_minifluxView->getCurrentEntry()->url);
+                                _pocket.addItems(_minifluxView->getCurrentEntry().url);
                                 HideHourglass();
                             break;
                             }

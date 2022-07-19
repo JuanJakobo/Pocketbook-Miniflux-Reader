@@ -72,12 +72,14 @@ private:
     std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<Miniflux> _miniflux;
     std::unique_ptr<MainMenu> _menu;
+    Pocket _pocket = Pocket();
     HnContextMenu _hnContextMenu = HnContextMenu();
     ContextMenu _contextMenu = ContextMenu();
     SqliteConnector _sqliteCon = SqliteConnector(DB_PATH);
     std::vector<HnEntry> _hnEntries;
     Views _currentView;
     int _minifluxViewShownPage = 1;
+    std::string _keyboardText;
     std::map<int, int> _hnShownPage;
 
     /**
