@@ -13,14 +13,14 @@
 
 #include <string>
 
-enum IStatus
+enum class IStatus
 {
     UNREAD,
     ARCHIVED,
     TODELETE
 };
 
-enum PIsDownloaded
+enum class PIsDownloaded
 {
 				PNOTDOWNLOADED,
 				PDOWNLOADED,

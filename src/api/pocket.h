@@ -16,7 +16,7 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-enum PocketAction {
+enum class PocketAction {
     ADD, //Add a new item
     ARCHIVE, //Move an item to the archive
     READD, //Unarchive an item

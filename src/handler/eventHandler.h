@@ -32,7 +32,7 @@
 #include <map>
 #include <vector>
 
-enum Views
+enum class Views
 {
     DEFAULTVIEW,
     MFVIEW,
