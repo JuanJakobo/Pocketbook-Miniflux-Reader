@@ -268,7 +268,7 @@ void EventHandler::hnContextMenuHandler(const int index)
         //Save note
         case 101:
             {
-                std::ofstream note(ARTICLE_FOLDER + "/notes.txt", std::ios_base::app | std::ios_base::out);
+                std::ofstream note(ARTICLE_FOLDER + "/notes", std::ios_base::app | std::ios_base::out);
                 note << "by=" << _hnCommentView->getCurrentEntry().by << " id=" << _hnCommentView->getCurrentEntry().id << "\ncontent=\n" << _hnCommentView->getCurrentEntry().text << "\n\n";
                 note.close();
                 _hnCommentView->reDrawCurrentEntry();
