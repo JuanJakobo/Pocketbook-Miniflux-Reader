@@ -26,7 +26,7 @@ MinifluxView::MinifluxView(const irect &contentRect, const vector<MfEntry> &mfEn
     auto i = 0;
     while (i < entrycount)
     {
-        auto entrySize = TextRectHeight(contentRect.w*1.01, mfEntries.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
+        auto entrySize = TextRectHeight(contentRect.w*1.003, mfEntries.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
 
         if ((pageHeight + entrySize) > contentHeight)
         {
