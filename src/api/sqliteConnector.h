@@ -41,7 +41,13 @@ public:
 
     bool insertMfEntries(const std::vector<MfEntry> &entries);
 
-    std::vector<HnEntry> selectHnEntries(int parentId);
+    /**
+     * Adds child items found in the DB to the given vector
+     *
+     * @param parentId id of the main item
+     * @param entries that are currently loaded
+     */
+    void selectHnEntries(int parentId, std::vector<HnEntry> &entries);
 
     HnEntry selectHnEntry(int id);
 

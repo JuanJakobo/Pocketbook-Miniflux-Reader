@@ -104,6 +104,7 @@ HnEntry SqliteConnector::selectHnEntry(int id)
     int rs;
     sqlite3_stmt *stmt = 0;
     HnEntry temp;
+    temp.id = -1;
 
     rs = sqlite3_prepare_v2(_db, "SELECT id, by, time, text, parent, kids, urls, score, title, descendants, deleted, flagged FROM 'HnItems' WHERE id = ?;", -1, &stmt, 0);
 
@@ -173,12 +174,11 @@ HnEntry SqliteConnector::selectHnEntry(int id)
     return temp;
 }
 //get for id?
-vector<HnEntry> SqliteConnector::selectHnEntries(int parentId)
+void SqliteConnector::selectHnEntries(int parentId, vector<HnEntry> &entries)
 {
     open();
     int rs;
     sqlite3_stmt *stmt = 0;
-    vector<HnEntry> entries;
 
     rs = sqlite3_prepare_v2(_db, "SELECT id, by, time, text, parent, kids, urls, score, title, descendants,deleted,flagged FROM 'HnItems' WHERE parent = ?;", -1, &stmt, 0);
 
@@ -248,7 +248,6 @@ vector<HnEntry> SqliteConnector::selectHnEntries(int parentId)
 
     sqlite3_finalize(stmt);
     sqlite3_close(_db);
-    return entries;
 }
 
 vector<HnUser> SqliteConnector::selectHnUser()
