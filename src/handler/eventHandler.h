@@ -176,7 +176,7 @@ private:
      *
      * @param void EntryId that shall be downloaded
      */
-    static void *getHnEntry(void *arg);
+    static void getHnEntry(int commentID);
 
     /**
      *

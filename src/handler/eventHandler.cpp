@@ -27,10 +27,13 @@
 #include "log.h"
 #include "sqliteConnector.h"
 
+#include <algorithm>
 #include <string>
 #include <memory>
 #include <map>
 #include <vector>
+#include <thread>
+#include <mutex>
 
 #include <fstream>
 #include <sstream>
@@ -39,7 +42,7 @@ using std::string;
 using std::vector;
 
 std::shared_ptr<EventHandler> EventHandler::_eventHandlerStatic;
-pthread_mutex_t mutexEntries;
+std::mutex mutexEntries;
 
 EventHandler::EventHandler()
 {
@@ -674,106 +677,52 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
 
 HnEntry EventHandler::HnDownload(int entryID)
 {
-    vector<HnEntry> temp = _sqliteCon.selectHnEntries(entryID);
+    _sqliteCon.selectHnEntries(entryID, _hnEntries);
 
-    for (size_t i = 0; i < temp.size(); i++)
-    {
-        _hnEntries.push_back(temp.at(i));
-    }
-
-    HnEntry test = _sqliteCon.selectHnEntry(entryID);
-    if (test.id > 0)
-        _hnEntries.push_back(test);
-
-    auto found = false;
-    HnEntry parentItem;
-
-    for (size_t i = 0; i < _hnEntries.size(); i++)
-    {
-        if (_hnEntries.at(i).id == entryID)
-        {
-            parentItem = _hnEntries.at(i);
-            found = true;
-            break;
-        }
-    }
-
-    if (!found)
-    {
+    HnEntry parentItem = _sqliteCon.selectHnEntry(entryID);
+    //if not found, download
+    if (parentItem.id == -1){
         Util::connectToNetwork();
         parentItem = Hackernews::getEntry(entryID);
         if(!parentItem.title.empty())
             Util::decodeHTML(parentItem.title);
         if(!parentItem.text.empty())
             Util::decodeHTML(parentItem.text);
-        _hnEntries.push_back(parentItem);
-
     }
+
     if (parentItem.kids.size() > 0)
     {
-        vector<int> tosearch;
+        //check if all kids are downloaded, or not, if not download
+        vector<int> toDownload;
 
-        for (size_t i = 0; i < parentItem.kids.size(); ++i)
+        for(const auto id : parentItem.kids)
         {
-            found = false;
-
-            for (size_t j = 0; j < _hnEntries.size(); ++j)
+            auto it = std::find_if(_hnEntries.begin(), _hnEntries.end(), [id](HnEntry &current){
+                    return current.id == id;});
+            if(it == _hnEntries.end())
             {
-                if (parentItem.kids.at(i) == _hnEntries.at(j).id)
-                {
-                    found = true;
-                    break;
-                }
+                toDownload.push_back(id);
             }
-
-            if (!found)
-                tosearch.push_back(parentItem.kids.at(i));
         }
 
-        if (tosearch.size() > 0)
+        if (toDownload.size() > 0)
         {
             Util::connectToNetwork();
-            //Download comments
-            mutexEntries = PTHREAD_MUTEX_INITIALIZER;
-            int count;
-            auto counter = 0;
-
-            //count of threads that can be handled
-            auto threadsPerSession = 4;
-
-            while (counter < tosearch.size())
+            //auto hardwareThreads = std::thread::hardware_concurrency();
+            //auto threadsPerSession = (hardwareThreads != 0) ? hardwareThreads : 2;
+            //std::for_each(threads.begin(),threads.end(),std::mem_fn(&std::thread::join));
+            //only 2 hardware threads are supported, therefore 2-1 threads are created
+            for(int i = 0, end = toDownload.size()-1; i < end; ++i)
             {
-                if (counter % threadsPerSession == 0 || counter < threadsPerSession)
-                {
-                    if ((tosearch.size() - counter) < threadsPerSession)
-                        threadsPerSession = tosearch.size() - counter;
-
-                    pthread_t threads[threadsPerSession];
-
-                    for (count = 0; count < threadsPerSession; ++count)
-                    {
-                        if (pthread_create(&threads[count], NULL, getHnEntry, &tosearch.at(counter)) != 0)
-                        {
-                            Log::writeErrorLog("could not create thread");
-                            break;
-                        }
-                        counter++;
-                    }
-
-                    for (size_t i = 0; i < count; ++i)
-                    {
-                        if (pthread_join(threads[i], NULL) != 0)
-                        {
-                            Log::writeErrorLog("cannot join thread" + std::to_string(i));
-                        }
-                    }
-                }
+                std::thread second (getHnEntry, toDownload.at(i));
+                i++;
+                getHnEntry(toDownload.at(i));
+                second.join();
             }
-
-            pthread_mutex_destroy(&mutexEntries);
         }
 
     }
+    _hnEntries.push_back(parentItem);
     return parentItem;
 }
 
@@ -786,12 +735,11 @@ void EventHandler::downloadHnEntries(int parentCommentItemID)
     }
 }
 
-void *EventHandler::getHnEntry(void *arg)
+void EventHandler::getHnEntry(int commentID)
 {
     try
     {
-        HnEntry temp = Hackernews::getEntry(*(int *)arg);
-
+        HnEntry temp = Hackernews::getEntry(commentID);
         if (!temp.text.empty())
         {
             Util::decodeHTML(temp.text);
@@ -813,30 +761,26 @@ void *EventHandler::getHnEntry(void *arg)
                 auto end1 = toFind.find(">");
                 auto end2 = toFind.find("</a>");
 
-                auto imageURL = toFind.substr(end1 + 1, end2 - end1 - 1);
+                auto urlContent = toFind.substr(end1 + 1, end2 - end1 - 1);
 
                 auto toReplace = temp.text.find(toFind);
 
                 if (toReplace != std::string::npos)
                 {
-                    temp.text.replace(toReplace, toFind.size(), imageURL);
+                    temp.text.replace(toReplace, toFind.size(), urlContent);
                 }
 
                 found = temp.text.find("<a href=\"");
             }
         }
-
-        pthread_mutex_lock(&mutexEntries);
+        mutexEntries.lock();
         _eventHandlerStatic->_hnEntries.push_back(temp);
-        pthread_mutex_unlock(&mutexEntries);
+        mutexEntries.unlock();
     }
     catch (const std::exception &e)
     {
         Log::writeErrorLog(e.what());
     }
-
-
-    return NULL;
 }
 
 void EventHandler::drawHN(int entryID)
