@@ -130,7 +130,7 @@ void Util::decodeHTML(string &data)
     replaceAll(data, "&quot;", "\"");
     replaceAll(data, "&amp;", "&");
     replaceAll(data, "&apos;", "\'");
-    replaceAll(data, "&t;", "<");
+    replaceAll(data, "&lt;", "<");
     replaceAll(data, "&gt;", ">");
     //html
     replaceAll(data, "&#x27;", "\'");
