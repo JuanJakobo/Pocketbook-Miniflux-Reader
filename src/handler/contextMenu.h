@@ -29,13 +29,13 @@ public:
         * @param starred hide option if is already starred
         * @return int returns if the event was handled
         */
-    int createMenu(int y, const iv_menuhandler &handler, bool comments, bool starred, const std::string &downloaded);
+    int createMenu(int y, const iv_menuhandler &handler, bool article, bool starred, const std::string &downloaded);
 
 
 private:
     char *_menu = strdup("Menu");
     char *_star;
     char *_download;
-    char *_comments = strdup("Comments");
+    char *_article = strdup("Article");
 };
 #endif
