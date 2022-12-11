@@ -94,7 +94,7 @@ HnCommentView::HnCommentView(const irect &contentRect, const std::vector<HnEntry
             _page++;
         }
 
-        if(!tempHnEntry.text.empty() || !tempHnEntry.title.empty() || tempHnEntry.flagged){
+        if(!tempHnEntry.text.empty() || !tempHnEntry.title.empty() || tempHnEntry.flagged || tempHnEntry.deleted){
             irect rect = iRect(_contentRect.x, _contentRect.y + beginEntry, _contentRect.w, entrySize, 0);
             _entries.emplace_back(std::make_unique<HnCommentViewEntry>(HnCommentViewEntry(_page, rect, tempHnEntry, drawHeader)));
             beginEntry = beginEntry + entrySize;

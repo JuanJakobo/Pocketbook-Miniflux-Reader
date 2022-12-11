@@ -26,57 +26,63 @@ void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold
     if(_drawHeader){
         SetFont(entryFontBold, BLACK);
 
-        time_t unix_timestamp = _entry.time;
-        char time_buf[80];
-        struct tm ts;
-        ts = *localtime(&unix_timestamp);
+        std::string header = _entry.by;
+        if(_entry.time > 0)
+        {
+            time_t unix_timestamp = _entry.time;
+            char time_buf[80];
+            struct tm ts;
+            ts = *localtime(&unix_timestamp);
 
-        time_t now;
-        time(&now);
-        struct tm *currentTime = localtime(&now);
+            time_t now;
+            time(&now);
+            struct tm *currentTime = localtime(&now);
 
-        auto seconds = difftime(now,mktime(&ts));
+            auto seconds = difftime(now,mktime(&ts));
 
-        std::string time;
-        //minutes
-        if(seconds > 60){
-            seconds = seconds/60;
-            int sec = seconds;
-            time = std::to_string(sec) + " minutes ago";
-            //hours
+            std::string time;
+            //minutes
             if(seconds > 60){
                 seconds = seconds/60;
                 int sec = seconds;
-                time = std::to_string(sec) + " hours ago";
-                //days
-                if(seconds > 24){
-                    seconds = seconds/24;
+                time = std::to_string(sec) + " minutes ago";
+                //hours
+                if(seconds > 60){
+                    seconds = seconds/60;
                     int sec = seconds;
-                    time = std::to_string(sec) + " days ago";
-                    //month
-                    if(seconds > 30){
-                        seconds = seconds/30;
+                    time = std::to_string(sec) + " hours ago";
+                    //days
+                    if(seconds > 24){
+                        seconds = seconds/24;
                         int sec = seconds;
-                        time = std::to_string(sec) + " months ago";
-                        //years
-                        if(seconds > 12){
-                            seconds = seconds/12;
+                        time = std::to_string(sec) + " days ago";
+                        //month
+                        if(seconds > 30){
+                            seconds = seconds/30;
                             int sec = seconds;
-                            time = std::to_string(sec) + " years ago";
-                            if(seconds > 1){
-                                strftime(time_buf, sizeof(time_buf), "%y-%m-%d %h:%m:%s %z", &ts);
-                                time = time_buf;
+                            time = std::to_string(sec) + " months ago";
+                            //years
+                            if(seconds > 12){
+                                seconds = seconds/12;
+                                int sec = seconds;
+                                time = std::to_string(sec) + " years ago";
+                                if(seconds > 1){
+                                    strftime(time_buf, sizeof(time_buf), "%y-%m-%d %h:%m:%s %z", &ts);
+                                    time = time_buf;
+                                }
                             }
                         }
                     }
                 }
             }
+            header = header + " " + time;
         }
 
-        std::string header = _entry.by + " " + time;
 
         if (_entry.flagged)
             header = header + " [flagged]";
+        else if (_entry.deleted)
+            header = header + " [deleted]";
 
         DrawTextRect(_position.x, _position.y, _position.w, fontHeight, header.c_str(), ALIGN_LEFT);
 
