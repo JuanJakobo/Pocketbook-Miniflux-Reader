@@ -124,29 +124,37 @@ void EventHandler::mainMenuHandler(const int index)
             //sync items
         case 104:
             {
+                auto curFrontLight = GetFrontlightState();
+                Log::writeInfoLog(std::to_string(curFrontLight));
+                SetFrontlightEnabled(0);
                 OpenProgressbar(ICON_INFORMATION, "Syncing items", "Downloading Miniflux Entries", 0, NULL);
                 vector<MfEntry> entriesToSync =  _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
 
                 double percentageMove = entriesToSync.size();
                 percentageMove = 1/ percentageMove * 98;
-                auto currentPercentage = 0;
-                for (auto ent : entriesToSync)
+                _currentPercentage = 0;
+                for (const auto& ent : entriesToSync)
                 {
+                    std::thread imageDownloadThread;
                     try
                     {
-                        currentPercentage += percentageMove;
-                        UpdateProgressbar(("Downloading \"" + ent.title + "\"").c_str(), currentPercentage);
+                        _currentPercentage += percentageMove;
+                        _downloadText = "Downloading \"" + ent.title + "\"";
+                        UpdateProgressbar(_downloadText.c_str(), _currentPercentage);
                         if (ent.url.find("news.ycombinator.com") == std::string::npos)
-                            Util::createHtml(ent.title, ent.content);
+                        {
+                            imageDownloadThread = std::thread{Util::createHtml, ent.title, ent.content};
+                        }
                         if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
                         {
                             _hnEntries.clear();
                             BanSleep(2000);
+
                             downloadHnEntries(getHnIDFromURL(ent.comments_url));
 
-                            for(size_t i = 0; i < _hnEntries.size(); ++i)
+                            for(auto& item : _hnEntries)
                             {
-                                _hnEntries.at(i).mfEntryId = ent.id;
+                                item.mfEntryId = ent.id;
                             }
                             _sqliteCon.insertHnEntries(_hnEntries);
                         }
@@ -158,16 +166,19 @@ void EventHandler::mainMenuHandler(const int index)
                         Log::writeErrorLog(e.what());
                         Message(ICON_INFORMATION, "Error while downloading", e.what(), 1200);
                     }
+                    if(imageDownloadThread.joinable())
+                        imageDownloadThread.join();
                 }
                 UpdateProgressbar("Updating downloaded items.", 99);
                 _sqliteCon.deleteNotDownloadedMfEntries();
 
                 vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
-                for (size_t i = 0; i < mfEntries.size(); i++)
+                for(auto& mfEntry : mfEntries)
                 {
                     try{
-                        mfEntries.at(i) = _miniflux->getEntry(mfEntries.at(i).id);
-                        _sqliteCon.updateMfEntry(mfEntries.at(i).id, mfEntries.at(i).starred, mfEntries.at(i).status);
+                        mfEntry = _miniflux->getEntry(mfEntry.id);
+                        _sqliteCon.updateMfEntry(mfEntry.id, mfEntry.starred, mfEntry.status);
+                        //TODO also delete if not longer there?
                     }
                     catch (const std::exception &e)
                     {
@@ -175,9 +186,11 @@ void EventHandler::mainMenuHandler(const int index)
                     }
                 }
                 mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
-
                 CloseProgressbar();
+                SetFrontlightEnabled(1);
                 drawMinifluxEntries(mfEntries);
+                //no effect...
+                //WiFiPower(0);
                 break;
             }
             //Mark as read till page
@@ -240,6 +253,7 @@ void EventHandler::sendToPocketKeyboardHandler(char *text)
         try
         {
             Log::writeInfoLog("Sending the following Url to Pocket: " + _hnCommentView->getCurrentEntry().urls.at(stoi(number)));
+            //TODO return true/false
             _pocket.addItems(_hnCommentView->getCurrentEntry().urls.at(stoi(number)));
         }
         catch(std::exception e)
