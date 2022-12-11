@@ -65,6 +65,8 @@ public:
      */
     static std::string clearString(std::string title);
 
+    static std::string returnFolderName(std::string title);
+
     /**
      * Creates an html file, downloades the pictures and saves it to path
      *
@@ -73,7 +75,7 @@ public:
      *
      * @return path where the html file is saved to
      */
-    static std::string createHtml(std::string title, std::string content);
+    static std::string createHtml(const std::string& title, std::string content);
 
     static void replaceAll(std::string &data, const std::string &replace, const std::string &by);
 

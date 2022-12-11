@@ -11,8 +11,10 @@
 #include "log.h"
 
 #include <string>
-#include <iostream>
+#include <ostream>
+#include <algorithm>
 #include <fstream>
+#include <map>
 
 using std::string;
 
@@ -90,8 +92,6 @@ string Util::getData(const string &url)
     CURLcode res;
     CURL *curl = curl_easy_init();
 
-    Util::connectToNetwork();
-
     if (curl)
     {
 
@@ -142,68 +142,84 @@ void Util::decodeHTML(string &data)
 
 string Util::clearString(string title)
 {
-    const std::string forbiddenInFiles = "<>\\/:?\"|";
+    const std::string forbiddenInFiles = "<>$\\/:?\"|";
     std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
             { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
     return title;
 }
 
-string Util::createHtml(string title, string content)
+string Util::returnFolderName(string title)
 {
+    replaceAll(title, " ", "_");
+    return ARTICLE_FOLDER + "/" + clearString(title) + "/";
+}
 
-    title = clearString(title);
-
-    string path = ARTICLE_FOLDER + "/" + title + ".html";
-    if (iv_access(path.c_str(), W_OK) != 0)
+string Util::createHtml(const string &title,string content)
+{
+    string title_folder = returnFolderName(title);
+    string title_path = title_folder + clearString(title) + ".html";
+    if (iv_access(title_folder.c_str(), W_OK) != 0)
     {
+        Util::connectToNetwork();
+
+        iv_mkdir(title_folder.c_str(), 0666);
+
         string result = content;
 
-        auto found = content.find("<img");
+        std::map<string,int> images;
         auto counter = 0;
+
+        auto found = content.find("<img");
         while (found != std::string::npos)
         {
-            auto imageFolder = "img/" + title;
-
-            if (iv_access((ARTICLE_FOLDER + "/" + imageFolder).c_str(), W_OK) != 0)
-                iv_mkdir((ARTICLE_FOLDER + "/" + imageFolder).c_str(), 0777);
-
-            auto imagePath = imageFolder + "/" + std::to_string(counter);
-
             content = content.substr(found);
-            auto src = content.find("src=\"");
-            content = content.substr(src + 5);
-            auto end = content.find("\"");
-            auto imageURL = content.substr(0, end);
+            auto it = content.find("src=\"");
+            if(it == std::string::npos)
+                break;
 
-            if (iv_access((ARTICLE_FOLDER + "/" + imagePath).c_str(), W_OK) != 0)
+            content = content.substr(it + 5);
+            it = content.find("\"");
+            if(it == std::string::npos)
+                break;
+
+            auto ret = images.insert({content.substr(0,it),counter});
+            if(ret.second)
             {
                 try
                 {
-                    std::ofstream img;
-                    img.open(ARTICLE_FOLDER + "/" + imagePath);
-                    img << Util::getData(imageURL);
-                    img.close();
+                    auto imagePath = title_folder + std::to_string(ret.first->second);
+                    std::ofstream img(imagePath, std::ofstream::out);
+                    if (img.is_open())
+                    {
+                        //TODO check internet getting
+                        img << Util::getData(ret.first->first);
+                        img.close();
+                    }
+                    else
+                    {
+                        Log::writeErrorLog("Could not open image path " + imagePath);
+                    }
                 }
                 catch (const std::exception &e)
                 {
                     Log::writeErrorLog(e.what());
                 }
-
-                auto toReplace = result.find(imageURL);
-
-                if (toReplace != std::string::npos)
-                    result.replace(toReplace, imageURL.length(), imagePath);
+                counter++;
             }
-            counter++;
+
+            auto toReplace = result.find("src=\"" + ret.first->first);
+
+            if (toReplace != std::string::npos)
+                result.replace(toReplace+5, ret.first->first.length(), '/' + std::to_string(ret.first->second));
             found = content.find("<img");
         }
 
         std::ofstream htmlfile;
-        htmlfile.open(path);
+        htmlfile.open(title_path);
         htmlfile << result;
         htmlfile.close();
     }
-    return path;
+    return title_path;
 }
 
 void Util::replaceAll(std::string &data, const std::string &replace, const std::string &by)
