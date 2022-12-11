@@ -1,3 +1,5 @@
+#ifndef EVENT_HANDLER
+#define EVENT_HANDLER
 //------------------------------------------------------------------
 // eventHandler.h
 //
@@ -6,8 +8,6 @@
 // Description:      Handles all events and directs them
 //-------------------------------------------------------------------
 
-#ifndef EVENT_HANDLER
-#define EVENT_HANDLER
 
 #include "inkview.h"
 
@@ -42,7 +42,6 @@ enum class Views
 const std::string CONFIG_FOLDER = "/mnt/ext1/system/config/miniflux";
 const std::string CONFIG_PATH = CONFIG_FOLDER + "/miniflux.cfg";
 const std::string ARTICLE_FOLDER = "/mnt/ext1/miniflux";
-const std::string IMAGE_FOLDER = "/mnt/ext1/miniflux/img";
 const std::string DB_PATH = ARTICLE_FOLDER + "/data.db";
 
 class EventHandler
@@ -53,8 +52,6 @@ public:
      * Defines fonds, sets global Event Handler and starts new content
      */
     EventHandler();
-
-    ~EventHandler();
 
     /**
      * Handles events and redirects them
@@ -67,11 +64,11 @@ public:
     int eventDistributor(const int type, const int par1, const int par2);
 
 private:
-    static std::shared_ptr<EventHandler> _eventHandlerStatic;
+    static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<MinifluxView> _minifluxView;
     std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<Miniflux> _miniflux;
-    std::unique_ptr<MainMenu> _menu;
+    MainMenu _menu = MainMenu("Miniflux");
     Pocket _pocket = Pocket();
     HnContextMenu _hnContextMenu = HnContextMenu();
     ContextMenu _contextMenu = ContextMenu();
@@ -81,6 +78,11 @@ private:
     int _minifluxViewShownPage = 1;
     std::string _keyboardText;
     std::map<int, int> _hnShownPage;
+    int _currentPercentage = 0;
+    int _parentItemDescandands = 0;
+    //TODO init and move
+    std::string _downloadText;
+
 
     /**
      * Function needed to call C function, redirects to real function
@@ -168,8 +170,6 @@ private:
      */
     void filterAndDrawMiniflux(const std::string &filter);
 
-    HnEntry HnDownload(int entryID);
-
     /**
      *
      * Called by the threads and writes items to _HnEntries
@@ -191,6 +191,10 @@ private:
     void downloadHnEntries(int entryID);
 
     int getHnIDFromURL(const std::string &url);
+
+    void openArticle();
+
+    void recursive(const HnEntry& parent);
 
 };
 #endif

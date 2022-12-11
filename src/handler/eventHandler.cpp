@@ -41,29 +41,26 @@
 using std::string;
 using std::vector;
 
-std::shared_ptr<EventHandler> EventHandler::_eventHandlerStatic;
+std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
 std::mutex mutexEntries;
 
 EventHandler::EventHandler()
 {
     //create an copy of the eventhandler to handle methods that require static functions
-    _eventHandlerStatic = std::shared_ptr<EventHandler>(this);
+    //_eventHandlerStatic = std::make_unique<EventHandler>();
+    _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
+    //static std::shared_ptr<EventHandler> _eventHandlerStatic;
 
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         if (iv_access(ARTICLE_FOLDER.c_str(), W_OK) != 0)
-            iv_mkdir(ARTICLE_FOLDER.c_str(), 0777);
-
-        if (iv_access(IMAGE_FOLDER.c_str(), W_OK) != 0)
-            iv_mkdir(IMAGE_FOLDER.c_str(), 0777);
+            iv_mkdir(ARTICLE_FOLDER.c_str(), 0666);
 
         _miniflux = std::make_unique<Miniflux>(Miniflux(Util::accessConfig(Action::IReadString,"url"), Util::accessConfig(Action::IReadSecret,"token")));
 
         vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
         vector<MfEntry> toBeDownloaded = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
         mfEntries.insert(mfEntries.end(),toBeDownloaded.begin(),toBeDownloaded.end());
-
-        _menu = std::unique_ptr<MainMenu>(new MainMenu("Miniflux"));
 
         if(!drawMinifluxEntries(mfEntries))
         {
@@ -82,11 +79,6 @@ EventHandler::EventHandler()
         CloseApp();
     }
 
-}
-
-EventHandler::~EventHandler()
-{
-    Log::writeInfoLog("delete eventHandler");
 }
 
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
@@ -303,7 +295,8 @@ void EventHandler::hnContextMenuHandler(const int index)
                 {
                     _hnCommentView->invertCurrentEntryColor();
                     string text;
-                    for(int i = 0; i < _hnCommentView->getCurrentEntry().urls.size();i++)
+                    auto n = _hnCommentView->getCurrentEntry().urls.size();
+                    for(decltype(n) i = 0; i < n; ++i)
                     {
                         text = text + '[' + std::to_string(i) + "] " + _hnCommentView->getCurrentEntry().urls[i] + "\n";
                         _keyboardText = std::to_string(i) + ',';
@@ -312,17 +305,12 @@ void EventHandler::hnContextMenuHandler(const int index)
 
                     text = "When \"Send to Pocket\" is clicked, type in the numbers seperated by comma of the items that shall be synced. (e.g. 0,3,5)\n" + text;
 
-                    int dialogResult = DialogSynchro(ICON_INFORMATION, "Action",text.c_str(), "Send to Pocket", "Cancel", NULL);
-                    switch (dialogResult)
+                    auto dialogResult = DialogSynchro(ICON_INFORMATION, "Action",text.c_str(), "Send to Pocket", "Cancel", NULL);
+                    if(dialogResult == 1)
                     {
-                        case 1:
-                            {
-                                _keyboardText.resize(60);
-                                OpenKeyboard(_keyboardText.c_str(), &_keyboardText[0], 60 - 1, KBD_NORMAL, &sendToPocketKeyboardHandlerStatic);
-                                break;
-                            }
-                        default:
-                            break;
+                        _keyboardText.resize(60);
+                        OpenKeyboard(_keyboardText.c_str(), &_keyboardText[0], 60 - 1, KBD_NORMAL, &sendToPocketKeyboardHandlerStatic);
+                        break;
                     }
                 }
                 else
