@@ -254,7 +254,7 @@ void EventHandler::sendToPocketKeyboardHandler(char *text)
         {
             Log::writeInfoLog("Sending the following Url to Pocket: " + _hnCommentView->getCurrentEntry().urls.at(stoi(number)));
             //TODO return true/false
-            _pocket.addItems(_hnCommentView->getCurrentEntry().urls.at(stoi(number)));
+            _pocket->addItems(_hnCommentView->getCurrentEntry().urls.at(stoi(number)));
         }
         catch(std::exception e)
         {
@@ -306,8 +306,10 @@ void EventHandler::hnContextMenuHandler(const int index)
             //urls
         case 103:
             {
+
                 if(!_hnCommentView->getCurrentEntry().urls.empty())
                 {
+                    activatePocket();
                     _hnCommentView->invertCurrentEntryColor();
                     string text;
                     auto n = _hnCommentView->getCurrentEntry().urls.size();
@@ -880,7 +882,8 @@ void EventHandler::openArticle()
                             }
                         case 2:
                             {
-                                _pocket.addItems(_minifluxView->getCurrentEntry().url);
+                                activatePocket();
+                                _pocket->addItems(_minifluxView->getCurrentEntry().url);
                                 HideHourglass();
                             break;
                             }
@@ -888,4 +891,27 @@ void EventHandler::openArticle()
                             break;
                     }
                     _minifluxView->invertCurrentEntryColor();
+}
+
+
+void EventHandler::activatePocket()
+{
+    if(!_pocket)
+    {
+        if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
+        {
+            auto accessToken = Util::accessConfig(Action::IReadSecret,"AccessToken");
+            if(!accessToken.empty())
+                _pocket = std::make_unique<Pocket>();
+        }
+        else
+        {
+            int dialogResult = DialogSynchro(ICON_INFORMATION, "Action","Do you want to activate Pocket?", "Yes", "No", "Cancel");
+            if (dialogResult == 1)
+            {
+                _pocket = std::make_unique<Pocket>();
+            }
+        }
+
+    }
 }

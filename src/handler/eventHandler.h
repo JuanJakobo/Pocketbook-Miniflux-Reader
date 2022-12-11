@@ -69,7 +69,7 @@ private:
     std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<Miniflux> _miniflux;
     MainMenu _menu = MainMenu("Miniflux");
-    Pocket _pocket = Pocket();
+    std::unique_ptr<Pocket> _pocket = nullptr;
     HnContextMenu _hnContextMenu = HnContextMenu();
     ContextMenu _contextMenu = ContextMenu();
     SqliteConnector _sqliteCon = SqliteConnector(DB_PATH);
@@ -195,6 +195,8 @@ private:
     void openArticle();
 
     void recursive(const HnEntry& parent);
+
+    void activatePocket();
 
 };
 #endif
