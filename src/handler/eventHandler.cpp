@@ -277,6 +277,7 @@ void EventHandler::hnContextMenuHandler(const int index)
         //Save note
         case 101:
             {
+                //why created at 0777?
                 std::ofstream note(ARTICLE_FOLDER + "/notes", std::ios_base::app | std::ios_base::out);
                 note << "by=" << _hnCommentView->getCurrentEntry().by << " id=" << _hnCommentView->getCurrentEntry().id << "\ncontent=\n" << _hnCommentView->getCurrentEntry().text << "\n\n";
                 note.close();
@@ -348,10 +349,10 @@ void EventHandler::contextMenuHandler(const int index)
 {
     switch (index)
     {
-        //Comment
+        //openArticle Hackernews
         case 101:
             {
-                drawHnCommentView(_minifluxView->getCurrentEntry().comments_url);
+                openArticle();
                 break;
             }
             //Mark/Unmark to download
@@ -360,13 +361,8 @@ void EventHandler::contextMenuHandler(const int index)
                 if(_minifluxView->getCurrentEntry().downloaded == IsDownloaded::TOBEDOWNLOADED || _minifluxView->getCurrentEntry().downloaded == IsDownloaded::DOWNLOADED)
                 {
                     _sqliteCon.deleteHnEntries(_minifluxView->getCurrentEntry().id);
-
-
-                    string title = Util::clearString(_minifluxView->getCurrentEntry().title);
-
-                    string path = ARTICLE_FOLDER + "/" + title + ".html";
-                    remove(path.c_str());
-                    string cmd = "rm -rf \"" + ARTICLE_FOLDER + "/img/" + title + "/\"";
+                    string title_folder = Util::returnFolderName(_minifluxView->getCurrentEntry().title);
+                    string cmd = "rm -rf \"" + title_folder + "\"";
                     system(cmd.c_str());
                     _minifluxView->getCurrentEntry().downloaded = IsDownloaded::NOTDOWNLOADED;
                 }
@@ -423,9 +419,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             if (_minifluxView->checkIfEntryClicked(par1, par2))
                 _minifluxView->invertCurrentEntryColor();
 
-            bool comments = false;
-            if (_minifluxView->getCurrentEntry().comments_url.find("news.ycombinator.com") != std::string::npos)
-                comments = true;
+            bool isHn = (_minifluxView->getCurrentEntry().comments_url.find("news.ycombinator.com") != std::string::npos) ? true : false;
 
             string downloaded;
             if(_minifluxView->getCurrentEntry().downloaded == IsDownloaded::TOBEDOWNLOADED)
@@ -435,7 +429,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             else if(_minifluxView->getCurrentEntry().downloaded == IsDownloaded::DOWNLOADED)
                 downloaded = "Remove item";
 
-            _contextMenu.createMenu(par2, EventHandler::contextMenuHandlerStatic, comments, _minifluxView->getCurrentEntry().starred, downloaded);
+            _contextMenu.createMenu(par2, EventHandler::contextMenuHandlerStatic, isHn, _minifluxView->getCurrentEntry().starred, downloaded);
             return 0;
         }
         else if (_currentView == Views::HNCOMMENTSVIEW)
@@ -451,89 +445,25 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     else if (type == EVT_POINTERUP)
     {
         //if menu is clicked
-        if (IsInRect(par1, par2, &_menu->getMenuButtonRect()) == 1)
+        if (IsInRect(par1, par2, &_menu.getMenuButtonRect()) == 1)
         {
-            auto mainView = true;
-            if (_currentView == Views::HNCOMMENTSVIEW)
-                mainView = false;
+            auto mainView = (_currentView == Views::HNCOMMENTSVIEW) ? false : true;
 
-            return _menu->createMenu(mainView, EventHandler::mainMenuHandlerStatic);
+            return _menu.createMenu(mainView, EventHandler::mainMenuHandlerStatic);
         }
         else if (_currentView == Views::MFVIEW)
         {
             if (_minifluxView->checkIfEntryClicked(par1, par2))
             {
                 _minifluxView->invertCurrentEntryColor();
-                if (_minifluxView->getCurrentEntry().url.find("news.ycombinator.com") != std::string::npos)
+
+                if (_minifluxView->getCurrentEntry().comments_url.find("news.ycombinator.com") != std::string::npos)
                 {
                     drawHnCommentView(_minifluxView->getCurrentEntry().comments_url);
                 }
                 else
                 {
-
-                    string excerpt = _minifluxView->getCurrentEntry().content;
-
-                    Util::replaceAll(excerpt,"\n", "");
-                    Util::decodeHTML(excerpt);
-
-                    auto found = excerpt.find('<');
-                    while (found != std::string::npos)
-                    {
-                        auto end = excerpt.find('>');
-                        if(end != std::string::npos)
-                        {
-                            auto replaceString = excerpt.substr(found, (end + 1) - found);
-
-                            if(!replaceString.empty())
-                            {
-                                auto replaceBegin = excerpt.find(replaceString);
-                                if (replaceBegin != std::string::npos)
-                                    excerpt.replace(replaceBegin, replaceString.size(), "");
-                                found = excerpt.find("<");
-                            }
-                            else
-                            {
-                                found = std::string::npos;
-                            }
-                        }
-                        else
-                        {
-                            found = std::string::npos;
-                        }
-                    }
-
-                    if(excerpt.size() > 800)
-                        excerpt = excerpt.substr(0,800);
-                    else if(excerpt.empty())
-                        excerpt = "no excerpt";
-
-                    int dialogResult = DialogSynchro(ICON_INFORMATION, "Action",("Excerpt\n" + excerpt + "...").c_str(), "Read article", "Send to Pocket", "Cancel");
-                    switch (dialogResult)
-                    {
-                        case 1:
-                            {
-                                if (_minifluxView->getCurrentEntry().reading_time == 0)
-                                {
-                                    Message(ICON_INFORMATION, "Info", "The content of the article has not been provided by miniflux.", 1000);
-                                }
-                                else
-                                {
-
-                                    auto path = Util::createHtml(_minifluxView->getCurrentEntry().title, _minifluxView->getCurrentEntry().content);
-                                    OpenBook(path.c_str(), "", 0);
-                                }
-                                break;
-                            }
-                        case 2:
-                            {
-                                _pocket.addItems(_minifluxView->getCurrentEntry().url);
-                                HideHourglass();
-                            break;
-                            }
-                        default:
-                            break;
-                    }
-                    _minifluxView->invertCurrentEntryColor();
+                    openArticle();
                 }
             }
             return 0;
@@ -631,18 +561,18 @@ bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
 {
     if (mfEntries.size() > 0)
     {
-        _minifluxView.reset(new MinifluxView(_menu->getContentRect(),mfEntries,1));
+        _minifluxView.reset(new MinifluxView(_menu.getContentRect(),mfEntries,1));
         _minifluxView->draw();
         _currentView = Views::MFVIEW;
         return true;
     }
     else
     {
-        FillAreaRect(&_menu->getContentRect(), WHITE);
-        DrawTextRect2(&_menu->getContentRect(), "no entries to show");
+        FillAreaRect(&_menu.getContentRect(), WHITE);
+        DrawTextRect2(&_menu.getContentRect(), "no entries to show");
         _minifluxView.reset();
         _currentView = Views::DEFAULTVIEW;
-        PartialUpdate(_menu->getContentRect().x, _menu->getContentRect().y, _menu->getContentRect().w, _menu->getContentRect().h);
+        PartialUpdate(_menu.getContentRect().x, _menu.getContentRect().y, _menu.getContentRect().w, _menu.getContentRect().h);
         return false;
     }
 
@@ -677,64 +607,80 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
     }
 }
 
-HnEntry EventHandler::HnDownload(int entryID)
+void EventHandler::recursive(const HnEntry &parent)
 {
-    _sqliteCon.selectHnEntries(entryID, _hnEntries);
+    for(const auto id : parent.kids)
+    {
+    //TODO check if are in DB?
+    //HnEntry temp = _sqliteCon.selectHnEntry(id);
+    //if (temp.id == -1)
+        try
+        {
+            HnEntry temp = Hackernews::getEntry(id);
+            if (!temp.text.empty())
+            {
+                //TODO use constexpr?
+                Util::decodeHTML(temp.text);
+                auto found = temp.text.find("<a href=\"");
+                while (found != std::string::npos)
+                {
+                    auto end3 = temp.text.find("</a>");
 
-    HnEntry parentItem = _sqliteCon.selectHnEntry(entryID);
-    //if not found, download
-    if (parentItem.id == -1){
+                    string toFind = temp.text.substr(found, (end3 + 4) - found);
+
+                    auto url = toFind.substr(9);
+
+                    auto src = url.find("\"");
+
+                    url = url.substr(0, src);
+
+                    temp.urls.push_back(url);
+
+                    auto end1 = toFind.find(">");
+                    auto end2 = toFind.find("</a>");
+
+                    auto urlContent = toFind.substr(end1 + 1, end2 - end1 - 1);
+
+                    auto toReplace = temp.text.find(toFind);
+
+                    if (toReplace != std::string::npos)
+                    {
+                        temp.text.replace(toReplace, toFind.size(), urlContent);
+                    }
+
+                    found = temp.text.find("<a href=\"");
+                }
+            }
+            _hnEntries.push_back(temp);
+            recursive(temp);
+        }
+        catch (const std::exception &e)
+        {
+            Log::writeErrorLog(e.what());
+        }
+    }
+}
+
+//TODO recursive or thread?
+void EventHandler::downloadHnEntries(int parentCommentItemID)
+{
+    //_sqliteCon.selectHnEntries(entryID, _hnEntries);
+
+    HnEntry parentItem = _sqliteCon.selectHnEntry(parentCommentItemID);
+    if (parentItem.id == -1)
+    {
         Util::connectToNetwork();
-        parentItem = Hackernews::getEntry(entryID);
+        parentItem = Hackernews::getEntry(parentCommentItemID);
         if(!parentItem.title.empty())
             Util::decodeHTML(parentItem.title);
         if(!parentItem.text.empty())
             Util::decodeHTML(parentItem.text);
+        _hnEntries.push_back(parentItem);
     }
+    string text = _downloadText + " (" + std::to_string(parentItem.descendants) + " comments)";
 
-    if (parentItem.kids.size() > 0)
-    {
-        //check if all kids are downloaded, or not, if not download
-        vector<int> toDownload;
-
-        for(const auto id : parentItem.kids)
-        {
-            auto it = std::find_if(_hnEntries.begin(), _hnEntries.end(), [id](HnEntry &current){
-                    return current.id == id;});
-            if(it == _hnEntries.end())
-            {
-                toDownload.push_back(id);
-            }
-        }
-
-        if (toDownload.size() > 0)
-        {
-            Util::connectToNetwork();
-            //auto hardwareThreads = std::thread::hardware_concurrency();
-            //auto threadsPerSession = (hardwareThreads != 0) ? hardwareThreads : 2;
-            //std::for_each(threads.begin(),threads.end(),std::mem_fn(&std::thread::join));
-            //only 2 hardware threads are supported, therefore 2-1 threads are created
-            for(int i = 0, end = toDownload.size()-1; i < end; ++i)
-            {
-                std::thread second (getHnEntry, toDownload.at(i));
-                i++;
-                getHnEntry(toDownload.at(i));
-                second.join();
-            }
-        }
-
-    }
-    _hnEntries.push_back(parentItem);
-    return parentItem;
-}
-
-void EventHandler::downloadHnEntries(int parentCommentItemID)
-{
-    auto parentItem = HnDownload(parentCommentItemID);
-    for (size_t i = 0; i < parentItem.kids.size(); ++i)
-    {
-        downloadHnEntries(parentItem.kids.at(i));
-    }
+    UpdateProgressbar(text.c_str(), _currentPercentage);
+    recursive(parentItem);
 }
 
 void EventHandler::getHnEntry(int commentID)
@@ -744,6 +690,7 @@ void EventHandler::getHnEntry(int commentID)
         HnEntry temp = Hackernews::getEntry(commentID);
         if (!temp.text.empty())
         {
+            //TODO use constexpr?
             Util::decodeHTML(temp.text);
             auto found = temp.text.find("<a href=\"");
             while (found != std::string::npos)
@@ -785,12 +732,28 @@ void EventHandler::getHnEntry(int commentID)
     }
 }
 
+//TODO MOVEEEE to own class and make shorter...
+
 void EventHandler::drawHN(int entryID)
 {
     std::vector<HnEntry> currentHnComments;
 
     _hnEntries.clear();
-    auto parentItem = HnDownload(entryID);
+
+    //test if all are there?
+    HnEntry parentItem = _sqliteCon.selectHnEntry(entryID);
+    if (parentItem.id == -1)
+    {
+        if(DialogSynchro(ICON_INFORMATION, "Action","Comment are not downloaded. This might take a while.", "Download", "Cancel", nullptr) == 1)
+        {
+            downloadHnEntries(entryID);
+        }
+        else
+        {
+            _minifluxView->invertCurrentEntryColor();
+            return;
+        }
+    }
 
     if (parentItem.kids.size() == 0)
     {
@@ -802,50 +765,44 @@ void EventHandler::drawHN(int entryID)
     }
     else
     {
+        _sqliteCon.selectHnEntries(entryID, _hnEntries);
         if (parentItem.parent > 0 && !parentItem.text.empty())
             parentItem.text = "...";
 
         currentHnComments.push_back(parentItem);
 
+        //TODO why?
         for (size_t i = 0; i < parentItem.kids.size(); ++i)
         {
             for (size_t j = 0; j < _hnEntries.size(); ++j)
             {
                 if (parentItem.kids.at(i) == _hnEntries.at(j).id)
                 {
-                    if (!_hnEntries.at(j).deleted)
-                        currentHnComments.push_back(_hnEntries.at(j));
-                    break;
+                    currentHnComments.push_back(_hnEntries.at(j));
                 }
             }
         }
 
-        if (currentHnComments.size() == 0)
+        if (_hnCommentView != nullptr)
+            _hnShownPage.insert(std::make_pair(_hnCommentView->getEntry(0).id, _hnCommentView->getShownPage()));
+
+        auto current = _hnShownPage.find(entryID);
+        int page;
+
+        if (current != _hnShownPage.end())
         {
-            Message(ICON_INFORMATION, "Info", "All comments are deleted", 1000);
-            _hnCommentView->invertCurrentEntryColor();
+            page = current->second;
+            _hnShownPage.erase(entryID);
         }
         else
         {
-            if (_hnCommentView != nullptr)
-                _hnShownPage.insert(std::make_pair(_hnCommentView->getEntry(0).id, _hnCommentView->getShownPage()));
-
-            auto current = _hnShownPage.find(entryID);
-            int page;
-
-            if (current != _hnShownPage.end())
-            {
-                page = current->second;
-                _hnShownPage.erase(entryID);
-            }
-            else
-            {
-                page = 1;
-            }
-
-            _hnCommentView.reset(new HnCommentView(_menu->getContentRect(), currentHnComments, page));
-            _currentView = Views::HNCOMMENTSVIEW;
+            page = 1;
         }
+
+        //TODO calculate each time newly...
+        //have a vector of comment views?
+        _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
+        _currentView = Views::HNCOMMENTSVIEW;
     }
 }
 
@@ -862,4 +819,73 @@ int EventHandler::getHnIDFromURL(const string &url)
     auto end = parentCommentItemID.find("id=");
     parentCommentItemID = parentCommentItemID.substr(end + 3);
     return std::stoi(parentCommentItemID);
+}
+
+
+void EventHandler::openArticle()
+{
+                    string excerpt = _minifluxView->getCurrentEntry().content;
+
+                    Util::replaceAll(excerpt,"\n", "");
+                    Util::decodeHTML(excerpt);
+
+                    auto found = excerpt.find('<');
+                    while (found != std::string::npos)
+                    {
+                        auto end = excerpt.find('>');
+                        if(end != std::string::npos)
+                        {
+                            auto replaceString = excerpt.substr(found, (end + 1) - found);
+
+                            if(!replaceString.empty())
+                            {
+                                auto replaceBegin = excerpt.find(replaceString);
+                                if (replaceBegin != std::string::npos)
+                                    excerpt.replace(replaceBegin, replaceString.size(), "");
+                                found = excerpt.find("<");
+                            }
+                            else
+                            {
+                                found = std::string::npos;
+                            }
+                        }
+                        else
+                        {
+                            found = std::string::npos;
+                        }
+                    }
+
+                    if(excerpt.size() > 800)
+                        excerpt = excerpt.substr(0,800);
+                    else if(excerpt.empty())
+                        excerpt = "no excerpt";
+
+                    int dialogResult = DialogSynchro(ICON_INFORMATION, "Action",("Excerpt\n" + excerpt + "...").c_str(), "Read article", "Send to Pocket", "Cancel");
+                    switch (dialogResult)
+                    {
+                        case 1:
+                            {
+                                if (_minifluxView->getCurrentEntry().reading_time == 0)
+                                {
+                                    Message(ICON_INFORMATION, "Info", "The content of the article has not been provided by miniflux.", 1000);
+                                }
+                                else
+                                {
+
+                                    //TODO change...
+                                    auto path = Util::createHtml(_minifluxView->getCurrentEntry().title, _minifluxView->getCurrentEntry().content);
+                                    OpenBook(path.c_str(), "", 0);
+                                }
+                                break;
+                            }
+                        case 2:
+                            {
+                                _pocket.addItems(_minifluxView->getCurrentEntry().url);
+                                HideHourglass();
+                            break;
+                            }
+                        default:
+                            break;
+                    }
+                    _minifluxView->invertCurrentEntryColor();
 }
