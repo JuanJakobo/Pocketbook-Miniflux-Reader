@@ -171,6 +171,7 @@ HnEntry SqliteConnector::selectHnEntry(int id)
 
     sqlite3_finalize(stmt);
     sqlite3_close(_db);
+    //TODO only return if temp has been created...
     return temp;
 }
 //get for id?
@@ -422,7 +423,7 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
 
         if (rs != SQLITE_DONE)
         {
-            Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+            Log::writeErrorLog("Error inserting Hn Entries " +  std::string(" (Error Code: ") + std::to_string(rs) + sqlite3_errmsg(_db) + ")");
         }
         rs = sqlite3_clear_bindings(stmt);
         rs = sqlite3_reset(stmt);
