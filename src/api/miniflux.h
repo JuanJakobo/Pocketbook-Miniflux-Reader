@@ -70,6 +70,7 @@ class Miniflux
     private:
         std::string _url;
         std::string _token;
+        bool _ignoreCert;
 
         MfEntry getEntryLocal(const nlohmann::json &element);
 

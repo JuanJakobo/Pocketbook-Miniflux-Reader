@@ -21,6 +21,9 @@ using std::vector;
 
 Miniflux::Miniflux(const string &url, const string &token) : _url(url), _token(token)
 {
+    _ignoreCert = Util::accessConfig(Action::IReadString,"Cert") == "ignore" ? true : false;
+    if(_ignoreCert)
+        Log::writeInfoLog("ignoring certs");
 }
 
 MfEntry Miniflux::getEntry(int entryID)
@@ -143,6 +146,12 @@ void Miniflux::put(const std::string &apiEndpoint, const string &data)
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+
+        if (_ignoreCert) {
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        }
+
         if (!data.empty())
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
         res = curl_easy_perform(curl);
@@ -182,13 +191,17 @@ nlohmann::json Miniflux::get(const string &apiEndpoint)
 
     if (curl)
     {
-
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, ("X-Auth-Token: " + _token).c_str());
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        if (_ignoreCert) {
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        }
 
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
