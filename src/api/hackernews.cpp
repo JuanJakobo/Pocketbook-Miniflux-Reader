@@ -8,80 +8,121 @@
 
 #include "hackernews.h"
 #include "hackernewsModel.h"
-#include "util.h"
 #include "log.h"
+#include "util.h"
 
-#include <string>
+#include <algorithm>
 #include <curl/curl.h>
-#include <nlohmann/json.hpp>
+#include <string>
 
 using std::string;
+namespace
+{
+constexpr auto HACKERNEWS_API_URL{"https://hacker-news.firebaseio.com/v0/"};
+}
 
 HnEntry Hackernews::getEntry(int entryID)
 {
-    nlohmann::json j = get("item/" + std::to_string(entryID) + ".json");
-
+    const auto j{get("item/" + std::to_string(entryID) + ".json")};
     HnEntry entry;
 
-    if (j["id"].is_number())
-        entry.id = j["id"];
+    if (j["id"].isNumeric())
+    {
+        entry.id = j.get("id", 0).asInt();
+    }
 
-    if (j["by"].is_string())
-        entry.by = j["by"];
+    if (j["by"].isString())
+    {
+        entry.by = j["by"].asString();
+    }
 
-    if (j["deleted"].is_boolean())
-        entry.deleted = j["deleted"];
+    if (j["deleted"].isBool())
+    {
+        entry.deleted = j["deleted"].asBool();
+    }
 
-    if (j["dead"].is_boolean())
-        entry.flagged = j["dead"];
+    if (j["dead"].isBool())
+    {
+        entry.flagged = j["dead"].asBool();
+    }
 
-    if (j["time"].is_number())
-        entry.time = j["time"];
+    if (j["time"].isNumeric())
+    {
+        entry.time = j["time"].asInt();
+    }
 
-    if (j["descendants"].is_number())
-        entry.descendants = j["descendants"];
+    if (j["descendants"].isNumeric())
+    {
+        entry.descendants = j["descendants"].asInt();
+    }
 
-    if (j["parent"].is_number())
-        entry.parent = j["parent"];
+    if (j["parent"].isNumeric())
+    {
+        entry.parent = j["parent"].asInt();
+    }
 
-    if (j["score"].is_number())
-        entry.score = j["score"];
+    if (j["score"].isNumeric())
+    {
+        entry.score = j["score"].asInt();
+    }
 
-    if (j["kids"].is_array())
-        entry.kids = j["kids"].get<std::vector<int>>();
+    if (j["kids"].isArray())
+    {
+        const auto in{j["kids"]};
+        entry.kids.reserve(in.size());
+        std::transform(in.begin(), in.end(), std::back_inserter(entry.kids), [](const auto &e) { return e.asInt(); });
+    }
 
-    if (j["text"].is_string())
-        entry.text = j["text"];
+    if (j["text"].isString())
+    {
+        entry.text = j["text"].asString();
+    }
 
-    if (j["title"].is_string())
-        entry.title = j["title"];
+    if (j["title"].isString())
+    {
+        entry.title = j["title"].asString();
+    }
 
     return entry;
 }
 
 HnUser Hackernews::getUser(const string &username)
 {
-    nlohmann::json j = get("user/" + username + ".json");
+    const auto j{get("user/" + username + ".json")};
 
     HnUser user = HnUser();
 
-    if (j["id"].is_string())
-        user.id = j["id"];
-    if (j["about"].is_string())
-        user.about = j["about"];
-    if (j["created"].is_number())
-        user.created = j["created"];
-    if (j["karma"].is_number())
-        user.karma = j["karma"];
-    if (j["submitted"].is_array())
-        user.submitted = j["submitted"].get<std::vector<int>>();
+    if (j["id"].isString())
+    {
+        user.id = j["id"].asString();
+    }
+    if (j["about"].isString())
+    {
+        user.about = j["about"].asString();
+    }
+    if (j["created"].isNumeric())
+    {
+        user.created = j["created"].asInt();
+    }
+    if (j["karma"].isNumeric())
+    {
+        user.karma = j["karma"].asInt();
+    }
+
+    if (j["submitted"].isArray())
+    {
+        const auto in = j["submitted"];
+
+        user.submitted.reserve(in.size());
+        std::transform(in.begin(), in.end(), std::back_inserter(user.submitted),
+                       [](const auto &e) { return e.asInt(); });
+    }
 
     return user;
 }
 
-nlohmann::json Hackernews::get(const string &apiEndpoint)
+Json::Value Hackernews::get(const string &apiEndpoint)
 {
-
 
     string url = HACKERNEWS_API_URL + apiEndpoint;
 
@@ -108,20 +149,28 @@ nlohmann::json Hackernews::get(const string &apiEndpoint)
 
             switch (response_code)
             {
-            case 200:
-            {
-                return nlohmann::json::parse(readBuffer);
+            case 200: {
+                Json::Value root;
+                Json::Reader reader;
+                if (reader.parse(readBuffer, root))
+                {
+                    return root;
+                }
+                constexpr auto err_msg{"Failed to parse Response to json"};
+                Log::writeErrorLog(err_msg);
+                throw std::runtime_error(err_msg);
             }
-            default:
-            {
+            default: {
                 Log::writeErrorLog("Hackernews API: " + url + " Response Code: " + std::to_string(res));
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
             }
             }
         }
-        else if(res == CURLE_OPERATION_TIMEDOUT)
+        else if (res == CURLE_OPERATION_TIMEDOUT)
         {
-            throw std::runtime_error("Firebaseio.com is blocked on some DNS. The Hackernews API therefore cannot be served. (Curl Error Code " + std::to_string(res) + ")");
+            throw std::runtime_error("Firebaseio.com is blocked on some DNS. The Hackernews API therefore cannot be "
+                                     "served. (Curl Error Code " +
+                                     std::to_string(res) + ")");
         }
         else
         {

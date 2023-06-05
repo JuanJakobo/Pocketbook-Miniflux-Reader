@@ -6,41 +6,43 @@
 //
 //-------------------------------------------------------------------
 
-#include "util.h"
-#include "log.h"
 #include "miniflux.h"
+#include "log.h"
 #include "minifluxModel.h"
+#include "util.h"
 
+#include <curl/curl.h>
 #include <string>
 #include <vector>
-#include <curl/curl.h>
-#include <nlohmann/json.hpp>
 
 using std::string;
 using std::vector;
 
 Miniflux::Miniflux(const string &url, const string &token) : _url(url), _token(token)
 {
-    _ignoreCert = Util::accessConfig(Action::IReadString,"Cert") == "ignore" ? true : false;
-    if(_ignoreCert)
+    _ignoreCert = Util::accessConfig(Action::IReadString, "Cert") == "ignore";
+    if (_ignoreCert)
+    {
         Log::writeInfoLog("ignoring certs");
+    }
 }
 
 MfEntry Miniflux::getEntry(int entryID)
 {
-    nlohmann::json element = get("/v1/entries/" + std::to_string(entryID));
+    const auto element{get("/v1/entries/" + std::to_string(entryID))};
     return getEntryLocal(element);
 }
 
-
 vector<MfEntry> Miniflux::getEntries(const string &filter)
 {
-    nlohmann::json j = get("/v1/entries?" + filter);
+    const auto j{get("/v1/entries?" + filter)};
 
     vector<MfEntry> tempItems;
 
-    for (const auto &element : j["entries"].items())
-        tempItems.push_back(getEntryLocal(element.value()));
+    for (const auto &element : j["entries"])
+    {
+        tempItems.push_back(getEntryLocal(element));
+    }
 
     return tempItems;
 }
@@ -48,18 +50,24 @@ vector<MfEntry> Miniflux::getEntries(const string &filter)
 MfFeedIcon Miniflux::getFeedIcon(int feedID)
 {
 
-    nlohmann::json j = get("/v1/feeds" + std::to_string(feedID) + "/icon");
+    const auto j{get("/v1/feeds" + std::to_string(feedID) + "/icon")};
 
     MfFeedIcon temp;
 
-    if (j["id"].is_number())
-        temp.id = j["id"];
-    if (j["data"].is_string())
-        temp.data = j["data"];
-    if (j["mime_type"].is_string())
-        temp.mime_type = j["mime_type"];
+    if (j["id"].isNumeric())
+    {
+        temp.id = j["id"].asInt();
+    }
+    if (j["data"].isString())
+    {
+        temp.data = j["data"].asString();
+    }
+    if (j["mime_type"].isString())
+    {
+        temp.mime_type = j["mime_type"].asString();
+    }
 
-    //save to storage and update if not exist
+    // save to storage and update if not exist
 
     return temp;
 }
@@ -81,50 +89,76 @@ void Miniflux::toggleBookmark(int entryID)
 
 void Miniflux::updateEntries(const vector<int> &entries, bool read)
 {
-    if (entries.size() <= 0)
+    if (entries.size() == 0)
+    {
         throw std::runtime_error("The size of the entries that shall be updated has to be bigger than 0.");
+    }
 
-    string data = "{\"entry_ids\": [";
+    std::string data{"{\"entry_ids\": ["};
 
     for (size_t i = 0; i < entries.size(); i++)
     {
         if (i == 0)
+        {
             data.append(std::to_string(entries.at(i)));
+        }
         else
+        {
             data.append("," + std::to_string(entries.at(i)));
+        }
     }
 
     data.append("], \"status\":");
 
     if (read)
+    {
         data.append("\"read\"");
+    }
     else
+    {
         data.append("\"unread\"");
+    }
     data.append("}");
 
     put("/v1/entries", data);
 }
 
-MfEntry Miniflux::getEntryLocal(const nlohmann::json &element)
+MfEntry Miniflux::getEntryLocal(const Json::Value &element)
 {
     MfEntry temp;
 
-    if (element["id"].is_number())
-        temp.id = element["id"];
-    if (element["status"].is_string())
-        temp.status = element["status"];
-    if (element["title"].is_string())
-        temp.title = element["title"];
-    if (element["url"].is_string())
-        temp.url = element["url"];
-    if (element["comments_url"].is_string())
-        temp.comments_url = element["comments_url"];
-    if (element["content"].is_string())
-        temp.content = element["content"];
-    if (element["starred"].is_boolean())
-        temp.starred = element["starred"];
-    if (element["reading_time"].is_number())
-        temp.reading_time = element["reading_time"];
+    if (element["id"].isNumeric())
+    {
+        temp.id = element["id"].asInt();
+    }
+    if (element["status"].isString())
+    {
+        temp.status = element["status"].asString();
+    }
+    if (element["title"].isString())
+    {
+        temp.title = element["title"].asString();
+    }
+    if (element["url"].isString())
+    {
+        temp.url = element["url"].asString();
+    }
+    if (element["comments_url"].isString())
+    {
+        temp.comments_url = element["comments_url"].asString();
+    }
+    if (element["content"].isString())
+    {
+        temp.content = element["content"].asString();
+    }
+    if (element["starred"].isBool())
+    {
+        temp.starred = element["starred"].asBool();
+    }
+    if (element["reading_time"].isNumeric())
+    {
+        temp.reading_time = element["reading_time"].asInt();
+    }
 
     return temp;
 }
@@ -147,13 +181,16 @@ void Miniflux::put(const std::string &apiEndpoint, const string &data)
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
 
-        if (_ignoreCert) {
+        if (_ignoreCert)
+        {
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
         }
 
         if (!data.empty())
+        {
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+        }
         res = curl_easy_perform(curl);
 
         curl_easy_cleanup(curl);
@@ -168,7 +205,8 @@ void Miniflux::put(const std::string &apiEndpoint, const string &data)
                 break;
             default:
                 Log::writeErrorLog("Miniflux API: " + url + " Curl Response Code: " + std::to_string(response_code));
-                throw std::runtime_error("Miniflux API: " + url + " Curl Response Code: " + std::to_string(response_code));
+                throw std::runtime_error("Miniflux API: " + url +
+                                         " Curl Response Code: " + std::to_string(response_code));
             }
         }
         else
@@ -179,7 +217,7 @@ void Miniflux::put(const std::string &apiEndpoint, const string &data)
     }
 }
 
-nlohmann::json Miniflux::get(const string &apiEndpoint)
+Json::Value Miniflux::get(const string &apiEndpoint)
 {
 
     Util::connectToNetwork();
@@ -198,7 +236,8 @@ nlohmann::json Miniflux::get(const string &apiEndpoint)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
-        if (_ignoreCert) {
+        if (_ignoreCert)
+        {
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
         }
@@ -213,8 +252,17 @@ nlohmann::json Miniflux::get(const string &apiEndpoint)
 
             switch (response_code)
             {
-            case 200:
-                return nlohmann::json::parse(readBuffer);
+            case 200: {
+                Json::Value root;
+                Json::Reader reader;
+                if (reader.parse(readBuffer, root))
+                {
+                    return root;
+                }
+                constexpr auto err_msg{"Failed to parse Response to json"};
+                Log::writeErrorLog(err_msg);
+                throw std::runtime_error(err_msg);
+            }
             default:
                 Log::writeErrorLog("Miniflux API: " + url + " Response Code: " + std::to_string(res));
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));

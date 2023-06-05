@@ -6,43 +6,57 @@
 //
 //-------------------------------------------------------------------
 
-#include "util.h"
-#include "log.h"
-#include "eventHandler.h"
 #include "pocket.h"
+#include "eventHandler.h"
+#include "log.h"
 #include "pocketModel.h"
+#include "util.h"
 
+#include <curl/curl.h>
 #include <string>
 #include <vector>
-#include <curl/curl.h>
-#include <nlohmann/json.hpp>
 
 using std::string;
 using std::vector;
 
+namespace
+{
+    using namespace std::string_literals;
+    const auto POCKET_URL{"https://getpocket.com/v3/"s};
+    const auto CONSUMER_KEY{"<Consumer-Key>"s};
+} // namespace
+
 Pocket::Pocket()
 {
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
-        _accessToken = Util::accessConfig(Action::IReadSecret,"AccessToken");
+        _accessToken = Util::accessConfig(Action::IReadSecret, "AccessToken");
 
-    if(_accessToken.empty())
+    if (_accessToken.empty())
         loginDialog();
 }
 
-void Pocket::loginDialog(){
-    try{
+void Pocket::loginDialog()
+{
+    try
+    {
         auto code = getCode();
-        auto dialogResult = DialogSynchro(ICON_QUESTION, "Action",("Please type the URL below into your browser to grant this application access to Pocket. After you accepted please click done.(It is normal that, once you accepted, the page fails to load) \n https://getpocket.com/auth/authorize?request_token=" + code).c_str(), "Done", "Cancel", NULL);
+        auto dialogResult =
+            DialogSynchro(ICON_QUESTION, "Action",
+                          ("Please type the URL below into your browser to grant this application access to Pocket. "
+                           "After you accepted please click done.(It is normal that, once you accepted, the page fails "
+                           "to load) \n https://getpocket.com/auth/authorize?request_token=" +
+                           code)
+                              .c_str(),
+                          "Done", "Cancel", NULL);
         switch (dialogResult)
         {
-            case 1:
-                {
-                    getAccessToken(code);
-                    break;
-                }
-            default:
-                CloseApp();
-                break;
+        case 1: {
+            getAccessToken(code);
+            break;
+        }
+        default:
+            CloseApp();
+            break;
         }
     }
     catch (const std::exception &e)
@@ -53,20 +67,30 @@ void Pocket::loginDialog(){
     }
 }
 
-string Pocket::getCode(){
-    nlohmann::json j = post("oauth/request","{\"consumer_key\":\"" + CONSUMER_KEY + "\", \"redirect_uri\":\"github.com\"}");
-    if (!j["code"].is_string())
+string Pocket::getCode()
+{
+    const auto root{
+        post("oauth/request", "{\"consumer_key\":\"" + CONSUMER_KEY + "\", \"redirect_uri\":\"github.com\"}")};
+    if (!root["code"].isString())
+    {
         throw std::runtime_error("could not receive code.");
-    return j["code"];
+    }
+    return root["code"].asString();
 }
 
-void Pocket::getAccessToken(const string &code){
-    nlohmann::json j = post("oauth/authorize","{\"consumer_key\":\"" + CONSUMER_KEY + "\", \"code\":\"" + code  + "\"}");
-    if (j["username"].is_string())
-        Util::accessConfig(Action::IWriteSecret,"Username",j["username"]);
-    if (j["access_token"].is_string()){
-        _accessToken =  j["access_token"];
-        Util::accessConfig(Action::IWriteSecret,"AccessToken",_accessToken);
+void Pocket::getAccessToken(const string &code)
+{
+    const auto root = post("oauth/authorize", "{\"consumer_key\":\"" + CONSUMER_KEY + "\", \"code\":\"" + code + "\"}");
+    if (root["username"].isString())
+    {
+        // TODO compare
+        Util::accessConfig(Action::IWriteSecret, "Username", root["username"].asString());
+    }
+
+    if (root["access_token"].isString())
+    {
+        _accessToken = root["access_token"].asString();
+        Util::accessConfig(Action::IWriteSecret, "AccessToken", _accessToken);
     }
     else
     {
@@ -76,69 +100,85 @@ void Pocket::getAccessToken(const string &code){
 
 void Pocket::addItems(const string &url)
 {
-    //TODO curl url-encode url
-    string postData = "{\"consumer_key\":\"" + CONSUMER_KEY + "\", \"access_token\":\"" + _accessToken  + "\",\"url\":\"" + url + "\"}";
-    nlohmann::json j = post("add",postData);
+    // TODO curl url-encode url
+    string postData = "{\"consumer_key\":\"" + CONSUMER_KEY + "\", \"access_token\":\"" + _accessToken +
+                      "\",\"url\":\"" + url + "\"}";
+    const auto root = post("add", postData);
+    // TODO WHAT TO DO WITH IT?
 }
 
 
 //TODO search for items
 vector<PocketItem> Pocket::getItems()
 {
-    string postData = "{\"consumer_key\":\"" + CONSUMER_KEY + "\", \"access_token\":\"" + _accessToken  + "\",\"detailType\":\"simple\",\"contentType\":\"article\",\"state\":\"all\"";
-    auto lastUpdate = Util::accessConfig(Action::IReadString,"lastUpdate");
-    if(!lastUpdate.empty())
-            postData += ",\"since\":" + lastUpdate;
+    string postData = "{\"consumer_key\":\"" + CONSUMER_KEY + "\", \"access_token\":\"" + _accessToken +
+                      "\",\"detailType\":\"simple\",\"contentType\":\"article\",\"state\":\"all\"";
+    auto lastUpdate = Util::accessConfig(Action::IReadString, "lastUpdate");
+    if (!lastUpdate.empty())
+    {
+        postData += ",\"since\":" + lastUpdate;
+    }
     postData += '}';
 
-    nlohmann::json j = post("get",postData);
+    auto const j = post("get", postData);
 
-    if(j["since"].is_number())
+    if (j["since"].isNumeric())
     {
-        int since =j["since"];
-        Util::accessConfig(Action::IWriteString,"lastUpdate",std::to_string(since));
+        const auto since = j["since"].asString();
+        Util::accessConfig(Action::IWriteString, "lastUpdate", since);
     }
 
     vector<PocketItem> tempItems;
-    for (const auto &element : j["list"].items()){
+    // TODO size is known
+    for (const auto &element : j["list"])
+    {
         PocketItem temp;
-        if(element.value()["item_id"].is_string()){
-            temp.id = element.value()["item_id"];
-        }
-        if(element.value()["given_url"].is_string())
-            temp.url = element.value()["given_url"];
-        if(!element.value()["favorite"].is_null())
+        if (element["item_id"].isString())
         {
-            if(element.value()["favorite"] == "0")
-                temp.starred = false;
-            else
-                temp.starred = true;
+            temp.id = element["item_id"].asInt();
         }
-        if(!element.value()["status"].is_null())
+        if (element["given_url"].isString())
         {
-            if(element.value()["status"] == "0")
+            temp.url = element["given_url"].asString();
+        }
+        if (element.isMember("favorite"))
+        {
+            temp.starred = (element["favorite"].asString() == "0");
+        }
+        if (element.isMember("status"))
+        {
+            // TODO get it once...
+            if (element["status"].asString() == "0")
+            {
                 temp.status = IStatus::UNREAD;
-            else if(element.value()["status"] == "1")
+            }
+            else if (element["status"].asString() == "1")
+            {
                 temp.status = IStatus::ARCHIVED;
-            else if(element.value()["status"] == "2")
+            }
+            else if (element["status"].asString() == "2")
+            {
                 temp.status = IStatus::TODELETE;
+            }
         }
-        if(element.value()["resolved_title"].is_string())
+        if (element["resolved_title"].isString())
         {
-            temp.title = element.value()["resolved_title"];
+            temp.title = element["resolved_title"].asString();
             temp.path = ARTICLE_FOLDER + "/" + Util::clearString(temp.title) + ".html";
         }
-        if(element.value()["excerpt"].is_string())
-            temp.excerpt = element.value()["excerpt"];
-        if(element.value()["time_to_read"].is_number()){
-            temp.reading_time = element.value()["time_to_read"];
+        if (element["excerpt"].isString())
+        {
+            temp.excerpt = element["excerpt"].asString();
+        }
+        if (element["time_to_read"].isNumeric())
+        {
+            temp.reading_time = element["time_to_read"].asInt();
         }
 
         tempItems.push_back(temp);
     }
 
     return tempItems;
-
 }
 
 void Pocket::getText(PocketItem *item)
@@ -149,58 +189,62 @@ void Pocket::getText(PocketItem *item)
 string Pocket::determineAction(PocketAction action)
 {
     string stAction;
-    switch(action)
+    switch (action)
     {
-        case ADD:
-            stAction = "add";
-            break;
-        case ARCHIVE:
-            stAction = "archive";
-            break;
-        case READD:
-            stAction = "readd";
-            break;
-        case FAVORITE:
-            stAction = "favorite";
-            break;
-        case UNFAVORITE:
-            stAction = "unfavorite";
-            break;
-        case DELETE:
-            stAction = "delete";
-            break;
+    case PocketAction::ADD:
+        stAction = "add";
+        break;
+    case PocketAction::ARCHIVE:
+        stAction = "archive";
+        break;
+    case PocketAction::READD:
+        stAction = "readd";
+        break;
+    case PocketAction::FAVORITE:
+        stAction = "favorite";
+        break;
+    case PocketAction::UNFAVORITE:
+        stAction = "unfavorite";
+        break;
+    case PocketAction::DELETE:
+        stAction = "delete";
+        break;
     }
     return stAction;
 }
 
 void Pocket::sendItem(PocketAction action, const string &id)
 {
-    //TODO test status
-    //response does not help here as it is always the same
-    std::string postData = "{\"consumer_key\":\"" + CONSUMER_KEY + "\",\"access_token\":\"" + _accessToken  + "\",\"actions\":[";
+    std::string postData =
+        "{\"consumer_key\":\"" + CONSUMER_KEY + "\",\"access_token\":\"" + _accessToken + "\",\"actions\":[";
     postData += "{\"action\":\"" + determineAction(action) + "\",\"item_id\":\"" + id + "\"}]}";
-    nlohmann::json j = post("send",postData);
+    auto const j = post("send", postData);
 }
 
 void Pocket::sendItems(PocketAction action, const vector<string> &ids)
 {
 
-    std::string postData = "{\"consumer_key\":\"" + CONSUMER_KEY + "\",\"access_token\":\"" + _accessToken  + "\",\"actions\":[";
-    string stAction =  determineAction(action);
-    auto comma = false;
-    for(auto id : ids)
+    std::string postData =
+        "{\"consumer_key\":\"" + CONSUMER_KEY + "\",\"access_token\":\"" + _accessToken + "\",\"actions\":[";
+    string stAction = determineAction(action);
+    auto comma{false};
+    for (auto id : ids)
     {
-        if(comma)
+        if (comma)
+        {
             postData += ',';
+        }
         postData += "{\"action\":\"" + stAction + "\",\"item_id\":\"" + id + "\"}";
-        if(!comma)
+        if (!comma)
+        {
             comma = true;
+        }
     }
     postData += "]}";
-    nlohmann::json j = post("send",postData);
+    auto const j = post("send", postData);
 }
 
-nlohmann::json Pocket::post(const string &apiEndpoint, const string &data)
+Json::Value Pocket::post(const string &apiEndpoint, const string &data)
 {
     Util::connectToNetwork();
 
@@ -234,14 +278,25 @@ nlohmann::json Pocket::post(const string &apiEndpoint, const string &data)
 
             switch (response_code)
             {
-            case 200:
-                return nlohmann::json::parse(readBuffer);
+            case 200: {
+                Json::Value root;
+                Json::Reader reader;
+                if (reader.parse(readBuffer, root))
+                {
+                    return root;
+                }
+                constexpr auto err_msg{"Failed to parse Response to json"};
+                Log::writeErrorLog(err_msg);
+                throw std::runtime_error(err_msg);
+            }
             case 400:
-                throw std::runtime_error("Invalid request, please make sure you follow the documentation for proper syntax");
+                throw std::runtime_error(
+                    "Invalid request, please make sure you follow the documentation for proper syntax");
             case 401:
                 throw std::runtime_error("Problem authenticating the user");
             case 403:
-                throw std::runtime_error("User was authenticated, but access denied due to lack of permission or rate limiting.");
+                throw std::runtime_error(
+                    "User was authenticated, but access denied due to lack of permission or rate limiting.");
             case 503:
                 throw std::runtime_error("Pocket's sync server is down for scheduled maintenance.");
             default:

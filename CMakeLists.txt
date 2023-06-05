@@ -1,25 +1,16 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.1)
 
-PROJECT (Pocketbook-Miniflux-Reader VERSION 0.0.1)
+PROJECT (Pocketbook-Miniflux-Reader VERSION 0.5)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 include(FetchContent)
-
-FetchContent_Declare(json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.7.3)
-
-FetchContent_GetProperties(json)
-if(NOT json_POPULATED)
-  FetchContent_Populate(json)
-  add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
 
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_VERSION 1.0)
 set(CMAKE_SYSTEM_PROCESSOR armv7a)
 set(BUILD_SHARED_LIBS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 SET (TOOLCHAIN_PATH "../../SDK/SDK_6.3.0/SDK-B288")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -79,6 +70,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/minifluxViewEntry.cpp
     ${CMAKE_SOURCE_DIR}/src/util/util.cpp
     ${CMAKE_SOURCE_DIR}/src/util/log.cpp
+    ${CMAKE_SOURCE_DIR}/src/libs/jsoncpp.cpp
 )
 
 add_executable(Miniflux-Reader.app ${SOURCES})
@@ -88,8 +80,9 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/util/
     ${CMAKE_SOURCE_DIR}/src/ui/
     ${CMAKE_SOURCE_DIR}/src/api/
+    ${CMAKE_SOURCE_DIR}/src/libs/
 )
 
-target_link_libraries(Miniflux-Reader.app PRIVATE sqlite3 inkview pthread freetype curl nlohmann_json::nlohmann_json)
+target_link_libraries(Miniflux-Reader.app PRIVATE sqlite3 inkview pthread freetype curl)
 
 INSTALL (TARGETS Miniflux-Reader.app)
