@@ -72,6 +72,8 @@ EventHandler::EventHandler()
             }
             filterAndDrawMiniflux(filter);
         }
+
+        _menu.draw();
     }
     else
     {
@@ -451,7 +453,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
         {
             auto mainView = (_currentView == Views::HNCOMMENTSVIEW) ? false : true;
 
-            return _menu.createMenu(mainView, EventHandler::mainMenuHandlerStatic);
+            return _menu.open(mainView, EventHandler::mainMenuHandlerStatic);
         }
         else if (_currentView == Views::MFVIEW)
         {

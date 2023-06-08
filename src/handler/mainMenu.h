@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // mainMenu.h
 //
@@ -5,10 +6,6 @@
 // Date:             14.06.2020
 // Description:      Handles the menubar and the menu
 //-------------------------------------------------------------------
-
-#ifndef MAIN_MENU
-#define MAIN_MENU
-
 #include "inkview.h"
 
 #include <string>
@@ -16,47 +13,41 @@
 class MainMenu
 {
 public:
-    /**
-        * Defines fonds, sets global Event Handler and starts new content
-        *
-        * @param name name of the application
-        */
-    MainMenu(const std::string &name);
+  /**
+   * Defines fonds, sets global Event Handler and starts new content
+   *
+   * @param name name of the application
+   */
+  MainMenu(const std::string &p_name);
 
-    ~MainMenu();
+  ~MainMenu() = default;
 
-    irect &getContentRect() { return _contentRect; };
-    irect &getMenuButtonRect() { return _menuButtonRect; };
+  const irect &getContentRect() const
+  {
+      return m_contentRect;
+  };
+  const irect &getMenuButtonRect() const
+  {
+      return m_menuButtonRect;
+  };
 
-    /**
-        * Shows the menu on the screen, lets the user choose menu options and then redirects the handler to the caller
-        *
-        * @param mainView if true mainView will be shown
-        * @return int returns if the event was handled
-        */
-    int createMenu(bool mainView, const iv_menuhandler &handler);
+  /**
+   * Draws the menu panel
+   */
+  void draw() const;
+
+  /**
+   * Shows the menu on the screen, lets the user choose menu options and then
+   * redirects the handler to the caller
+   *
+   * @param true if main view is shown
+   * @param handler handles the clicks on the menu
+   */
+  int open(bool p_mainView, const iv_menuhandler &p_handler) const;
 
 private:
-    ifont *_menuFont;
-
-    int _panelMenuBeginX;
-    int _panelMenuBeginY;
-    int _panelMenuHeight;
-    int _mainMenuWidth;
-    irect _menuButtonRect;
-
-    imenu _mainMenu;
-    irect _contentRect;
-
-    char *_menu = strdup("Menu");
-    char *_syncDownloaded = strdup("Sync marked");
-    char *_showUnread = strdup("Show unread");
-    char *_showStarred = strdup("Show starred");
-    char *_showDownloaded = strdup("Show downloaded");
-    char *_markAsReadTillPage = strdup("Mark as read till page");
-    char *_minifluxOverview = strdup("Go back to overview");
-    char *_info = strdup("Info");
-    char *_exit = strdup("Close App");
-
+  const std::string m_name;
+  irect m_menuRect;
+  irect m_contentRect;
+  irect m_menuButtonRect;
 };
-#endif

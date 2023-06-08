@@ -6,65 +6,92 @@
 //
 //-------------------------------------------------------------------
 
-#include "inkview.h"
 #include "mainMenu.h"
 
 #include <string>
 
-using std::string;
+#include "inkview.h"
 
-MainMenu::MainMenu(const string &name)
+namespace
 {
-    _panelMenuHeight = ScreenHeight() / 18;
-    _mainMenuWidth = ScreenWidth() / 3;
-    _panelMenuBeginY = 0;
-    _panelMenuBeginX = ScreenWidth() - _mainMenuWidth;
+constexpr auto SYNC_DOWNLOAD_TITLE{"Sync marked"};
+constexpr auto SHOW_UNREAD_TITLE{"Show unread"};
+constexpr auto SHOW_STARRED_TITLE{"Show starred"};
+constexpr auto SHOW_DOWNLOADED_TITLE{"Show downloaded"};
+constexpr auto MARK_AS_READ_TILL_PAGE_TITLE{"Mark as read till page"};
+constexpr auto GO_BACK_TO_OVERVIEW_TITLE{"Go back to overview"};
+constexpr auto EXIT_TITLE{"Close App"};
+constexpr auto INFO_TITLE{"Info"};
+constexpr auto MENU_TITLE{"Menu"};
 
-    _menuButtonRect = iRect(_mainMenuWidth * 2, _panelMenuBeginY, _mainMenuWidth, _panelMenuHeight, ALIGN_RIGHT);
+constexpr auto MENU_BUTTON_WIDTH_SCALE{2};
+constexpr auto MENU_POSITION{0u};
 
-    _menuFont = OpenFont("LiberationMono-Bold", _panelMenuHeight / 2, FONT_STD);
+constexpr auto SCREEN_BEGIN{0u};
+constexpr auto MENU_PANEL_HEIGHT_SCALE{18};
+constexpr auto MENU_PANEL_WIDTH_SCALE{3};
 
-    SetFont(_menuFont, BLACK);
-    DrawTextRect(0, _panelMenuBeginY, ScreenWidth(), _panelMenuHeight, name.c_str(), ALIGN_CENTER);
-    DrawTextRect2(&_menuButtonRect, "Menu");
-    DrawLine(0, _panelMenuHeight - 1, ScreenWidth(), _panelMenuHeight - 1, BLACK);
+constexpr auto PANEL_OFF{0u};
 
-    _contentRect = iRect(0, _panelMenuHeight, ScreenWidth(), (ScreenHeight() - _panelMenuHeight), 0);
+constexpr auto TEXT_MARGIN{10};
+constexpr auto TEXT_BEGIN{SCREEN_BEGIN + TEXT_MARGIN};
 
-    SetPanelType(0);
-    PartialUpdate(0, _panelMenuBeginY, ScreenWidth(), _panelMenuHeight);
+constexpr auto MENU_FONT{"LiberationMono-Bold"};
+constexpr auto HEADER{0};
+} // namespace
+
+MainMenu::MainMenu(const std::string &p_name) : m_name{p_name}
+{
+    auto menuPanelHeight{ScreenHeight() / MENU_PANEL_HEIGHT_SCALE};
+    auto menuPanelWidth{ScreenWidth() / MENU_PANEL_WIDTH_SCALE};
+    auto menuPanelBeginX{ScreenWidth() - menuPanelWidth};
+    m_menuRect = iRect(menuPanelBeginX, SCREEN_BEGIN, menuPanelWidth, menuPanelHeight, ALIGN_CENTER);
+
+    auto menuButtonRectWidth{menuPanelWidth * MENU_BUTTON_WIDTH_SCALE};
+    m_menuButtonRect = iRect(menuButtonRectWidth, m_menuRect.y, m_menuRect.w, m_menuRect.h, ALIGN_RIGHT);
+
+    auto contentRectHeight{ScreenHeight() - menuPanelHeight};
+    auto textEnd{ScreenWidth() - (TEXT_MARGIN * 2)};
+    m_contentRect = iRect(TEXT_BEGIN, menuPanelHeight, textEnd, contentRectHeight, ALIGN_FIT);
+
+    SetPanelType(PANEL_OFF);
 }
 
-MainMenu::~MainMenu()
+void MainMenu::draw() const
 {
-    CloseFont(_menuFont);
-    free(_menu);
-    free(_info);
-    free(_syncDownloaded);
-    free(_showDownloaded);
-    free(_showUnread);
-    free(_showStarred);
-    free(_minifluxOverview);
-    free(_markAsReadTillPage);
-    free(_exit);
+    auto menuPanelFontSize{m_menuRect.h / 2};
+    auto menuFont{OpenFont(MENU_FONT, menuPanelFontSize, FONT_STD)};
+    SetFont(menuFont, BLACK);
+    DrawTextRect(SCREEN_BEGIN, m_menuRect.y, ScreenWidth(), m_menuRect.h, m_name.c_str(), ALIGN_CENTER);
+    DrawTextRect2(&m_menuButtonRect, MENU_TITLE);
+    CloseFont(menuFont);
+
+    auto lineThickness{m_menuRect.h - 1};
+    DrawLine(SCREEN_BEGIN, lineThickness, ScreenWidth(), lineThickness, BLACK);
+    PartialUpdate(SCREEN_BEGIN, m_menuRect.y, ScreenWidth(), m_menuRect.h);
 }
 
-int MainMenu::createMenu(bool mainView, const iv_menuhandler &handler)
+int MainMenu::open(bool p_mainView, const iv_menuhandler &p_handler) const
 {
-    imenu mainMenu[] =
-        {
-            {ITEM_HEADER, 0, _menu, NULL},
-            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _showDownloaded, NULL},
-            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 102, _showUnread, NULL},
-            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 103, _showStarred, NULL},
-            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 104, _syncDownloaded, NULL},
-            {mainView ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 105, _markAsReadTillPage, NULL},
-            {mainView ? (short)ITEM_HIDDEN : (short)ITEM_ACTIVE, 106, _minifluxOverview, NULL},
-            {ITEM_ACTIVE, 107, _info, NULL},
-            {ITEM_ACTIVE, 108, _exit, NULL},
-            {0, 0, NULL, NULL}};
 
-    OpenMenu(mainMenu, 0, _panelMenuBeginX, _panelMenuBeginY, handler);
+    imenu mainMenu[] = {{ITEM_HEADER, HEADER, const_cast<char *>(MENU_TITLE), NULL},
+                        {p_mainView ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN), 101,
+                         const_cast<char *>(SHOW_DOWNLOADED_TITLE), NULL},
+                        {p_mainView ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN), 102,
+                         const_cast<char *>(SHOW_UNREAD_TITLE), NULL},
+                        {p_mainView ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN), 103,
+                         const_cast<char *>(SHOW_STARRED_TITLE), NULL},
+                        {p_mainView ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN), 104,
+                         const_cast<char *>(SYNC_DOWNLOAD_TITLE), NULL},
+                        {p_mainView ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN), 105,
+                         const_cast<char *>(MARK_AS_READ_TILL_PAGE_TITLE), NULL},
+                        {p_mainView ? static_cast<short>(ITEM_HIDDEN) : static_cast<short>(ITEM_ACTIVE), 106,
+                         const_cast<char *>(GO_BACK_TO_OVERVIEW_TITLE), NULL},
+                        {ITEM_ACTIVE, 107, const_cast<char *>(INFO_TITLE), NULL},
+                        {ITEM_ACTIVE, 108, const_cast<char *>(EXIT_TITLE), NULL},
+                        {0, 0, NULL, NULL}};
+
+    OpenMenu(mainMenu, MENU_POSITION, m_menuRect.x, m_menuRect.y, p_handler);
 
     return 0;
 }
