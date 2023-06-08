@@ -54,6 +54,5 @@ void MinifluxViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold,
     if (_entry.reading_time > 0)
         DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, (std::to_string(_entry.reading_time) + " min").c_str(), ALIGN_RIGHT);
 
-    int line = (_position.y + _position.h) - 1;
-    DrawLine(0, line, ScreenWidth(), line, BLACK);
+    drawBottomLine();
 }

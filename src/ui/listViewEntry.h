@@ -1,3 +1,4 @@
+#pragma once
 //------------------------------------------------------------------
 // listViewEntry.h
 //
@@ -5,10 +6,6 @@
 // Date:             04.08.2020
 // Description:      An listViewEntry that handles an item of a listview
 //-------------------------------------------------------------------
-
-#ifndef LISTVIEWENTRY
-#define LISTVIEWENTRY
-
 #include "inkview.h"
 #include "model.h"
 
@@ -40,5 +37,6 @@ public:
 protected:
     int _page;
     irect _position;
+
+    void drawBottomLine() const;
 };
-#endif

@@ -122,6 +122,5 @@ void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold
     if (!_entry.text.empty())
         DrawTextRect(_position.x, beginY, _position.w, _position.h, _entry.text.c_str(), ALIGN_LEFT);
 
-    int line = (_position.y + _position.h) - 1;
-    DrawLine(0, line, ScreenWidth(), line, BLACK);
+    drawBottomLine();
 }
