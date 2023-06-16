@@ -1,4 +1,3 @@
-#pragma once
 //------------------------------------------------------------------
 // sqliteConnector.h
 //
@@ -7,21 +6,16 @@
 // Description:
 //
 //-------------------------------------------------------------------
+
+#ifndef SQLITECONNECTOR
+#define SQLITECONNECTOR
+
 #include "sqlite3.h"
 #include "minifluxModel.h"
 #include "hackernewsModel.h"
 
-#include <memory>
 #include <string>
 #include <vector>
-
-struct sqlite3_deleter
-{
-    void operator()(sqlite3 *db)
-    {
-        sqlite3_close_v2(db);
-    }
-};
 
 class SqliteConnector
 {
@@ -33,7 +27,7 @@ public:
      */
     SqliteConnector(const std::string &DBpath);
 
-    ~SqliteConnector() = default;
+    ~SqliteConnector();
 
     std::vector<MfEntry> selectMfEntries();
 
@@ -65,7 +59,9 @@ public:
 
 private:
     std::string _dbpath;
-    std::unique_ptr<sqlite3, sqlite3_deleter> _db;
+    sqlite3 *_db;
 
     bool open();
 };
+
+#endif
