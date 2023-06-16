@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.1)
 
-PROJECT (Pocketbook-Miniflux-Reader VERSION 0.5)
+PROJECT (Pocketbook-Miniflux-Reader VERSION 1.00)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -84,5 +84,7 @@ include_directories(
 )
 
 target_link_libraries(Miniflux-Reader.app PRIVATE sqlite3 inkview pthread freetype curl)
+
+target_compile_definitions(Miniflux-Reader.app PRIVATE PROGRAMVERSION="1.00")
 
 INSTALL (TARGETS Miniflux-Reader.app)

@@ -224,7 +224,15 @@ void EventHandler::mainMenuHandler(const int index)
             }
         case 107:
             {
-                Message(ICON_INFORMATION, "Info", "Info", 1200);
+                string message;
+                Message(ICON_INFORMATION, "Info",
+                        message.append("Version ")
+                            .append(PROGRAMVERSION)
+                            .append("\nFor support please open a ticket at "
+                                    "https://github.com/JuanJakobo/"
+                                    "Pocketbook-Miniflux-Reader/issues")
+                            .c_str(),
+                        1200);
                 break;
             }
             //Exit
