@@ -16,6 +16,8 @@
 #include <fstream>
 #include <map>
 
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+
 using std::string;
 
 size_t Util::writeCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -24,9 +26,9 @@ size_t Util::writeCallback(void *contents, size_t size, size_t nmemb, void *user
     return size * nmemb;
 }
 
-size_t Util::writeData(void *ptr, size_t size, size_t nmemb, FILE *stream)
+int Util::writeData(void *ptr, int size, int nmemb, FILE *stream)
 {
-    size_t written = iv_fwrite(ptr, size, nmemb, stream);
+    auto written{iv_fwrite(ptr, size, nmemb, stream)};
     return written;
 }
 
@@ -225,7 +227,7 @@ string Util::createHtml(const string &title,string content)
 
 void Util::replaceAll(std::string &data, const std::string &replace, const std::string &by)
 {
-    auto start = 0;
+    size_t start{0};
     while ((start = data.find(replace, start)) != std::string::npos)
     {
         data.replace(start, replace.size(), by);

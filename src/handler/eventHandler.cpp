@@ -262,9 +262,11 @@ void EventHandler::sendToPocketKeyboardHandler(char *text)
     {
         try
         {
-            Log::writeInfoLog("Sending the following Url to Pocket: " + _hnCommentView->getCurrentEntry().urls.at(stoi(number)));
-            //TODO return true/false
-            _pocket->addItems(_hnCommentView->getCurrentEntry().urls.at(stoi(number)));
+            std::stringstream sstream(number);
+            size_t currentEntry;
+            sstream >> currentEntry;
+            Log::writeInfoLog("Sending the following Url to Pocket: " + _hnCommentView->getCurrentEntry().urls.at(currentEntry));
+            _pocket->addItems(_hnCommentView->getCurrentEntry().urls.at(currentEntry));
         }
         catch(std::exception e)
         {
@@ -509,7 +511,7 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
     return 0;
 }
 
-int EventHandler::keyHandler(const int type, const int par1, const int par2)
+int EventHandler::keyHandler(const int type, const int par1, [[maybe_unused]] const int par2)
 {
     //menu button
     if (type == EVT_KEYPRESS)

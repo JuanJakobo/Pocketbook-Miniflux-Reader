@@ -289,7 +289,7 @@ bool SqliteConnector::updateMfEntry(int entryID, bool starred, const std::string
 
     rs = sqlite3_prepare_v2(_db, "UPDATE 'MfEntries' SET starred=?, status=? WHERE id=?", -1, &stmt, 0);
     rs = sqlite3_bind_int(stmt, 1, (starred) ? 1 : 0);
-    rs = sqlite3_bind_text(stmt, 2, status.c_str(), status.length(), NULL);
+    rs = sqlite3_bind_text(stmt, 2, status.c_str(), static_cast<int>(status.length()), NULL);
     rs = sqlite3_bind_int(stmt, 3, entryID);
     rs = sqlite3_step(stmt);
 
@@ -339,11 +339,11 @@ bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
     for (auto ent : entries)
     {
         rs = sqlite3_bind_int(stmt, 1, ent.id);
-        rs = sqlite3_bind_text(stmt, 2, ent.status.c_str(), ent.status.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 3, ent.title.c_str(), ent.title.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 4, ent.url.c_str(), ent.url.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 5, ent.comments_url.c_str(), ent.comments_url.length(), NULL);
-        rs = sqlite3_bind_text(stmt, 6, ent.content.c_str(), ent.content.length(), NULL);
+        rs = sqlite3_bind_text(stmt, 2, ent.status.c_str(), static_cast<int>(ent.status.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 3, ent.title.c_str(), static_cast<int>(ent.title.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 4, ent.url.c_str(), static_cast<int>(ent.url.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 5, ent.comments_url.c_str(), static_cast<int>(ent.comments_url.length()), NULL);
+        rs = sqlite3_bind_text(stmt, 6, ent.content.c_str(), static_cast<int>(ent.content.length()), NULL);
         rs = sqlite3_bind_int(stmt, 7, (ent.starred) ? 1 : 0);
         rs = sqlite3_bind_int(stmt, 8, ent.reading_time);
 				rs = sqlite3_bind_int(stmt, 9, ent.downloaded);
@@ -383,9 +383,9 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
     for (auto hn : entries)
     {
         rs = sqlite3_bind_int(stmt, 1, hn.id);
-        rs = sqlite3_bind_text(stmt, 2, hn.by.c_str(), hn.by.length(), NULL);
+        rs = sqlite3_bind_text(stmt, 2, hn.by.c_str(), static_cast<int>(hn.by.length()), NULL);
         rs = sqlite3_bind_int(stmt, 3, hn.time);
-        rs = sqlite3_bind_text(stmt, 4, hn.text.c_str(), hn.text.length(), NULL);
+        rs = sqlite3_bind_text(stmt, 4, hn.text.c_str(), static_cast<int>(hn.text.length()), NULL);
         rs = sqlite3_bind_int(stmt, 5, hn.parent);
 
         if (hn.kids.size() > 0)
@@ -398,7 +398,7 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
                 kidsString += std::to_string(hn.kids.at(i));
             }
             kidsString += "]";
-            rs = sqlite3_bind_text(stmt, 6, sqlite3_mprintf(kidsString.c_str()), kidsString.length(), NULL);
+            rs = sqlite3_bind_text(stmt, 6, sqlite3_mprintf(kidsString.c_str()), static_cast<int>(kidsString.length()), NULL);
         }
 
         if (hn.urls.size() > 0)
@@ -411,10 +411,10 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
                 urlsString += hn.urls.at(i);
             }
             urlsString += "]";
-            rs = sqlite3_bind_text(stmt, 7, sqlite3_mprintf(urlsString.c_str()), urlsString.length(), NULL);
+            rs = sqlite3_bind_text(stmt, 7, sqlite3_mprintf(urlsString.c_str()), static_cast<int>(urlsString.length()), NULL);
         }
         rs = sqlite3_bind_int(stmt, 8, hn.score);
-        rs = sqlite3_bind_text(stmt, 9, hn.title.c_str(), hn.title.length(), NULL);
+        rs = sqlite3_bind_text(stmt, 9, hn.title.c_str(), static_cast<int>(hn.title.length()), NULL);
         rs = sqlite3_bind_int(stmt, 10, hn.descendants);
         rs = sqlite3_bind_int(stmt, 11, hn.mfEntryId);
         rs = sqlite3_bind_int(stmt, 12, hn.deleted);

@@ -23,7 +23,7 @@ HnCommentView::HnCommentView(const irect &contentRect, const std::vector<HnEntry
     if(entrycount > 50)
         ShowHourglassForce();
 
-    auto i = 0;
+    size_t i = 0;
     auto entrySize = 0;
     auto titleSize = 0;
     while (i < entrycount)

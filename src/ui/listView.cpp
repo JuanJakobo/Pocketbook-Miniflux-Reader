@@ -129,7 +129,7 @@ void ListView::drawFooter()
     DrawTextRect2(&_lastPageButton, "Last");
 }
 
-void ListView::updateEntry(int entryID)
+void ListView::updateEntry(size_t entryID)
 {
     PartialUpdate(_entries.at(entryID)->getPosition().x, _entries.at(entryID)->getPosition().y, _entries.at(entryID)->getPosition().w, _entries.at(entryID)->getPosition().h);
 }

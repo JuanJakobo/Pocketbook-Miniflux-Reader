@@ -34,7 +34,7 @@ public:
     * Saves the return of curl command
     *
     */
-    static size_t writeData(void *ptr, size_t size, size_t nmemb, FILE *stream);
+    static int writeData(void *ptr, int size, int nmemb, FILE *stream);
 
     /**
     * Checks if a network connection can be established

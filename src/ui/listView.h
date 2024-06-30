@@ -65,7 +65,7 @@ public:
         */
     bool checkIfEntryClicked(int x, int y);
 
-    int getCurrentEntryItertator() const {return _selectedEntry;};
+    size_t getCurrentEntryItertator() const {return _selectedEntry;};
 
     /**
         * Clears the screen and draws entries and footer
@@ -89,7 +89,7 @@ protected:
     irect _prevPageButton;
     irect _firstPageButton;
     irect _lastPageButton;
-    int _selectedEntry;
+    size_t _selectedEntry;
 
     /**
         * Iterates through the items and sends them to the listViewEntry Class for drawing
@@ -106,7 +106,7 @@ protected:
         *
         * @param entryID the id of the item that shall be inverted
         */
-    void updateEntry(int entryID);
+    void updateEntry(size_t entryID);
 
     /**
         * Navigates to the selected page

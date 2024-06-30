@@ -36,7 +36,7 @@ int ContextMenu::createMenu(int y, const iv_menuhandler &handler, bool article, 
     imenu contextMenu[] =
         {
             {ITEM_HEADER, 0, _menu, NULL},
-            {article ? (short)ITEM_ACTIVE : (short)ITEM_HIDDEN, 101, _article, NULL},
+            {article ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN), 101, _article, NULL},
             {ITEM_ACTIVE, 102, _download, NULL},
             {ITEM_ACTIVE, 103, _star, NULL},
 

@@ -32,7 +32,7 @@ public:
 
     MfEntry& getCurrentEntry() { return getEntry(_selectedEntry); };
 
-    MfEntry& getEntry(int entryID) {return std::dynamic_pointer_cast<MinifluxViewEntry>(_entries.at(entryID))->getMfEntry(); };
+    MfEntry& getEntry(size_t entryID) {return std::dynamic_pointer_cast<MinifluxViewEntry>(_entries.at(entryID))->getMfEntry(); };
 
 };
 #endif

@@ -23,7 +23,7 @@ void MinifluxViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold,
 
     SetFont(entryFont, BLACK);
     auto shortendURL = _entry.url;
-    auto start = 0;
+    size_t start{0};
     auto counter = 0;
 
     while ((start = shortendURL.find("/", start)) != std::string::npos && counter < 2)
