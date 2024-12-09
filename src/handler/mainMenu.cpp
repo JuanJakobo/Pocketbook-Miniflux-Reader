@@ -31,8 +31,6 @@ constexpr auto SCREEN_BEGIN{0u};
 constexpr auto MENU_PANEL_HEIGHT_SCALE{18};
 constexpr auto MENU_PANEL_WIDTH_SCALE{3};
 
-constexpr auto PANEL_OFF{0u};
-
 constexpr auto TEXT_MARGIN{10};
 constexpr auto TEXT_BEGIN{SCREEN_BEGIN + TEXT_MARGIN};
 
@@ -54,7 +52,7 @@ MainMenu::MainMenu(const std::string &p_name) : m_name{p_name}
     auto textEnd{ScreenWidth() - (TEXT_MARGIN * 2)};
     m_contentRect = iRect(TEXT_BEGIN, menuPanelHeight, textEnd, contentRectHeight, ALIGN_FIT);
 
-    SetPanelType(PANEL_OFF);
+    SetPanelType(PANEL_DISABLED);
 }
 
 void MainMenu::draw() const
