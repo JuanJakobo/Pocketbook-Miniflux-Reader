@@ -13,67 +13,82 @@
 #include "listViewEntry.h"
 #include "model.h"
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 class ListView
 {
-public:
+  public:
     /**
-        * Displays a list view
-        *
-        * @param ContentRect area of the screen where the list view is placed
-        * @param Items items that shall be shown in the listview
-        */
+     * Displays a list view
+     *
+     * @param ContentRect area of the screen where the list view is placed
+     * @param Items items that shall be shown in the listview
+     */
     ListView(const irect &contentRect, int page);
 
     virtual ~ListView();
 
-    int getShownPage(){return _shownPage;};
+    int getShownPage()
+    {
+        return _shownPage;
+    };
 
     /**
-        * Navigates to the next page
-        */
-    void nextPage() { this->actualizePage(_shownPage + 1); };
+     * Navigates to the next page
+     */
+    void nextPage()
+    {
+        this->actualizePage(_shownPage + 1);
+    };
 
     /**
-        * Navigates to the prev page
-        */
-    void prevPage() { this->actualizePage(_shownPage - 1); };
+     * Navigates to the prev page
+     */
+    void prevPage()
+    {
+        this->actualizePage(_shownPage - 1);
+    };
 
     /**
-        * Navigates to first page
-        */
-    void firstPage() { this->actualizePage(1); };
+     * Navigates to first page
+     */
+    void firstPage()
+    {
+        this->actualizePage(1);
+    };
 
     /**
-        * Draws an single entry to the screen
-        */
+     * Draws an single entry to the screen
+     */
     void reDrawCurrentEntry();
 
     /**
-        * inverts the color of the currently selected entry
-        */
+     * inverts the color of the currently selected entry
+     */
     void invertCurrentEntryColor();
 
     /**
-        * Checkes if the listview has been clicked and either changes the page or returns item ID
-        *
-        * @param x x-coordinate
-        * @param y y-coordinate
-        * @return true if was clicked
-        */
+     * Checkes if the listview has been clicked and either changes the page or returns item ID
+     *
+     * @param x x-coordinate
+     * @param y y-coordinate
+     * @return true if was clicked
+     */
     bool checkIfEntryClicked(int x, int y);
 
-    size_t getCurrentEntryItertator() const {return _selectedEntry;};
+    size_t getCurrentEntryItertator() const
+    {
+        return _selectedEntry;
+    };
 
     /**
-        * Clears the screen and draws entries and footer
-        *
-        */
+     * Clears the screen and draws entries and footer
+     *
+     */
     void draw();
 
-protected:
+  protected:
     int _footerHeight;
     int _footerFontHeight;
     int _entryFontHeight;
@@ -92,27 +107,27 @@ protected:
     size_t _selectedEntry;
 
     /**
-        * Iterates through the items and sends them to the listViewEntry Class for drawing
-        */
+     * Iterates through the items and sends them to the listViewEntry Class for drawing
+     */
     void drawEntries();
 
     /**
-        * Draws the footer including a page changer
-        */
+     * Draws the footer including a page changer
+     */
     void drawFooter();
 
     /**
-        * updates an entry
-        *
-        * @param entryID the id of the item that shall be inverted
-        */
+     * updates an entry
+     *
+     * @param entryID the id of the item that shall be inverted
+     */
     void updateEntry(size_t entryID);
 
     /**
-        * Navigates to the selected page
-        *
-        * @param pageToShow page that shall be shown
-        */
+     * Navigates to the selected page
+     *
+     * @param pageToShow page that shall be shown
+     */
     void actualizePage(int pageToShow);
 };
 #endif

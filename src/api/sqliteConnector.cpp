@@ -7,17 +7,17 @@
 //
 //-------------------------------------------------------------------
 
-#include "sqlite3.h"
-#include "minifluxModel.h"
-#include "hackernewsModel.h"
 #include "sqliteConnector.h"
+#include "hackernewsModel.h"
 #include "log.h"
+#include "minifluxModel.h"
+#include "sqlite3.h"
 
 #include <string>
 #include <vector>
 
-using std::vector;
 using std::string;
+using std::vector;
 
 SqliteConnector::SqliteConnector(const string &DBpath) : _dbpath(DBpath)
 {
@@ -29,7 +29,6 @@ SqliteConnector::~SqliteConnector()
     Log::writeInfoLog("closed DB");
 }
 
-
 vector<MfEntry> SqliteConnector::selectMfEntries()
 {
     open();
@@ -37,25 +36,27 @@ vector<MfEntry> SqliteConnector::selectMfEntries()
     sqlite3_stmt *stmt = 0;
     vector<MfEntry> entries;
 
-    rs = sqlite3_prepare_v2(_db, "SELECT id, status, title, url, comments_url, content, starred, reading_time, downloaded FROM 'MfEntries';", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(
+        _db,
+        "SELECT id, status, title, url, comments_url, content, starred, reading_time, downloaded FROM 'MfEntries';", -1,
+        &stmt, 0);
 
     auto test = sqlite3_column_count(stmt);
 
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
-						MfEntry temp;
+        MfEntry temp;
 
-						temp.id = sqlite3_column_int(stmt,0);
-						temp.status = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-						temp.title = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
-						temp.url =reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
-						temp.comments_url = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4));
-						temp.content =  reinterpret_cast<const char *>(sqlite3_column_text(stmt, 5));
-						temp.starred = (sqlite3_column_int(stmt, 6) == 1) ? true : false;
-						temp.reading_time = sqlite3_column_int(stmt, 7);
-						temp.downloaded =  static_cast<IsDownloaded>(sqlite3_column_int(stmt,8));
-						entries.push_back(temp);
-
+        temp.id = sqlite3_column_int(stmt, 0);
+        temp.status = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+        temp.title = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+        temp.url = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
+        temp.comments_url = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4));
+        temp.content = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 5));
+        temp.starred = (sqlite3_column_int(stmt, 6) == 1) ? true : false;
+        temp.reading_time = sqlite3_column_int(stmt, 7);
+        temp.downloaded = static_cast<IsDownloaded>(sqlite3_column_int(stmt, 8));
+        entries.push_back(temp);
     }
 
     sqlite3_finalize(stmt);
@@ -70,7 +71,10 @@ vector<MfEntry> SqliteConnector::selectMfEntries(IsDownloaded downloaded)
     sqlite3_stmt *stmt = 0;
     vector<MfEntry> entries;
 
-    rs = sqlite3_prepare_v2(_db, "SELECT id, status, title, url, comments_url, content, starred, reading_time, downloaded FROM 'MfEntries' WHERE downloaded = ?;", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db,
+                            "SELECT id, status, title, url, comments_url, content, starred, reading_time, downloaded "
+                            "FROM 'MfEntries' WHERE downloaded = ?;",
+                            -1, &stmt, 0);
 
     rs = sqlite3_bind_int(stmt, 1, downloaded);
 
@@ -78,19 +82,18 @@ vector<MfEntry> SqliteConnector::selectMfEntries(IsDownloaded downloaded)
 
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
-						MfEntry temp;
+        MfEntry temp;
 
-						temp.id = sqlite3_column_int(stmt,0);
-						temp.status = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-						temp.title = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
-						temp.url =reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
-						temp.comments_url = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4));
-						temp.content =  reinterpret_cast<const char *>(sqlite3_column_text(stmt, 5));
-						temp.starred = (sqlite3_column_int(stmt, 6) == 1) ? true : false;
-						temp.reading_time = sqlite3_column_int(stmt, 7);
-						temp.downloaded =  static_cast<IsDownloaded>(sqlite3_column_int(stmt,8));
-						entries.push_back(temp);
-
+        temp.id = sqlite3_column_int(stmt, 0);
+        temp.status = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
+        temp.title = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
+        temp.url = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
+        temp.comments_url = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 4));
+        temp.content = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 5));
+        temp.starred = (sqlite3_column_int(stmt, 6) == 1) ? true : false;
+        temp.reading_time = sqlite3_column_int(stmt, 7);
+        temp.downloaded = static_cast<IsDownloaded>(sqlite3_column_int(stmt, 8));
+        entries.push_back(temp);
     }
 
     sqlite3_finalize(stmt);
@@ -106,7 +109,10 @@ HnEntry SqliteConnector::selectHnEntry(int id)
     HnEntry temp;
     temp.id = -1;
 
-    rs = sqlite3_prepare_v2(_db, "SELECT id, by, time, text, parent, kids, urls, score, title, descendants, deleted, flagged FROM 'HnItems' WHERE id = ?;", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db,
+                            "SELECT id, by, time, text, parent, kids, urls, score, title, descendants, deleted, "
+                            "flagged FROM 'HnItems' WHERE id = ?;",
+                            -1, &stmt, 0);
 
     rs = sqlite3_bind_int(stmt, 1, id);
 
@@ -164,24 +170,26 @@ HnEntry SqliteConnector::selectHnEntry(int id)
         temp.score = sqlite3_column_int(stmt, 7);
         temp.title = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 8));
         temp.descendants = sqlite3_column_int(stmt, 9);
-        temp.deleted = sqlite3_column_int(stmt,10);
-        temp.flagged = sqlite3_column_int(stmt,11);
-
+        temp.deleted = sqlite3_column_int(stmt, 10);
+        temp.flagged = sqlite3_column_int(stmt, 11);
     }
 
     sqlite3_finalize(stmt);
     sqlite3_close(_db);
-    //TODO only return if temp has been created...
+    // TODO only return if temp has been created...
     return temp;
 }
-//get for id?
+// get for id?
 void SqliteConnector::selectHnEntries(int parentId, vector<HnEntry> &entries)
 {
     open();
     int rs;
     sqlite3_stmt *stmt = 0;
 
-    rs = sqlite3_prepare_v2(_db, "SELECT id, by, time, text, parent, kids, urls, score, title, descendants,deleted,flagged FROM 'HnItems' WHERE parent = ?;", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db,
+                            "SELECT id, by, time, text, parent, kids, urls, score, title, descendants,deleted,flagged "
+                            "FROM 'HnItems' WHERE parent = ?;",
+                            -1, &stmt, 0);
 
     rs = sqlite3_bind_int(stmt, 1, parentId);
 
@@ -195,7 +203,7 @@ void SqliteConnector::selectHnEntries(int parentId, vector<HnEntry> &entries)
         temp.time = sqlite3_column_int(stmt, 2);
         temp.text = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
         temp.parent = sqlite3_column_int(stmt, 4);
-        //test all
+        // test all
         if (!(sqlite3_column_type(stmt, 5) == SQLITE_NULL))
         {
             std::string kids = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 5));
@@ -241,8 +249,8 @@ void SqliteConnector::selectHnEntries(int parentId, vector<HnEntry> &entries)
         temp.score = sqlite3_column_int(stmt, 7);
         temp.title = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 8));
         temp.descendants = sqlite3_column_int(stmt, 9);
-        temp.deleted = sqlite3_column_int(stmt,10);
-        temp.flagged = sqlite3_column_int(stmt,11);
+        temp.deleted = sqlite3_column_int(stmt, 10);
+        temp.flagged = sqlite3_column_int(stmt, 11);
 
         entries.push_back(temp);
     }
@@ -253,7 +261,8 @@ void SqliteConnector::selectHnEntries(int parentId, vector<HnEntry> &entries)
 
 vector<HnUser> SqliteConnector::selectHnUser()
 {
-    //"CREATE TABLE IF NOT EXISTS HnUser (id STRING PRIMARY KEY, about TEXT, created INT, karma INT, submitted TEXT);", NULL, 0, NULL);
+    //"CREATE TABLE IF NOT EXISTS HnUser (id STRING PRIMARY KEY, about TEXT, created INT, karma INT, submitted TEXT);",
+    //NULL, 0, NULL);
     return {};
 }
 
@@ -333,7 +342,10 @@ bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
     int rs;
     sqlite3_stmt *stmt = 0;
 
-    rs = sqlite3_prepare_v2(_db, "INSERT INTO 'MfEntries' (id, status, title, url, comments_url, content, starred, reading_time, downloaded) VALUES (?,?,?,?,?,?,?,?,?);", -1, &stmt, 0);
+    rs = sqlite3_prepare_v2(_db,
+                            "INSERT INTO 'MfEntries' (id, status, title, url, comments_url, content, starred, "
+                            "reading_time, downloaded) VALUES (?,?,?,?,?,?,?,?,?);",
+                            -1, &stmt, 0);
     rs = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 
     for (auto ent : entries)
@@ -346,14 +358,15 @@ bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
         rs = sqlite3_bind_text(stmt, 6, ent.content.c_str(), static_cast<int>(ent.content.length()), NULL);
         rs = sqlite3_bind_int(stmt, 7, (ent.starred) ? 1 : 0);
         rs = sqlite3_bind_int(stmt, 8, ent.reading_time);
-				rs = sqlite3_bind_int(stmt, 9, ent.downloaded);
+        rs = sqlite3_bind_int(stmt, 9, ent.downloaded);
 
         rs = sqlite3_step(stmt);
         if (rs == SQLITE_CONSTRAINT)
         {
-            //If item already exists it is not written
-            //Log::writeInfoLog("item exists already: " + std::to_string(ent.id) + std::to_string(ent.starred) + ent.status);
-            //updateMfEntry(ent.id, ent.starred, ent.status); --> database is locked, therefore only updated needed, no
+            // If item already exists it is not written
+            // Log::writeInfoLog("item exists already: " + std::to_string(ent.id) + std::to_string(ent.starred) +
+            // ent.status); updateMfEntry(ent.id, ent.starred, ent.status); --> database is locked, therefore only
+            // updated needed, no
         }
         else if (rs != SQLITE_DONE)
         {
@@ -373,68 +386,76 @@ bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
 
 bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
 {
-    try{
-    open();
-    int rs;
-    sqlite3_stmt *stmt = 0;
-    rs = sqlite3_prepare_v2(_db, "INSERT INTO 'HnItems' (id,by, time,text,parent,kids,urls,score,title,descendants,mfEntryId,deleted,flagged) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);", -1, &stmt, 0);
-    rs = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
-
-    for (auto hn : entries)
+    try
     {
-        rs = sqlite3_bind_int(stmt, 1, hn.id);
-        rs = sqlite3_bind_text(stmt, 2, hn.by.c_str(), static_cast<int>(hn.by.length()), NULL);
-        rs = sqlite3_bind_int(stmt, 3, hn.time);
-        rs = sqlite3_bind_text(stmt, 4, hn.text.c_str(), static_cast<int>(hn.text.length()), NULL);
-        rs = sqlite3_bind_int(stmt, 5, hn.parent);
+        open();
+        int rs;
+        sqlite3_stmt *stmt = 0;
+        rs = sqlite3_prepare_v2(_db,
+                                "INSERT INTO 'HnItems' (id,by, "
+                                "time,text,parent,kids,urls,score,title,descendants,mfEntryId,deleted,flagged) VALUES "
+                                "(?,?,?,?,?,?,?,?,?,?,?,?,?);",
+                                -1, &stmt, 0);
+        rs = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 
-        if (hn.kids.size() > 0)
+        for (auto hn : entries)
         {
-            string kidsString = "[";
-            for (size_t i = 0; i < hn.kids.size(); i++)
+            rs = sqlite3_bind_int(stmt, 1, hn.id);
+            rs = sqlite3_bind_text(stmt, 2, hn.by.c_str(), static_cast<int>(hn.by.length()), NULL);
+            rs = sqlite3_bind_int(stmt, 3, hn.time);
+            rs = sqlite3_bind_text(stmt, 4, hn.text.c_str(), static_cast<int>(hn.text.length()), NULL);
+            rs = sqlite3_bind_int(stmt, 5, hn.parent);
+
+            if (hn.kids.size() > 0)
             {
-                if (i > 0)
-                    kidsString += ", ";
-                kidsString += std::to_string(hn.kids.at(i));
+                string kidsString = "[";
+                for (size_t i = 0; i < hn.kids.size(); i++)
+                {
+                    if (i > 0)
+                        kidsString += ", ";
+                    kidsString += std::to_string(hn.kids.at(i));
+                }
+                kidsString += "]";
+                rs = sqlite3_bind_text(stmt, 6, sqlite3_mprintf(kidsString.c_str()),
+                                       static_cast<int>(kidsString.length()), NULL);
             }
-            kidsString += "]";
-            rs = sqlite3_bind_text(stmt, 6, sqlite3_mprintf(kidsString.c_str()), static_cast<int>(kidsString.length()), NULL);
-        }
 
-        if (hn.urls.size() > 0)
-        {
-            string urlsString = "[";
-            for (size_t i = 0; i < hn.urls.size(); i++)
+            if (hn.urls.size() > 0)
             {
-                if (i > 0)
-                    urlsString += ", ";
-                urlsString += hn.urls.at(i);
+                string urlsString = "[";
+                for (size_t i = 0; i < hn.urls.size(); i++)
+                {
+                    if (i > 0)
+                        urlsString += ", ";
+                    urlsString += hn.urls.at(i);
+                }
+                urlsString += "]";
+                rs = sqlite3_bind_text(stmt, 7, sqlite3_mprintf(urlsString.c_str()),
+                                       static_cast<int>(urlsString.length()), NULL);
             }
-            urlsString += "]";
-            rs = sqlite3_bind_text(stmt, 7, sqlite3_mprintf(urlsString.c_str()), static_cast<int>(urlsString.length()), NULL);
-        }
-        rs = sqlite3_bind_int(stmt, 8, hn.score);
-        rs = sqlite3_bind_text(stmt, 9, hn.title.c_str(), static_cast<int>(hn.title.length()), NULL);
-        rs = sqlite3_bind_int(stmt, 10, hn.descendants);
-        rs = sqlite3_bind_int(stmt, 11, hn.mfEntryId);
-        rs = sqlite3_bind_int(stmt, 12, hn.deleted);
-        rs = sqlite3_bind_int(stmt, 13, hn.flagged);
-        rs = sqlite3_step(stmt);
+            rs = sqlite3_bind_int(stmt, 8, hn.score);
+            rs = sqlite3_bind_text(stmt, 9, hn.title.c_str(), static_cast<int>(hn.title.length()), NULL);
+            rs = sqlite3_bind_int(stmt, 10, hn.descendants);
+            rs = sqlite3_bind_int(stmt, 11, hn.mfEntryId);
+            rs = sqlite3_bind_int(stmt, 12, hn.deleted);
+            rs = sqlite3_bind_int(stmt, 13, hn.flagged);
+            rs = sqlite3_step(stmt);
 
-        if (rs != SQLITE_DONE)
-        {
-            Log::writeErrorLog("Error inserting Hn Entries " +  std::string(" (Error Code: ") + std::to_string(rs) + sqlite3_errmsg(_db) + ")");
+            if (rs != SQLITE_DONE)
+            {
+                Log::writeErrorLog("Error inserting Hn Entries " + std::string(" (Error Code: ") + std::to_string(rs) +
+                                   sqlite3_errmsg(_db) + ")");
+            }
+            rs = sqlite3_clear_bindings(stmt);
+            rs = sqlite3_reset(stmt);
         }
-        rs = sqlite3_clear_bindings(stmt);
-        rs = sqlite3_reset(stmt);
+
+        sqlite3_exec(_db, "END TRANSACTION;", NULL, NULL, NULL);
+
+        sqlite3_finalize(stmt);
+        sqlite3_close(_db);
     }
-
-    sqlite3_exec(_db, "END TRANSACTION;", NULL, NULL, NULL);
-
-    sqlite3_finalize(stmt);
-    sqlite3_close(_db);
-
-    }catch (const std::exception &e)
+    catch (const std::exception &e)
     {
         Log::writeErrorLog(e.what());
     }
@@ -471,14 +492,23 @@ bool SqliteConnector::open()
 
     rs = sqlite3_open(_dbpath.c_str(), &_db);
 
-
     if (rs)
     {
         Log::writeErrorLog("Could not open DB at " + _dbpath);
     }
-    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS MfEntries (id INT PRIMARY KEY, status TEXT, title TEXT, url TEXT, comments_url TEXT, content TEXT, starred INT, reading_time INT, downloaded INT);", NULL, 0, NULL);
-    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS HnItems (id INT PRIMARY KEY, by TEXT, time INT, text TEXT, parent INT, kids TEXT, urls TEXT, score INT, title TEXT, descendants INT, mfEntryId INT, deleted BOOLEAN NOT NULL CHECK (deleted IN (0,1)), flagged BOOLEAN NOT NULL CHECK (flagged IN (0,1)));", NULL, 0, NULL);
-    rs = sqlite3_exec(_db, "CREATE TABLE IF NOT EXISTS HnUser (id STRING PRIMARY KEY, about TEXT, created INT, karma INT, submitted TEXT);", NULL, 0, NULL);
+    rs = sqlite3_exec(_db,
+                      "CREATE TABLE IF NOT EXISTS MfEntries (id INT PRIMARY KEY, status TEXT, title TEXT, url TEXT, "
+                      "comments_url TEXT, content TEXT, starred INT, reading_time INT, downloaded INT);",
+                      NULL, 0, NULL);
+    rs = sqlite3_exec(_db,
+                      "CREATE TABLE IF NOT EXISTS HnItems (id INT PRIMARY KEY, by TEXT, time INT, text TEXT, parent "
+                      "INT, kids TEXT, urls TEXT, score INT, title TEXT, descendants INT, mfEntryId INT, deleted "
+                      "BOOLEAN NOT NULL CHECK (deleted IN (0,1)), flagged BOOLEAN NOT NULL CHECK (flagged IN (0,1)));",
+                      NULL, 0, NULL);
+    rs = sqlite3_exec(_db,
+                      "CREATE TABLE IF NOT EXISTS HnUser (id STRING PRIMARY KEY, about TEXT, created INT, karma INT, "
+                      "submitted TEXT);",
+                      NULL, 0, NULL);
 
     return true;
 }

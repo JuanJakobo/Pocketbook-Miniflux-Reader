@@ -6,8 +6,8 @@
 //
 //-------------------------------------------------------------------
 
-#include "inkview.h"
 #include "listView.h"
+#include "inkview.h"
 #include "listViewEntry.h"
 
 #include <string>
@@ -22,7 +22,7 @@ ListView::ListView(const irect &contentRect, int page) : _contentRect(contentRec
 
     _footerHeight = _contentRect.h / 15;
     _footerFontHeight = 0.3 * _footerHeight;
-    _entryFontHeight = contentRect.h/45;
+    _entryFontHeight = contentRect.h / 45;
 
     _footerFont = OpenFont("LiberationMono", _footerFontHeight, 1);
     _entryFont = OpenFont("LiberationMono", _entryFontHeight, 1);
@@ -30,17 +30,22 @@ ListView::ListView(const irect &contentRect, int page) : _contentRect(contentRec
 
     SetFont(_entryFont, BLACK);
 
-    int footerWidth = contentRect.w/20;
+    int footerWidth = contentRect.w / 20;
 
-    _pageIcon = iRect(_contentRect.w - footerWidth*2, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/10, _footerHeight, ALIGN_CENTER);
+    _pageIcon = iRect(_contentRect.w - footerWidth * 2, _contentRect.h + _contentRect.y - _footerHeight,
+                      contentRect.w / 10, _footerHeight, ALIGN_CENTER);
 
-    _firstPageButton = iRect(_contentRect.x, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/8, _footerHeight, ALIGN_CENTER);
+    _firstPageButton = iRect(_contentRect.x, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w / 8,
+                             _footerHeight, ALIGN_CENTER);
 
-    _prevPageButton = iRect(_contentRect.x + footerWidth*3, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/8, _footerHeight, ALIGN_CENTER);
+    _prevPageButton = iRect(_contentRect.x + footerWidth * 3, _contentRect.h + _contentRect.y - _footerHeight,
+                            contentRect.w / 8, _footerHeight, ALIGN_CENTER);
 
-    _nextPageButton = iRect(_contentRect.x + footerWidth*6, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/8, _footerHeight, ALIGN_CENTER);
+    _nextPageButton = iRect(_contentRect.x + footerWidth * 6, _contentRect.h + _contentRect.y - _footerHeight,
+                            contentRect.w / 8, _footerHeight, ALIGN_CENTER);
 
-    _lastPageButton = iRect(_contentRect.x + footerWidth*9, _contentRect.h + _contentRect.y - _footerHeight, contentRect.w/8, _footerHeight, ALIGN_CENTER);
+    _lastPageButton = iRect(_contentRect.x + footerWidth * 9, _contentRect.h + _contentRect.y - _footerHeight,
+                            contentRect.w / 8, _footerHeight, ALIGN_CENTER);
 }
 
 ListView::~ListView()
@@ -67,7 +72,8 @@ void ListView::reDrawCurrentEntry()
 
 void ListView::invertCurrentEntryColor()
 {
-    InvertAreaBW(_entries.at(_selectedEntry)->getPosition().x, _entries.at(_selectedEntry)->getPosition().y, _entries.at(_selectedEntry)->getPosition().w, _entries.at(_selectedEntry)->getPosition().h);
+    InvertAreaBW(_entries.at(_selectedEntry)->getPosition().x, _entries.at(_selectedEntry)->getPosition().y,
+                 _entries.at(_selectedEntry)->getPosition().w, _entries.at(_selectedEntry)->getPosition().h);
     updateEntry(_selectedEntry);
 }
 
@@ -131,14 +137,16 @@ void ListView::drawFooter()
 
 void ListView::updateEntry(size_t entryID)
 {
-    PartialUpdate(_entries.at(entryID)->getPosition().x, _entries.at(entryID)->getPosition().y, _entries.at(entryID)->getPosition().w, _entries.at(entryID)->getPosition().h);
+    PartialUpdate(_entries.at(entryID)->getPosition().x, _entries.at(entryID)->getPosition().y,
+                  _entries.at(entryID)->getPosition().w, _entries.at(entryID)->getPosition().h);
 }
 
 void ListView::actualizePage(int pageToShow)
 {
     if (pageToShow > _page)
     {
-        Message(ICON_INFORMATION, "Info", "You have reached the last page, to return to the first, please click \"first.\"", 1200);
+        Message(ICON_INFORMATION, "Info",
+                "You have reached the last page, to return to the first, please click \"first.\"", 1200);
     }
     else if (pageToShow < 1)
     {

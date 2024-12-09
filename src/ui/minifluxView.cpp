@@ -7,15 +7,16 @@
 //-------------------------------------------------------------------
 
 #include "minifluxView.h"
-#include "minifluxViewEntry.h"
 #include "minifluxModel.h"
+#include "minifluxViewEntry.h"
 
 #include <string>
 #include <vector>
 
 using std::vector;
 
-MinifluxView::MinifluxView(const irect &contentRect, const vector<MfEntry> &mfEntries, int page) : ListView(contentRect, page)
+MinifluxView::MinifluxView(const irect &contentRect, const vector<MfEntry> &mfEntries, int page)
+    : ListView(contentRect, page)
 {
     auto pageHeight = 0;
     auto contentHeight = _contentRect.h - _footerHeight;
@@ -26,7 +27,8 @@ MinifluxView::MinifluxView(const irect &contentRect, const vector<MfEntry> &mfEn
     size_t i{0};
     while (i < entrycount)
     {
-        auto entrySize = TextRectHeight(contentRect.w*1.003, mfEntries.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
+        auto entrySize =
+            TextRectHeight(contentRect.w * 1.003, mfEntries.at(i).title.c_str(), 0) + 2.5 * _entryFontHeight;
 
         if ((pageHeight + entrySize) > contentHeight)
         {

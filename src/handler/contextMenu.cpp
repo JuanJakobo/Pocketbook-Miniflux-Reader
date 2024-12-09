@@ -6,8 +6,8 @@
 //
 //-------------------------------------------------------------------
 
-#include "inkview.h"
 #include "contextMenu.h"
+#include "inkview.h"
 
 #include <string>
 
@@ -23,24 +23,24 @@ ContextMenu::~ContextMenu()
     free(_article);
 }
 
-int ContextMenu::createMenu(int y, const iv_menuhandler &handler, bool article, bool starred, const std::string &downloaded)
+int ContextMenu::createMenu(int y, const iv_menuhandler &handler, bool article, bool starred,
+                            const std::string &downloaded)
 {
     std::string text = "Star";
-    if(starred)
+    if (starred)
         text = "Unstar";
 
     _star = strdup(text.c_str());
 
     _download = strdup(downloaded.c_str());
 
-    imenu contextMenu[] =
-        {
-            {ITEM_HEADER, 0, _menu, NULL},
-            {article ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN), 101, _article, NULL},
-            {ITEM_ACTIVE, 102, _download, NULL},
-            {ITEM_ACTIVE, 103, _star, NULL},
+    imenu contextMenu[] = {
+        {ITEM_HEADER, 0, _menu, NULL},
+        {article ? static_cast<short>(ITEM_ACTIVE) : static_cast<short>(ITEM_HIDDEN), 101, _article, NULL},
+        {ITEM_ACTIVE, 102, _download, NULL},
+        {ITEM_ACTIVE, 103, _star, NULL},
 
-            {0, 0, NULL, NULL}};
+        {0, 0, NULL, NULL}};
 
     OpenMenu(contextMenu, 0, ScreenWidth(), y, handler);
 

@@ -9,8 +9,8 @@
 #include "log.h"
 #include "eventHandler.h"
 
-#include <string>
 #include <fstream>
+#include <string>
 
 void Log::writeInfoLog(const std::string &text)
 {

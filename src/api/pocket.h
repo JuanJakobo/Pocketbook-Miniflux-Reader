@@ -23,7 +23,6 @@ enum class PocketAction
     DELETE      // permanently remove an item
 };
 
-
 class Pocket
 {
   public:

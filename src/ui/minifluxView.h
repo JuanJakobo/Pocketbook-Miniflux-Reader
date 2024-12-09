@@ -9,30 +9,35 @@
 #ifndef MINIFLUXVIEW
 #define MINIFLUXVIEW
 
-#include "minifluxModel.h"
 #include "listView.h"
+#include "minifluxModel.h"
 #include "minifluxViewEntry.h"
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 class MinifluxView final : public ListView
 {
-public:
+  public:
     /**
-        * Displays a list view
-        *
-        * @param ContentRect area of the screen where the list view is placed
-        * @param Items items that shall be shown in the listview
-        * @param page page that is shown, default is 1
-        */
+     * Displays a list view
+     *
+     * @param ContentRect area of the screen where the list view is placed
+     * @param Items items that shall be shown in the listview
+     * @param page page that is shown, default is 1
+     */
     MinifluxView(const irect &contentRect, const std::vector<MfEntry> &mfEntries, int page = 1);
 
     std::vector<int> getEntriesTillPage();
 
-    MfEntry& getCurrentEntry() { return getEntry(_selectedEntry); };
+    MfEntry &getCurrentEntry()
+    {
+        return getEntry(_selectedEntry);
+    };
 
-    MfEntry& getEntry(size_t entryID) {return std::dynamic_pointer_cast<MinifluxViewEntry>(_entries.at(entryID))->getMfEntry(); };
-
+    MfEntry &getEntry(size_t entryID)
+    {
+        return std::dynamic_pointer_cast<MinifluxViewEntry>(_entries.at(entryID))->getMfEntry();
+    };
 };
 #endif

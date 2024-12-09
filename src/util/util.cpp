@@ -6,15 +6,15 @@
 //
 //-------------------------------------------------------------------
 #include "util.h"
-#include "inkview.h"
 #include "eventHandler.h"
+#include "inkview.h"
 #include "log.h"
 
-#include <string>
-#include <ostream>
 #include <algorithm>
 #include <fstream>
 #include <map>
+#include <ostream>
+#include <string>
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
@@ -32,12 +32,13 @@ int Util::writeData(void *ptr, int size, int nmemb, FILE *stream)
     return written;
 }
 
-//https://github.com/pmartin/pocketbook-demo/blob/master/devutils/wifi.cpp
+// https://github.com/pmartin/pocketbook-demo/blob/master/devutils/wifi.cpp
 void Util::connectToNetwork()
 {
-    //NetError, NetErrorMessage
+    // NetError, NetErrorMessage
     iv_netinfo *netinfo = NetInfo();
-    if (netinfo->connected){
+    if (netinfo->connected)
+    {
         ShowHourglassForce();
         return;
     }
@@ -48,7 +49,8 @@ void Util::connectToNetwork()
         throw std::runtime_error("Could not connect to the internet.");
 
     netinfo = NetInfo();
-    if (netinfo->connected){
+    if (netinfo->connected)
+    {
         ShowHourglassForce();
         return;
     }
@@ -135,7 +137,7 @@ void Util::decodeHTML(string &data)
     replaceAll(data, "&apos;", "\'");
     replaceAll(data, "&lt;", "<");
     replaceAll(data, "&gt;", ">");
-    //html
+    // html
     replaceAll(data, "&#x27;", "\'");
     replaceAll(data, "&#x2F;", "/");
     replaceAll(data, "<p>", "\n");
@@ -146,8 +148,8 @@ void Util::decodeHTML(string &data)
 string Util::clearString(string title)
 {
     const std::string forbiddenInFiles = "<>$\\/:?\"|*";
-    std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
-            { return forbiddenInFiles.find(c) != std::string::npos ? '_' : c; });
+    std::transform(title.begin(), title.end(), title.begin(),
+                   [&forbiddenInFiles](char c) { return forbiddenInFiles.find(c) != std::string::npos ? '_' : c; });
     return title;
 }
 
@@ -163,7 +165,7 @@ string Util::returnTitlePath(string title)
     return returnFolderName(title) + clearString(title) + ".html";
 }
 
-bool Util::createHtml(const string &title,string content)
+bool Util::createHtml(const string &title, string content)
 {
     const auto title_folder{returnFolderName(title)};
     const auto title_path{returnTitlePath(title)};
@@ -173,7 +175,7 @@ bool Util::createHtml(const string &title,string content)
         Util::connectToNetwork();
         Log::writeInfoLog(title_folder);
 
-        if(iv_mkdir(title_folder.c_str(), 0666) != 0)
+        if (iv_mkdir(title_folder.c_str(), 0666) != 0)
         {
             Log::writeErrorLog("Could not create article path " + title_folder);
             return false;
@@ -181,7 +183,7 @@ bool Util::createHtml(const string &title,string content)
 
         auto finalHtml = content;
 
-        std::map<string,int> images;
+        std::map<string, int> images;
         auto counter = 0;
 
         auto found = content.find("<img");
@@ -189,25 +191,25 @@ bool Util::createHtml(const string &title,string content)
         {
             content = content.substr(found);
             auto it = content.find("src=\"");
-            if(it == std::string::npos)
+            if (it == std::string::npos)
                 break;
 
             content = content.substr(it + 5);
             it = content.find("\"");
-            if(it == std::string::npos)
+            if (it == std::string::npos)
                 break;
 
-            auto ret = images.insert({content.substr(0,it),counter});
-            if(ret.second)
+            auto ret = images.insert({content.substr(0, it), counter});
+            if (ret.second)
             {
-                //TODO check for internet
+                // TODO check for internet
                 try
                 {
                     auto imagePath = title_folder + std::to_string(ret.first->second);
                     std::ofstream img(imagePath, std::ofstream::out);
                     if (img.is_open())
                     {
-                        //TODO check internet getting
+                        // TODO check internet getting
                         img << Util::getData(ret.first->first);
                         img.close();
                     }
@@ -226,7 +228,7 @@ bool Util::createHtml(const string &title,string content)
             auto toReplace = finalHtml.find("src=\"" + ret.first->first);
 
             if (toReplace != std::string::npos)
-                finalHtml.replace(toReplace+5, ret.first->first.length(), '/' + std::to_string(ret.first->second));
+                finalHtml.replace(toReplace + 5, ret.first->first.length(), '/' + std::to_string(ret.first->second));
             found = content.find("<img");
         }
 

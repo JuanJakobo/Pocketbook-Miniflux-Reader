@@ -9,34 +9,36 @@
 #ifndef HNCOMMENTVIEWENTRY
 #define HNCOMMENTVIEWENTRY
 
-#include "listViewEntry.h"
 #include "hackernewsModel.h"
+#include "listViewEntry.h"
 
 class HnCommentViewEntry final : public ListViewEntry
 {
-public:
+  public:
     /**
-        * Creates an ListViewEntry
-        *
-        * @param Page site of the listView the Entry is shown
-        * @param Rect area of the screen the item is positioned
-        * @param entry entry that shall be drawn
-        */
+     * Creates an ListViewEntry
+     *
+     * @param Page site of the listView the Entry is shown
+     * @param Rect area of the screen the item is positioned
+     * @param entry entry that shall be drawn
+     */
     HnCommentViewEntry(int page, const irect position, const HnEntry &entry, bool drawHeader);
 
     /**
-        * draws the listViewEntry to the screen
-        *
-        * @param entryFont font for the entry itself
-        * @param entryFontBold bold font for the header
-        * @param fontHeight height of the font
-        */
+     * draws the listViewEntry to the screen
+     *
+     * @param entryFont font for the entry itself
+     * @param entryFontBold bold font for the header
+     * @param fontHeight height of the font
+     */
     void draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) const override;
 
+    HnEntry &getHnEntry()
+    {
+        return _entry;
+    };
 
-    HnEntry &getHnEntry() { return _entry; };
-
-private:
+  private:
     bool _drawHeader;
     HnEntry _entry;
 };

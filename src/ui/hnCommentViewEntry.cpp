@@ -7,27 +7,29 @@
 //-------------------------------------------------------------------
 
 #include "hnCommentViewEntry.h"
-#include "inkview.h"
 #include "hackernewsModel.h"
+#include "inkview.h"
 
-#include <ctime>
 #include <chrono>
+#include <ctime>
 #include <iostream>
 #include <time.h>
 
-HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect, const HnEntry &entry, bool drawHeader) : ListViewEntry(page, rect), _drawHeader(drawHeader), _entry(entry)
+HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect, const HnEntry &entry, bool drawHeader)
+    : ListViewEntry(page, rect), _drawHeader(drawHeader), _entry(entry)
 {
 }
 
 void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold, int fontHeight) const
 {
     auto beginY = _position.y;
-    //header
-    if(_drawHeader){
+    // header
+    if (_drawHeader)
+    {
         SetFont(entryFontBold, BLACK);
 
         std::string header = _entry.by;
-        if(_entry.time > 0)
+        if (_entry.time > 0)
         {
             time_t unix_timestamp = _entry.time;
             char time_buf[80];
@@ -38,30 +40,36 @@ void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold
             time(&now);
             struct tm *currentTime = localtime(&now);
 
-            auto seconds = difftime(now,mktime(&ts));
+            auto seconds = difftime(now, mktime(&ts));
 
             std::string time;
-            //minutes
-            if(seconds > 60){
-                seconds = seconds/60;
+            // minutes
+            if (seconds > 60)
+            {
+                seconds = seconds / 60;
                 time = std::to_string(static_cast<int>(seconds)) + " minutes ago";
-                //hours
-                if(seconds > 60){
-                    seconds = seconds/60;
+                // hours
+                if (seconds > 60)
+                {
+                    seconds = seconds / 60;
                     time = std::to_string(static_cast<int>(seconds)) + " hours ago";
-                    //days
-                    if(seconds > 24){
-                        seconds = seconds/24;
+                    // days
+                    if (seconds > 24)
+                    {
+                        seconds = seconds / 24;
                         time = std::to_string(static_cast<int>(seconds)) + " days ago";
-                        //month
-                        if(seconds > 30){
-                            seconds = seconds/30;
+                        // month
+                        if (seconds > 30)
+                        {
+                            seconds = seconds / 30;
                             time = std::to_string(static_cast<int>(seconds)) + " months ago";
-                            //years
-                            if(seconds > 12){
-                                seconds = seconds/12;
+                            // years
+                            if (seconds > 12)
+                            {
+                                seconds = seconds / 12;
                                 time = std::to_string(static_cast<int>(seconds)) + " years ago";
-                                if(seconds > 1){
+                                if (seconds > 1)
+                                {
                                     strftime(time_buf, sizeof(time_buf), "%y-%m-%d %h:%m:%s %z", &ts);
                                     time = time_buf;
                                 }
@@ -73,7 +81,6 @@ void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold
             header = header + " " + time;
         }
 
-
         if (_entry.flagged)
             header = header + " [flagged]";
         else if (_entry.deleted)
@@ -82,15 +89,18 @@ void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold
         DrawTextRect(_position.x, _position.y, _position.w, fontHeight, header.c_str(), ALIGN_LEFT);
 
         if (_entry.score > 0)
-            DrawTextRect(_position.x, _position.y + fontHeight, _position.w, fontHeight, (std::to_string(_entry.score) + " points").c_str(), ALIGN_LEFT);
+            DrawTextRect(_position.x, _position.y + fontHeight, _position.w, fontHeight,
+                         (std::to_string(_entry.score) + " points").c_str(), ALIGN_LEFT);
 
         int titleHeight = 0;
         if (!_entry.title.empty())
         {
-            DrawTextRect(_position.x, _position.y, _position.w, fontHeight, (std::to_string(_entry.descendants) + " Comments").c_str(), ALIGN_RIGHT);
+            DrawTextRect(_position.x, _position.y, _position.w, fontHeight,
+                         (std::to_string(_entry.descendants) + " Comments").c_str(), ALIGN_RIGHT);
             titleHeight = TextRectHeight(_position.w, _entry.title.c_str(), 0);
             SetFont(entryFont, BLACK);
-            DrawTextRect(_position.x, _position.y + 2 * fontHeight, _position.w, titleHeight, _entry.title.c_str(), ALIGN_LEFT);
+            DrawTextRect(_position.x, _position.y + 2 * fontHeight, _position.w, titleHeight, _entry.title.c_str(),
+                         ALIGN_LEFT);
         }
         else
         {
@@ -107,10 +117,9 @@ void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold
             DrawTextRect(_position.x, _position.y, _position.w, fontHeight, children.c_str(), ALIGN_RIGHT);
         }
         beginY = beginY + 1.5 * fontHeight + titleHeight;
-
     }
 
-    //footer
+    // footer
 
     SetFont(entryFont, BLACK);
 

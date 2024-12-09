@@ -11,7 +11,8 @@
 
 #include <string>
 
-MinifluxViewEntry::MinifluxViewEntry(int page, const irect &position, const MfEntry &entry) : ListViewEntry(page, position) , _entry(entry)
+MinifluxViewEntry::MinifluxViewEntry(int page, const irect &position, const MfEntry &entry)
+    : ListViewEntry(page, position), _entry(entry)
 {
 }
 
@@ -37,25 +38,27 @@ void MinifluxViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold,
     DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, shortendURL.c_str(), ALIGN_LEFT);
 
     std::string textLeft;
-    if(_entry.downloaded == IsDownloaded::TOBEDOWNLOADED)
+    if (_entry.downloaded == IsDownloaded::TOBEDOWNLOADED)
         textLeft = "to be downloaded";
-    else if(_entry.downloaded == IsDownloaded::DOWNLOADED)
+    else if (_entry.downloaded == IsDownloaded::DOWNLOADED)
         textLeft = "downloaded";
-    else if(_entry.downloaded == IsDownloaded::FAILED)
+    else if (_entry.downloaded == IsDownloaded::FAILED)
         textLeft = "download failed";
-    //TODO add description why
+    // TODO add description why
 
     if (_entry.starred)
     {
-        if(!textLeft.empty())
+        if (!textLeft.empty())
             textLeft += " || ";
         textLeft += "starred";
     }
 
-    DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, textLeft.c_str(), ALIGN_LEFT);
+    DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, textLeft.c_str(),
+                 ALIGN_LEFT);
     DrawTextRect(_position.x, _position.y + heightOfTitle, _position.w, fontHeight, _entry.status.c_str(), ALIGN_RIGHT);
     if (_entry.reading_time > 0)
-        DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight, (std::to_string(_entry.reading_time) + " min").c_str(), ALIGN_RIGHT);
+        DrawTextRect(_position.x, _position.y + heightOfTitle + fontHeight, _position.w, fontHeight,
+                     (std::to_string(_entry.reading_time) + " min").c_str(), ALIGN_RIGHT);
 
     drawBottomLine();
 }

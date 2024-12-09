@@ -10,17 +10,16 @@
 #ifndef SQLITECONNECTOR
 #define SQLITECONNECTOR
 
-#include "sqlite3.h"
-#include "minifluxModel.h"
 #include "hackernewsModel.h"
+#include "minifluxModel.h"
+#include "sqlite3.h"
 
 #include <string>
 #include <vector>
 
 class SqliteConnector
 {
-public:
-
+  public:
     /**
      * Creates a new sqlConnector object containing the path to the DB
      *
@@ -57,7 +56,7 @@ public:
 
     std::vector<HnUser> selectHnUser();
 
-private:
+  private:
     std::string _dbpath;
     sqlite3 *_db;
 

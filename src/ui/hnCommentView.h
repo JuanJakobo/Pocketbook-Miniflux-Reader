@@ -9,25 +9,31 @@
 #ifndef HNCOMMENTVIEW
 #define HNCOMMENTVIEW
 
-#include "listView.h"
-#include "hnCommentViewEntry.h"
 #include "hackernewsModel.h"
+#include "hnCommentViewEntry.h"
+#include "listView.h"
 
 #include <vector>
 
 class HnCommentView final : public ListView
 {
-public:
+  public:
     /**
-        * Displays a list view
-        *
-        * @param ContentRect area of the screen where the list view is placed
-        * @param Items items that shall be shown in the listview
-        * @param page page that is shown, default is 1
-        */
-    HnCommentView(const irect &contentRect,const std::vector<HnEntry> &readerentries, int page = 1);
+     * Displays a list view
+     *
+     * @param ContentRect area of the screen where the list view is placed
+     * @param Items items that shall be shown in the listview
+     * @param page page that is shown, default is 1
+     */
+    HnCommentView(const irect &contentRect, const std::vector<HnEntry> &readerentries, int page = 1);
 
-    HnEntry &getCurrentEntry() const { return getEntry(_selectedEntry); };
-    HnEntry &getEntry(size_t entryID) const { return std::dynamic_pointer_cast<HnCommentViewEntry>(_entries.at(entryID))->getHnEntry(); };
+    HnEntry &getCurrentEntry() const
+    {
+        return getEntry(_selectedEntry);
+    };
+    HnEntry &getEntry(size_t entryID) const
+    {
+        return std::dynamic_pointer_cast<HnCommentViewEntry>(_entries.at(entryID))->getHnEntry();
+    };
 };
 #endif
