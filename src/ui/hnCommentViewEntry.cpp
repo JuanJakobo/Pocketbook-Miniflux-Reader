@@ -44,28 +44,23 @@ void HnCommentViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold
             //minutes
             if(seconds > 60){
                 seconds = seconds/60;
-                int sec = seconds;
-                time = std::to_string(sec) + " minutes ago";
+                time = std::to_string(static_cast<int>(seconds)) + " minutes ago";
                 //hours
                 if(seconds > 60){
                     seconds = seconds/60;
-                    int sec = seconds;
-                    time = std::to_string(sec) + " hours ago";
+                    time = std::to_string(static_cast<int>(seconds)) + " hours ago";
                     //days
                     if(seconds > 24){
                         seconds = seconds/24;
-                        int sec = seconds;
-                        time = std::to_string(sec) + " days ago";
+                        time = std::to_string(static_cast<int>(seconds)) + " days ago";
                         //month
                         if(seconds > 30){
                             seconds = seconds/30;
-                            int sec = seconds;
-                            time = std::to_string(sec) + " months ago";
+                            time = std::to_string(static_cast<int>(seconds)) + " months ago";
                             //years
                             if(seconds > 12){
                                 seconds = seconds/12;
-                                int sec = seconds;
-                                time = std::to_string(sec) + " years ago";
+                                time = std::to_string(static_cast<int>(seconds)) + " years ago";
                                 if(seconds > 1){
                                     strftime(time_buf, sizeof(time_buf), "%y-%m-%d %h:%m:%s %z", &ts);
                                     time = time_buf;
