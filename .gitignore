@@ -17,3 +17,8 @@ build/
 
 # Local History for Visual Studio Code
 .history/
+# Devenv
+.devenv*
+
+# direnv
+.direnv
