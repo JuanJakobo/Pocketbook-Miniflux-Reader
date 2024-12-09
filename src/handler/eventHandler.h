@@ -8,12 +8,11 @@
 // Description:      Handles all events and directs them
 //-------------------------------------------------------------------
 
-
 #include "inkview.h"
 
-#include "mainMenu.h"
 #include "contextMenu.h"
 #include "hnContextMenu.h"
+#include "mainMenu.h"
 
 #include "miniflux.h"
 #include "minifluxModel.h"
@@ -27,9 +26,9 @@
 
 #include "sqliteConnector.h"
 
-#include <string>
-#include <memory>
 #include <map>
+#include <memory>
+#include <string>
 #include <vector>
 
 enum class Views
@@ -46,8 +45,7 @@ const std::string DB_PATH = ARTICLE_FOLDER + "/data.db";
 
 class EventHandler
 {
-public:
-
+  public:
     /**
      * Defines fonds, sets global Event Handler and starts new content
      */
@@ -63,7 +61,7 @@ public:
      */
     int eventDistributor(const int type, const int par1, const int par2);
 
-private:
+  private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
     std::unique_ptr<MinifluxView> _minifluxView;
     std::unique_ptr<HnCommentView> _hnCommentView;
@@ -82,7 +80,6 @@ private:
     int _parentItemDescandands = 0;
     //TODO init and move
     std::string _downloadText;
-
 
     /**
      * Function needed to call C function, redirects to real function
@@ -194,9 +191,10 @@ private:
 
     void openArticle();
 
-    void recursive(const HnEntry& parent);
+    void recursive(const HnEntry &parent);
 
     void activatePocket();
 
+    std::vector<MfEntry> getCurrentItems();
 };
 #endif

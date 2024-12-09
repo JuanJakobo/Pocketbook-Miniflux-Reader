@@ -12,6 +12,7 @@
 #include "mainMenu.h"
 #include "contextMenu.h"
 #include "hnContextMenu.h"
+#include "mainMenu.h"
 
 #include "miniflux.h"
 #include "minifluxModel.h"
@@ -26,14 +27,16 @@
 #include "util.h"
 #include "log.h"
 #include "sqliteConnector.h"
+#include "util.h"
 
 #include <algorithm>
 #include <string>
 #include <memory>
 #include <map>
-#include <vector>
+#include <memory>
+#include <string>
 #include <thread>
-#include <mutex>
+#include <vector>
 
 #include <fstream>
 #include <sstream>
@@ -46,27 +49,30 @@ std::mutex mutexEntries;
 
 EventHandler::EventHandler()
 {
-    //create an copy of the eventhandler to handle methods that require static functions
+    // create an copy of the eventhandler to handle methods that require static functions
     //_eventHandlerStatic = std::make_unique<EventHandler>();
     _eventHandlerStatic = std::unique_ptr<EventHandler>(this);
-    //static std::shared_ptr<EventHandler> _eventHandlerStatic;
+    // static std::shared_ptr<EventHandler> _eventHandlerStatic;
 
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         if (iv_access(ARTICLE_FOLDER.c_str(), W_OK) != 0)
             iv_mkdir(ARTICLE_FOLDER.c_str(), 0666);
 
-        _miniflux = std::make_unique<Miniflux>(Miniflux(Util::accessConfig(Action::IReadString,"url"), Util::accessConfig(Action::IReadSecret,"token")));
+        _miniflux = std::make_unique<Miniflux>(
+            Miniflux(Util::accessConfig(Action::IReadString, "url"), Util::accessConfig(Action::IReadSecret, "token")));
 
-        vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
-        vector<MfEntry> toBeDownloaded = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
-        mfEntries.insert(mfEntries.end(),toBeDownloaded.begin(),toBeDownloaded.end());
+        // TODO: delete here entries that are to old
+        //_sqliteCon.deleteMfEntriesOlderThan(10);
 
-        if(!drawMinifluxEntries(mfEntries))
+        vector<MfEntry> mfEntries = getCurrentItems();
+
+        if (!drawMinifluxEntries(mfEntries))
         {
-            string filter = Util::accessConfig(Action::IReadString,"filter");
+            string filter = Util::accessConfig(Action::IReadString, "filter");
             if (filter.empty())
             {
+                // TODO: const
                 filter = "status=unread&direction=asc&limit=1000";
                 Util::accessConfig(Action::IWriteString, "filter", filter);
             }
@@ -77,7 +83,10 @@ EventHandler::EventHandler()
     }
     else
     {
-        Message(ICON_INFORMATION, "Config", ("Please create " + CONFIG_PATH + " containing username and token. Example is provided in the Repo.").c_str(), 5000);
+        Message(ICON_INFORMATION, "Config",
+                ("Please create " + CONFIG_PATH + " containing username and token. Example is provided in the Repo.")
+                    .c_str(),
+                5000);
         CloseApp();
     }
 
@@ -102,145 +111,154 @@ void EventHandler::mainMenuHandler(const int index)
 {
     switch (index)
     {
-        //show downloaded
-        case 101:
+    // show downloaded
+    case 101: {
+        vector<MfEntry> mfEntries = getCurrentItems();
+        drawMinifluxEntries(mfEntries);
+        break;
+    }
+        // show unread
+    case 102: {
+        filterAndDrawMiniflux(Util::accessConfig(Action::IReadString, "filter"));
+        break;
+    }
+        // show starred
+    case 103: {
+        // TODO const
+        filterAndDrawMiniflux("starred=true&direction=asc&limit=1000");
+        break;
+    }
+        // sync items
+    case 104: {
+        auto dialogResult = DialogSynchro(ICON_INFORMATION, "Action", "Shutdown after sync?", "Yes", "No", NULL);
+        auto toggleShutdown{false};
+        if (dialogResult == 1)
+        {
+            toggleShutdown = true;
+        }
+        SetFrontlightEnabled(0);
+        OpenProgressbar(ICON_INFORMATION, "Syncing items", "Downloading Miniflux Entries", 0, NULL);
+        vector<MfEntry> entriesToSync = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
+
+        double percentageMove = entriesToSync.size();
+        percentageMove = 1 / percentageMove * 98;
+        _currentPercentage = 0;
+        for (const auto &ent : entriesToSync)
+        {
+            try
             {
+                _currentPercentage += percentageMove;
+                _downloadText = "Downloading \"" + ent.title + "\"";
+                UpdateProgressbar(_downloadText.c_str(), _currentPercentage);
+                if (ent.url.find("news.ycombinator.com") == std::string::npos)
+                {
+                    if (!Util::createHtml(ent.title, ent.content))
+                    {
+                        throw std::invalid_argument("Could not create html.");
+                    }
+                }
+
+                if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
+                {
+                    _hnEntries.clear();
+                    BanSleep(2000);
+
+                    downloadHnEntries(getHnIDFromURL(ent.comments_url));
+
+                    for (auto &item : _hnEntries)
+                    {
+                        item.mfEntryId = ent.id;
+                    }
+                    _sqliteCon.insertHnEntries(_hnEntries);
+                }
+
+                _sqliteCon.updateDownloadStatusMfEntry(ent.id, IsDownloaded::DOWNLOADED);
+            }
+            catch (const std::exception &e)
+            {
+                Log::writeErrorLog(e.what());
+                _sqliteCon.updateDownloadStatusMfEntry(ent.id, IsDownloaded::FAILED);
+            }
+        }
+        UpdateProgressbar("Updating downloaded items.", 99);
+        _sqliteCon.deleteNotDownloadedMfEntries();
+
+        vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
+        for (auto &mfEntry : mfEntries)
+        {
+            try
+            {
+                mfEntry = _miniflux->getEntry(mfEntry.id);
+                _sqliteCon.updateMfEntry(mfEntry.id, mfEntry.starred, mfEntry.status);
+                // TODO: also delete if not longer there?
+            }
+            catch (const std::exception &e)
+            {
+                Log::writeErrorLog(e.what());
+            }
+        }
+        CloseProgressbar();
+        SetFrontlightEnabled(1);
+        if (toggleShutdown)
+        {
+            PowerOff();
+        }
+        else
+        {
+            mfEntries = getCurrentItems();
+            drawMinifluxEntries(mfEntries);
+        }
+        break;
+    }
+        // Mark as read till page
+    case 105: {
+        try
+        {
+            if (_currentView == Views::MFVIEW)
+            {
+                _miniflux->updateEntries(_minifluxView->getEntriesTillPage(), true);
+                /* filterAndDrawMiniflux(Util::accessConfig(Action::IReadString,"filter")); */
                 vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
                 vector<MfEntry> toBeDownloaded = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
-                mfEntries.insert(mfEntries.end(),toBeDownloaded.begin(),toBeDownloaded.end());
+                mfEntries.insert(mfEntries.end(), toBeDownloaded.begin(), toBeDownloaded.end());
                 drawMinifluxEntries(mfEntries);
-                break;
             }
-            //show unread
-        case 102:
+            else
             {
-                filterAndDrawMiniflux(Util::accessConfig(Action::IReadString,"filter"));
-                break;
+                Message(ICON_ERROR, "Error", "Could not mark entries as read", 1200);
             }
-            //show starred
-        case 103:
-            {
-                filterAndDrawMiniflux("starred=true&direction=asc&limit=1000");
-                break;
-            }
-            //sync items
-        case 104:
-            {
-                auto curFrontLight = GetFrontlightState();
-                Log::writeInfoLog(std::to_string(curFrontLight));
-                SetFrontlightEnabled(0);
-                OpenProgressbar(ICON_INFORMATION, "Syncing items", "Downloading Miniflux Entries", 0, NULL);
-                vector<MfEntry> entriesToSync =  _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
-
-                double percentageMove = entriesToSync.size();
-                percentageMove = 1/ percentageMove * 98;
-                _currentPercentage = 0;
-                for (const auto& ent : entriesToSync)
-                {
-                    std::thread imageDownloadThread;
-                    try
-                    {
-                        _currentPercentage += percentageMove;
-                        _downloadText = "Downloading \"" + ent.title + "\"";
-                        UpdateProgressbar(_downloadText.c_str(), _currentPercentage);
-                        if (ent.url.find("news.ycombinator.com") == std::string::npos)
-                        {
-                            imageDownloadThread = std::thread{Util::createHtml, ent.title, ent.content};
-                        }
-                        if (ent.comments_url.find("news.ycombinator.com") != std::string::npos)
-                        {
-                            _hnEntries.clear();
-                            BanSleep(2000);
-
-                            downloadHnEntries(getHnIDFromURL(ent.comments_url));
-
-                            for(auto& item : _hnEntries)
-                            {
-                                item.mfEntryId = ent.id;
-                            }
-                            _sqliteCon.insertHnEntries(_hnEntries);
-                        }
-
-                        _sqliteCon.updateDownloadStatusMfEntry(ent.id,IsDownloaded::DOWNLOADED);
-                    }
-                    catch (const std::exception &e)
-                    {
-                        Log::writeErrorLog(e.what());
-                        Message(ICON_INFORMATION, "Error while downloading", e.what(), 1200);
-                    }
-                    if(imageDownloadThread.joinable())
-                        imageDownloadThread.join();
-                }
-                UpdateProgressbar("Updating downloaded items.", 99);
-                _sqliteCon.deleteNotDownloadedMfEntries();
-
-                vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
-                for(auto& mfEntry : mfEntries)
-                {
-                    try{
-                        mfEntry = _miniflux->getEntry(mfEntry.id);
-                        _sqliteCon.updateMfEntry(mfEntry.id, mfEntry.starred, mfEntry.status);
-                        //TODO also delete if not longer there?
-                    }
-                    catch (const std::exception &e)
-                    {
-                        Log::writeErrorLog(e.what());
-                    }
-                }
-                mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
-                CloseProgressbar();
-                SetFrontlightEnabled(1);
-                drawMinifluxEntries(mfEntries);
-                //no effect...
-                //WiFiPower(0);
-                break;
-            }
-            //Mark as read till page
-        case 105:
-            {
-                try{
-                    if(_currentView == Views::MFVIEW){
-                        _miniflux->updateEntries(_minifluxView->getEntriesTillPage(), true);
-                        filterAndDrawMiniflux(Util::accessConfig(Action::IReadString,"filter"));
-                    }
-                    else
-                    {
-                        Message(ICON_ERROR, "Error", "Could not mark entries as read", 1200);
-                    }
-                }
-                catch (const std::exception &e)
-                {
-                    Log::writeErrorLog(e.what());
-                    Message(ICON_ERROR, "Error", e.what(), 1200);
-                }
-                break;
-            }
-            //Go back to miniflux overview
-        case 106:
-            {
-                _minifluxView->draw();
-                _currentView = Views::MFVIEW;
-                break;
-            }
-        case 107:
-            {
-                string message;
-                Message(ICON_INFORMATION, "Info",
-                        message.append("Version ")
-                            .append(PROGRAMVERSION)
-                            .append("\nFor support please open a ticket at "
-                                    "https://github.com/JuanJakobo/"
-                                    "Pocketbook-Miniflux-Reader/issues")
-                            .c_str(),
-                        1200);
-                break;
-            }
-            //Exit
-        case 108:
-            CloseApp();
-            break;
-        default:
-            break;
+        }
+        catch (const std::exception &e)
+        {
+            Log::writeErrorLog(e.what());
+            Message(ICON_ERROR, "Error", e.what(), 1200);
+        }
+        break;
+    }
+        // Go back to miniflux overview
+    case 106: {
+        _minifluxView->draw();
+        _currentView = Views::MFVIEW;
+        break;
+    }
+    case 107: {
+        string message;
+        Message(ICON_INFORMATION, "Info",
+                message.append("Version ")
+                    .append(PROGRAMVERSION)
+                    .append("\nFor support please open a ticket at "
+                            "https://github.com/JuanJakobo/"
+                            "Pocketbook-Miniflux-Reader/issues")
+                    .c_str(),
+                1200);
+        break;
+    }
+        // Exit
+    case 108:
+        CloseApp();
+        break;
+    default:
+        break;
     }
 }
 
@@ -363,64 +381,65 @@ void EventHandler::contextMenuHandler(const int index)
 {
     switch (index)
     {
-        //openArticle Hackernews
-        case 101:
-            {
-                openArticle();
-                break;
-            }
-            //Mark/Unmark to download
-        case 102:
-            {
-                if(_minifluxView->getCurrentEntry().downloaded == IsDownloaded::TOBEDOWNLOADED || _minifluxView->getCurrentEntry().downloaded == IsDownloaded::DOWNLOADED)
-                {
-                    _sqliteCon.deleteHnEntries(_minifluxView->getCurrentEntry().id);
-                    string title_folder = Util::returnFolderName(_minifluxView->getCurrentEntry().title);
-                    string cmd = "rm -rf \"" + title_folder + "\"";
-                    system(cmd.c_str());
-                    _minifluxView->getCurrentEntry().downloaded = IsDownloaded::NOTDOWNLOADED;
-                }
-                else if(_minifluxView->getCurrentEntry().downloaded == IsDownloaded::NOTDOWNLOADED)
-                {
-                    _minifluxView->getCurrentEntry().downloaded = IsDownloaded::TOBEDOWNLOADED;
-                }
-                _sqliteCon.updateDownloadStatusMfEntry(_minifluxView->getCurrentEntry().id, _minifluxView->getCurrentEntry().downloaded);
-                _minifluxView->reDrawCurrentEntry();
-                break;
-            }
-            //Unstar/Star
-        case 103:
-            {
-                try{
-                    MfEntry entry = _miniflux->getEntry(_minifluxView->getCurrentEntry().id);
-                    _minifluxView->getCurrentEntry().status = entry.status;
+    // openArticle Hackernews
+    case 101: {
+        openArticle();
+        break;
+    }
+        // Mark/Unmark to download
+    case 102: {
+        if (_minifluxView->getCurrentEntry().downloaded == IsDownloaded::TOBEDOWNLOADED ||
+            _minifluxView->getCurrentEntry().downloaded == IsDownloaded::DOWNLOADED)
+        {
+            _sqliteCon.deleteHnEntries(_minifluxView->getCurrentEntry().id);
+            string title_folder = Util::returnFolderName(_minifluxView->getCurrentEntry().title);
+            string cmd = "rm -rf \"" + title_folder + "\"";
+            system(cmd.c_str());
+            _minifluxView->getCurrentEntry().downloaded = IsDownloaded::NOTDOWNLOADED;
+        }
+        else if (_minifluxView->getCurrentEntry().downloaded == IsDownloaded::NOTDOWNLOADED ||
+                 _minifluxView->getCurrentEntry().downloaded == IsDownloaded::FAILED)
+        {
+            _minifluxView->getCurrentEntry().downloaded = IsDownloaded::TOBEDOWNLOADED;
+        }
+        _sqliteCon.updateDownloadStatusMfEntry(_minifluxView->getCurrentEntry().id,
+                                               _minifluxView->getCurrentEntry().downloaded);
+        _minifluxView->reDrawCurrentEntry();
+        break;
+    }
+        // Unstar/Star
+    case 103: {
+        try
+        {
+            MfEntry entry = _miniflux->getEntry(_minifluxView->getCurrentEntry().id);
+            _minifluxView->getCurrentEntry().status = entry.status;
 
-                    if(entry.starred != _minifluxView->getCurrentEntry().starred)
-                    {
-                        _minifluxView->getCurrentEntry().starred = entry.starred;
-                    }
-                    else
-                    {
-                        _miniflux->toggleBookmark(_minifluxView->getCurrentEntry().id);
-                        _minifluxView->getCurrentEntry().starred = !_minifluxView->getCurrentEntry().starred;
-                    }
-                    _sqliteCon.updateMfEntry(_minifluxView->getCurrentEntry().id, _minifluxView->getCurrentEntry().starred, entry.status);
-                    _minifluxView->reDrawCurrentEntry();
-                }
-                catch (const std::exception &e)
-                {
-                    Log::writeErrorLog(e.what());
-                    Message(ICON_ERROR, "Error", e.what(), 1200);
-                    _minifluxView->invertCurrentEntryColor();
-                }
-                HideHourglass();
-                break;
-            }
-        default:
+            if (entry.starred != _minifluxView->getCurrentEntry().starred)
             {
-                _minifluxView->invertCurrentEntryColor();
-                break;
+                _minifluxView->getCurrentEntry().starred = entry.starred;
             }
+            else
+            {
+                _miniflux->toggleBookmark(_minifluxView->getCurrentEntry().id);
+                _minifluxView->getCurrentEntry().starred = !_minifluxView->getCurrentEntry().starred;
+            }
+            _sqliteCon.updateMfEntry(_minifluxView->getCurrentEntry().id, _minifluxView->getCurrentEntry().starred,
+                                     entry.status);
+            _minifluxView->reDrawCurrentEntry();
+        }
+        catch (const std::exception &e)
+        {
+            Log::writeErrorLog(e.what());
+            Message(ICON_ERROR, "Error", e.what(), 1200);
+            _minifluxView->invertCurrentEntryColor();
+        }
+        HideHourglass();
+        break;
+    }
+    default: {
+        _minifluxView->invertCurrentEntryColor();
+        break;
+    }
     }
 }
 
@@ -433,18 +452,22 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             if (_minifluxView->checkIfEntryClicked(par1, par2))
                 _minifluxView->invertCurrentEntryColor();
 
-            bool isHn = (_minifluxView->getCurrentEntry().comments_url.find("news.ycombinator.com") != std::string::npos) ? true : false;
+            bool isHn =
+                (_minifluxView->getCurrentEntry().comments_url.find("news.ycombinator.com") != std::string::npos)
+                    ? true
+                    : false;
 
             string downloaded;
-            if(_minifluxView->getCurrentEntry().downloaded == IsDownloaded::TOBEDOWNLOADED)
+            if (_minifluxView->getCurrentEntry().downloaded == IsDownloaded::TOBEDOWNLOADED)
                 downloaded = "Remove download mark";
-            else if(_minifluxView->getCurrentEntry().downloaded == IsDownloaded::NOTDOWNLOADED)
+            else if (_minifluxView->getCurrentEntry().downloaded == IsDownloaded::NOTDOWNLOADED ||
+                     _minifluxView->getCurrentEntry().downloaded == IsDownloaded::FAILED)
                 downloaded = "Add download mark";
-            else if(_minifluxView->getCurrentEntry().downloaded == IsDownloaded::DOWNLOADED)
+            else if (_minifluxView->getCurrentEntry().downloaded == IsDownloaded::DOWNLOADED)
                 downloaded = "Remove item";
 
-            _contextMenu.createMenu(par2, EventHandler::contextMenuHandlerStatic, isHn, _minifluxView->getCurrentEntry().starred, downloaded);
-            return 0;
+            _contextMenu.createMenu(par2, EventHandler::contextMenuHandlerStatic, isHn,
+                                    _minifluxView->getCurrentEntry().starred, downloaded);
         }
         else if (_currentView == Views::HNCOMMENTSVIEW)
         {
@@ -452,13 +475,12 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
             {
                 _hnCommentView->invertCurrentEntryColor();
                 _hnContextMenu.createMenu(par2, EventHandler::hnContextMenuHandlerStatic);
-                return 0;
             }
         }
     }
     else if (type == EVT_POINTERUP)
     {
-        //if menu is clicked
+        // if menu is clicked
         if (IsInRect(par1, par2, &_menu.getMenuButtonRect()) == 1)
         {
             auto mainView = (_currentView == Views::HNCOMMENTSVIEW) ? false : true;
@@ -480,7 +502,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     openArticle();
                 }
             }
-            return 0;
         }
         else if (_currentView == Views::HNCOMMENTSVIEW)
         {
@@ -505,7 +526,6 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
                     drawHN(_hnCommentView->getCurrentEntry().id);
                 }
             }
-            return 0;
         }
     }
     return 0;
@@ -513,7 +533,8 @@ int EventHandler::pointerHandler(const int type, const int par1, const int par2)
 
 int EventHandler::keyHandler(const int type, const int par1, [[maybe_unused]] const int par2)
 {
-    //menu button
+    // TODO: block while action is ongoing!
+    // menu button
     if (type == EVT_KEYPRESS)
     {
 
@@ -524,13 +545,13 @@ int EventHandler::keyHandler(const int type, const int par1, [[maybe_unused]] co
                 _minifluxView->firstPage();
                 return 0;
             }
-            //left button -> pre page
+            // left button -> pre page
             else if (par1 == 24)
             {
                 _minifluxView->prevPage();
                 return 0;
             }
-            //right button -> next page
+            // right button -> next page
             else if (par1 == 25)
             {
                 _minifluxView->nextPage();
@@ -539,7 +560,7 @@ int EventHandler::keyHandler(const int type, const int par1, [[maybe_unused]] co
         }
         else if (_currentView == Views::HNCOMMENTSVIEW)
         {
-            //go back one page
+            // go back one page
             if (par1 == 23)
             {
                 if (_hnCommentView->getEntry(0).parent != 0)
@@ -553,13 +574,13 @@ int EventHandler::keyHandler(const int type, const int par1, [[maybe_unused]] co
                 }
                 return 0;
             }
-            //left button -> pre page
+            // left button -> pre page
             else if (par1 == 24)
             {
                 _hnCommentView->prevPage();
                 return 0;
             }
-            //right button -> next page
+            // right button -> next page
             else if (par1 == 25)
             {
                 _hnCommentView->nextPage();
@@ -575,7 +596,7 @@ bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
 {
     if (mfEntries.size() > 0)
     {
-        _minifluxView.reset(new MinifluxView(_menu.getContentRect(),mfEntries,1));
+        _minifluxView.reset(new MinifluxView(_menu.getContentRect(), mfEntries, 1));
         _minifluxView->draw();
         _currentView = Views::MFVIEW;
         return true;
@@ -586,24 +607,25 @@ bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
         DrawTextRect2(&_menu.getContentRect(), "no entries to show");
         _minifluxView.reset();
         _currentView = Views::DEFAULTVIEW;
-        PartialUpdate(_menu.getContentRect().x, _menu.getContentRect().y, _menu.getContentRect().w, _menu.getContentRect().h);
+        PartialUpdate(_menu.getContentRect().x, _menu.getContentRect().y, _menu.getContentRect().w,
+                      _menu.getContentRect().h);
         return false;
     }
-
 }
 
 void EventHandler::filterAndDrawMiniflux(const string &filter)
 {
     if (!filter.empty())
     {
-        try{
+        try
+        {
             vector<MfEntry> mfEntries = _miniflux->getEntries(filter);
             vector<MfEntry> oldEntries = _sqliteCon.selectMfEntries();
-            for(size_t i = 0; i < mfEntries.size(); i++)
+            for (size_t i = 0; i < mfEntries.size(); i++)
             {
-                for(size_t j = 0; j < oldEntries.size();j++)
+                for (size_t j = 0; j < oldEntries.size(); j++)
                 {
-                    if(mfEntries.at(i).id == oldEntries.at(j).id)
+                    if (mfEntries.at(i).id == oldEntries.at(j).id)
                     {
                         mfEntries.at(i).downloaded = oldEntries.at(j).downloaded;
                         break;
@@ -623,17 +645,17 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
 
 void EventHandler::recursive(const HnEntry &parent)
 {
-    for(const auto id : parent.kids)
+    for (const auto id : parent.kids)
     {
-    //TODO check if are in DB?
-    //HnEntry temp = _sqliteCon.selectHnEntry(id);
-    //if (temp.id == -1)
+        // TODO: check if are in DB?
+        // HnEntry temp = _sqliteCon.selectHnEntry(id);
+        // if (temp.id == -1)
         try
         {
-            HnEntry temp = Hackernews::getEntry(id);
+            HnEntry temp = _hackernews.getEntry(id);
             if (!temp.text.empty())
             {
-                //TODO use constexpr?
+                // TODO: use constexpr?
                 Util::decodeHTML(temp.text);
                 auto found = temp.text.find("<a href=\"");
                 while (found != std::string::npos)
@@ -675,7 +697,7 @@ void EventHandler::recursive(const HnEntry &parent)
     }
 }
 
-//TODO recursive or thread?
+// TODO: recursive or thread?
 void EventHandler::downloadHnEntries(int parentCommentItemID)
 {
     //_sqliteCon.selectHnEntries(entryID, _hnEntries);
@@ -684,10 +706,10 @@ void EventHandler::downloadHnEntries(int parentCommentItemID)
     if (parentItem.id == -1)
     {
         Util::connectToNetwork();
-        parentItem = Hackernews::getEntry(parentCommentItemID);
-        if(!parentItem.title.empty())
+        parentItem = _hackernews.getEntry(parentCommentItemID);
+        if (!parentItem.title.empty())
             Util::decodeHTML(parentItem.title);
-        if(!parentItem.text.empty())
+        if (!parentItem.text.empty())
             Util::decodeHTML(parentItem.text);
         _hnEntries.push_back(parentItem);
     }
@@ -697,68 +719,19 @@ void EventHandler::downloadHnEntries(int parentCommentItemID)
     recursive(parentItem);
 }
 
-void EventHandler::getHnEntry(int commentID)
-{
-    try
-    {
-        HnEntry temp = Hackernews::getEntry(commentID);
-        if (!temp.text.empty())
-        {
-            //TODO use constexpr?
-            Util::decodeHTML(temp.text);
-            auto found = temp.text.find("<a href=\"");
-            while (found != std::string::npos)
-            {
-                auto end3 = temp.text.find("</a>");
-
-                string toFind = temp.text.substr(found, (end3 + 4) - found);
-
-                auto url = toFind.substr(9);
-
-                auto src = url.find("\"");
-
-                url = url.substr(0, src);
-
-                temp.urls.push_back(url);
-
-                auto end1 = toFind.find(">");
-                auto end2 = toFind.find("</a>");
-
-                auto urlContent = toFind.substr(end1 + 1, end2 - end1 - 1);
-
-                auto toReplace = temp.text.find(toFind);
-
-                if (toReplace != std::string::npos)
-                {
-                    temp.text.replace(toReplace, toFind.size(), urlContent);
-                }
-
-                found = temp.text.find("<a href=\"");
-            }
-        }
-        mutexEntries.lock();
-        _eventHandlerStatic->_hnEntries.push_back(temp);
-        mutexEntries.unlock();
-    }
-    catch (const std::exception &e)
-    {
-        Log::writeErrorLog(e.what());
-    }
-}
-
-//TODO MOVEEEE to own class and make shorter...
-
 void EventHandler::drawHN(int entryID)
 {
     std::vector<HnEntry> currentHnComments;
 
     _hnEntries.clear();
 
-    //test if all are there?
+    // test if all are there?
     HnEntry parentItem = _sqliteCon.selectHnEntry(entryID);
     if (parentItem.id == -1)
     {
-        if(DialogSynchro(ICON_INFORMATION, "Action","Comment are not downloaded. This might take a while.", "Download", "Cancel", nullptr) == 1)
+        // TODO: here is asked
+        if (DialogSynchro(ICON_INFORMATION, "Action", "Comment are not downloaded. This might take a while.",
+                          "Download", "Cancel", nullptr) == 1)
         {
             downloadHnEntries(entryID);
         }
@@ -785,7 +758,6 @@ void EventHandler::drawHN(int entryID)
 
         currentHnComments.push_back(parentItem);
 
-        //TODO why?
         for (size_t i = 0; i < parentItem.kids.size(); ++i)
         {
             for (size_t j = 0; j < _hnEntries.size(); ++j)
@@ -813,8 +785,6 @@ void EventHandler::drawHN(int entryID)
             page = 1;
         }
 
-        //TODO calculate each time newly...
-        //have a vector of comment views?
         _hnCommentView.reset(new HnCommentView(_menu.getContentRect(), currentHnComments, page));
         _currentView = Views::HNCOMMENTSVIEW;
     }
@@ -835,95 +805,74 @@ int EventHandler::getHnIDFromURL(const string &url)
     return std::stoi(parentCommentItemID);
 }
 
-
 void EventHandler::openArticle()
 {
-                    string excerpt = _minifluxView->getCurrentEntry().content;
+    string excerpt = _minifluxView->getCurrentEntry().content;
 
-                    Util::replaceAll(excerpt,"\n", "");
-                    Util::decodeHTML(excerpt);
+    Util::replaceAll(excerpt, "\n", "");
+    Util::decodeHTML(excerpt);
 
-                    auto found = excerpt.find('<');
-                    while (found != std::string::npos)
-                    {
-                        auto end = excerpt.find('>');
-                        if(end != std::string::npos)
-                        {
-                            auto replaceString = excerpt.substr(found, (end + 1) - found);
+    auto found = excerpt.find('<');
+    while (found != std::string::npos)
+    {
+        auto end = excerpt.find('>');
+        if (end != std::string::npos)
+        {
+            auto replaceString = excerpt.substr(found, (end + 1) - found);
 
-                            if(!replaceString.empty())
-                            {
-                                auto replaceBegin = excerpt.find(replaceString);
-                                if (replaceBegin != std::string::npos)
-                                    excerpt.replace(replaceBegin, replaceString.size(), "");
-                                found = excerpt.find("<");
-                            }
-                            else
-                            {
-                                found = std::string::npos;
-                            }
-                        }
-                        else
-                        {
-                            found = std::string::npos;
-                        }
-                    }
+            if (!replaceString.empty())
+            {
+                auto replaceBegin = excerpt.find(replaceString);
+                if (replaceBegin != std::string::npos)
+                    excerpt.replace(replaceBegin, replaceString.size(), "");
+                found = excerpt.find("<");
+            }
+            else
+            {
+                found = std::string::npos;
+            }
+        }
+        else
+        {
+            found = std::string::npos;
+        }
+    }
 
-                    if(excerpt.size() > 800)
-                        excerpt = excerpt.substr(0,800);
-                    else if(excerpt.empty())
-                        excerpt = "no excerpt";
-
-                    int dialogResult = DialogSynchro(ICON_INFORMATION, "Action",("Excerpt\n" + excerpt + "...").c_str(), "Read article", "Send to Pocket", "Cancel");
-                    switch (dialogResult)
-                    {
-                        case 1:
-                            {
-                                if (_minifluxView->getCurrentEntry().reading_time == 0)
-                                {
-                                    Message(ICON_INFORMATION, "Info", "The content of the article has not been provided by miniflux.", 1000);
-                                }
-                                else
-                                {
-
-                                    //TODO change...
-                                    auto path = Util::createHtml(_minifluxView->getCurrentEntry().title, _minifluxView->getCurrentEntry().content);
-                                    OpenBook(path.c_str(), "", 0);
-                                }
-                                break;
-                            }
-                        case 2:
-                            {
-                                activatePocket();
-                                _pocket->addItems(_minifluxView->getCurrentEntry().url);
-                                HideHourglass();
-                            break;
-                            }
-                        default:
-                            break;
-                    }
-                    _minifluxView->invertCurrentEntryColor();
-}
+    if (excerpt.size() > 800)
+        excerpt = excerpt.substr(0, 800);
+    else if (excerpt.empty())
+        excerpt = "no excerpt";
 
 
 void EventHandler::activatePocket()
 {
-    if(!_pocket)
+    if (!_pocket)
     {
         if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
         {
-            auto accessToken = Util::accessConfig(Action::IReadSecret,"AccessToken");
-            if(!accessToken.empty())
+            auto accessToken = Util::accessConfig(Action::IReadSecret, "AccessToken");
+            if (!accessToken.empty())
                 _pocket = std::make_unique<Pocket>();
         }
         else
         {
-            int dialogResult = DialogSynchro(ICON_INFORMATION, "Action","Do you want to activate Pocket?", "Yes", "No", "Cancel");
+            int dialogResult =
+                DialogSynchro(ICON_INFORMATION, "Action", "Do you want to activate Pocket?", "Yes", "No", "Cancel");
             if (dialogResult == 1)
             {
                 _pocket = std::make_unique<Pocket>();
             }
         }
-
     }
+}
+
+vector<MfEntry> EventHandler::getCurrentItems()
+{
+    vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
+    vector<MfEntry> toBeDownloadedEntries = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
+    vector<MfEntry> failedEntries = _sqliteCon.selectMfEntries(IsDownloaded::FAILED);
+    mfEntries.insert(mfEntries.end(), toBeDownloadedEntries.begin(), toBeDownloadedEntries.end());
+    mfEntries.insert(mfEntries.end(), failedEntries.begin(), failedEntries.end());
+
+    return mfEntries;
 }

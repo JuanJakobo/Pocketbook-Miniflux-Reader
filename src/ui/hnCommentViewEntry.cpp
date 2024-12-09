@@ -15,7 +15,7 @@
 #include <iostream>
 #include <time.h>
 
-HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect, const HnEntry &entry, bool drawHeader) : ListViewEntry(page, rect), _entry(entry), _drawHeader(drawHeader)
+HnCommentViewEntry::HnCommentViewEntry(int page, const irect rect, const HnEntry &entry, bool drawHeader) : ListViewEntry(page, rect), _drawHeader(drawHeader), _entry(entry)
 {
 }
 
