@@ -1,10 +1,10 @@
-CMAKE_MINIMUM_REQUIRED (VERSION 3.27.5)
-PROJECT (Pocketbook-Miniflux-Reader VERSION 1.00)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.27.5)
+PROJECT(Pocketbook-Miniflux-Reader VERSION 1.00)
 
-find_package(jsoncpp REQUIRED)
+FIND_PACKAGE(jsoncpp REQUIRED)
 
-add_compile_options(-std=c++17)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+ADD_COMPILE_OPTIONS(-std=c++17)
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Where to build the targets
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
@@ -15,8 +15,8 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 SET(PB_INCLUDE_DIRECTORIES $ENV{SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/local/include/)
 SET(FREETYPE_INCLUDE_DIRS $ENV{SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/include/freetype2/)
 #Set if building without docker
-SET(PB_INCLUDE_DIRECTORIES ${SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/local/include/)
-SET(FREETYPE_INCLUDE_DIRS ${SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/include/freetype2/)
+#SET(PB_INCLUDE_DIRECTORIES ${SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/local/include/)
+#SET(FREETYPE_INCLUDE_DIRS ${SDK_BASE}/usr/arm-obreey-linux-gnueabi/sysroot/usr/include/freetype2/)
 
 # Include the SDK
 SET(CMAKE_TOOLCHAIN_FILE $ENV{SDK_BASE}/share/cmake/arm_conf.cmake)
