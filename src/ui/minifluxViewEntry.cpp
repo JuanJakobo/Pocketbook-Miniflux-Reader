@@ -41,6 +41,9 @@ void MinifluxViewEntry::draw(const ifont *entryFont, const ifont *entryFontBold,
         textLeft = "to be downloaded";
     else if(_entry.downloaded == IsDownloaded::DOWNLOADED)
         textLeft = "downloaded";
+    else if(_entry.downloaded == IsDownloaded::FAILED)
+        textLeft = "download failed";
+    //TODO add description why
 
     if (_entry.starred)
     {

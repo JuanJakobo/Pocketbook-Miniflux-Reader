@@ -14,7 +14,8 @@ enum IsDownloaded
 {
     NOTDOWNLOADED,
     TOBEDOWNLOADED,
-    DOWNLOADED
+    DOWNLOADED,
+    FAILED
 };
 
 struct MfEntry : Entry
