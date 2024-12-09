@@ -19,6 +19,16 @@ using std::string;
 namespace
 {
 constexpr auto HACKERNEWS_API_URL{"https://hacker-news.firebaseio.com/v0/"};
+constexpr auto FETCH_ERROR_MSG{"Failed to parse Response to json"};
+} // namespace
+
+Hackernews::Hackernews()
+{
+    _curl = curl_easy_init();
+}
+Hackernews::~Hackernews()
+{
+    curl_easy_cleanup(_curl);
 }
 
 HnEntry Hackernews::getEntry(int entryID)
@@ -123,29 +133,26 @@ HnUser Hackernews::getUser(const string &username)
 
 Json::Value Hackernews::get(const string &apiEndpoint)
 {
-
-    string url = HACKERNEWS_API_URL + apiEndpoint;
+    const auto url{HACKERNEWS_API_URL + apiEndpoint};
 
     string readBuffer;
     CURLcode res;
-    CURL *curl = curl_easy_init();
 
-    if (curl)
+    if (_curl)
     {
-
+        // TODO: keep curl request alive?
         struct curl_slist *headers = NULL;
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(_curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &readBuffer);
 
-        res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
+        res = curl_easy_perform(_curl);
 
         if (res == CURLE_OK)
         {
             long response_code;
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+            curl_easy_getinfo(_curl, CURLINFO_RESPONSE_CODE, &response_code);
 
             switch (response_code)
             {
@@ -156,9 +163,8 @@ Json::Value Hackernews::get(const string &apiEndpoint)
                 {
                     return root;
                 }
-                constexpr auto err_msg{"Failed to parse Response to json"};
-                Log::writeErrorLog(err_msg);
-                throw std::runtime_error(err_msg);
+                Log::writeErrorLog(FETCH_ERROR_MSG);
+                throw std::runtime_error(FETCH_ERROR_MSG);
             }
             default: {
                 Log::writeErrorLog("Hackernews API: " + url + " Response Code: " + std::to_string(res));

@@ -19,6 +19,9 @@
 class Hackernews
 {
   public:
+    Hackernews();
+
+    ~Hackernews();
     /**
      * Gets the information about an hn item
      *
@@ -26,7 +29,7 @@ class Hackernews
      *
      * @return HnItem containing the information of the itemID
      */
-    static HnEntry getEntry(int itemID);
+    HnEntry getEntry(int itemID);
 
     /**
      * Gets the information about a user
@@ -35,10 +38,10 @@ class Hackernews
      *
      * @return HnUser containing informations
      */
-    static HnUser getUser(const std::string &username);
+    HnUser getUser(const std::string &username);
 
   private:
-    Hackernews();
+    CURL *_curl;
 
     /**
      * Does a get request to the given api endpoint
@@ -47,7 +50,7 @@ class Hackernews
      *
      * @return returns a json object receivt from the api
      */
-    static Json::Value get(const std::string &apiEndpoint);
+    Json::Value get(const std::string &apiEndpoint);
 };
 
 #endif
