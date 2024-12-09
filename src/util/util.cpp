@@ -117,7 +117,7 @@ string Util::getData(const string &url)
             case 200:
                 return readBuffer;
             default:
-                throw std::runtime_error("getData " + url + " HTML Error Code" + std::to_string(response_code));
+                throw std::runtime_error("getData " + url + " HTML Error Code " + std::to_string(response_code));
             }
         }
         else
@@ -145,9 +145,9 @@ void Util::decodeHTML(string &data)
 
 string Util::clearString(string title)
 {
-    const std::string forbiddenInFiles = "<>$\\/:?\"|";
+    const std::string forbiddenInFiles = "<>$\\/:?\"|*";
     std::transform(title.begin(), title.end(), title.begin(), [&forbiddenInFiles](char c)
-            { return forbiddenInFiles.find(c) != std::string::npos ? ' ' : c; });
+            { return forbiddenInFiles.find(c) != std::string::npos ? '_' : c; });
     return title;
 }
 
@@ -157,17 +157,29 @@ string Util::returnFolderName(string title)
     return ARTICLE_FOLDER + "/" + clearString(title) + "/";
 }
 
-string Util::createHtml(const string &title,string content)
+string Util::returnTitlePath(string title)
 {
-    string title_folder = returnFolderName(title);
-    string title_path = title_folder + clearString(title) + ".html";
+    replaceAll(title, " ", "_");
+    return returnFolderName(title) + clearString(title) + ".html";
+}
+
+bool Util::createHtml(const string &title,string content)
+{
+    const auto title_folder{returnFolderName(title)};
+    const auto title_path{returnTitlePath(title)};
+
     if (iv_access(title_folder.c_str(), W_OK) != 0)
     {
         Util::connectToNetwork();
+        Log::writeInfoLog(title_folder);
 
-        iv_mkdir(title_folder.c_str(), 0666);
+        if(iv_mkdir(title_folder.c_str(), 0666) != 0)
+        {
+            Log::writeErrorLog("Could not create article path " + title_folder);
+            return false;
+        }
 
-        string result = content;
+        auto finalHtml = content;
 
         std::map<string,int> images;
         auto counter = 0;
@@ -188,6 +200,7 @@ string Util::createHtml(const string &title,string content)
             auto ret = images.insert({content.substr(0,it),counter});
             if(ret.second)
             {
+                //TODO check for internet
                 try
                 {
                     auto imagePath = title_folder + std::to_string(ret.first->second);
@@ -210,19 +223,19 @@ string Util::createHtml(const string &title,string content)
                 counter++;
             }
 
-            auto toReplace = result.find("src=\"" + ret.first->first);
+            auto toReplace = finalHtml.find("src=\"" + ret.first->first);
 
             if (toReplace != std::string::npos)
-                result.replace(toReplace+5, ret.first->first.length(), '/' + std::to_string(ret.first->second));
+                finalHtml.replace(toReplace+5, ret.first->first.length(), '/' + std::to_string(ret.first->second));
             found = content.find("<img");
         }
 
         std::ofstream htmlfile;
         htmlfile.open(title_path);
-        htmlfile << result;
+        htmlfile << finalHtml;
         htmlfile.close();
     }
-    return title_path;
+    return true;
 }
 
 void Util::replaceAll(std::string &data, const std::string &replace, const std::string &by)

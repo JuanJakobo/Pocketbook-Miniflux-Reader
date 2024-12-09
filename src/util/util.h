@@ -23,35 +23,36 @@ enum class Action
 
 class Util
 {
-public:
+  public:
     /**
-    * Handles the return of curl command
-    *
-    */
+     * Handles the return of curl command
+     *
+     */
     static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
     /**
-    * Saves the return of curl command
-    *
-    */
+     * Saves the return of curl command
+     *
+     */
     static int writeData(void *ptr, int size, int nmemb, FILE *stream);
 
     /**
-    * Checks if a network connection can be established
-    *
-    */
+     * Checks if a network connection can be established
+     *
+     */
     static void connectToNetwork();
 
     /**
-    * Enables the access to the config file
-    *
-    * @param actions taht shall be performed
-    * @param name of the config that shall be read
-    * @param value that shall be written to the config
-    *
-    * @return string that has been found in the config file
-    */
-    static std::string accessConfig(const Action &action, const std::string &name, const std::string &value = std::string());
+     * Enables the access to the config file
+     *
+     * @param actions taht shall be performed
+     * @param name of the config that shall be read
+     * @param value that shall be written to the config
+     *
+     * @return string that has been found in the config file
+     */
+    static std::string accessConfig(const Action &action, const std::string &name,
+                                    const std::string &value = std::string());
 
     static std::string getData(const std::string &url);
 
@@ -67,6 +68,8 @@ public:
 
     static std::string returnFolderName(std::string title);
 
+    static std::string returnTitlePath(std::string title);
+
     /**
      * Creates an html file, downloades the pictures and saves it to path
      *
@@ -75,11 +78,13 @@ public:
      *
      * @return path where the html file is saved to
      */
-    static std::string createHtml(const std::string& title, std::string content);
+    static bool createHtml(const std::string &title, std::string content);
 
     static void replaceAll(std::string &data, const std::string &replace, const std::string &by);
 
-private:
-    Util() {}
+  private:
+    Util()
+    {
+    }
 };
 #endif
