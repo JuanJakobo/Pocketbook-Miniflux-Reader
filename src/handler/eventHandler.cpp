@@ -5,11 +5,9 @@
 // Date:             22.04.2021
 //
 //-------------------------------------------------------------------
-
 #include "eventHandler.h"
 #include "inkview.h"
 
-#include "mainMenu.h"
 #include "contextMenu.h"
 #include "hnContextMenu.h"
 #include "mainMenu.h"
@@ -24,14 +22,11 @@
 #include "hackernewsModel.h"
 #include "hnCommentView.h"
 
-#include "util.h"
 #include "log.h"
 #include "sqliteConnector.h"
 #include "util.h"
 
 #include <algorithm>
-#include <string>
-#include <memory>
 #include <map>
 #include <memory>
 #include <string>
@@ -44,8 +39,13 @@
 using std::string;
 using std::vector;
 
+namespace
+{
+constexpr auto NOTES_PATH{"/Miniflux_Notes/notes.txt"};
+constexpr auto URL_PATH{"/Miniflux_Notes/urls.txt"};
+
+} // namespace
 std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
-std::mutex mutexEntries;
 
 EventHandler::EventHandler()
 {
@@ -89,7 +89,6 @@ EventHandler::EventHandler()
                 5000);
         CloseApp();
     }
-
 }
 
 int EventHandler::eventDistributor(const int type, const int par1, const int par2)
@@ -262,11 +261,11 @@ void EventHandler::mainMenuHandler(const int index)
     }
 }
 
-void EventHandler::sendToPocketKeyboardHandlerStatic(char *text)
+void EventHandler::saveToFileKeyboardHandlerStatic(char *text)
 {
-    _eventHandlerStatic->sendToPocketKeyboardHandler(text);
+    _eventHandlerStatic->saveToFileKeyboardHandler(text);
 }
-void EventHandler::sendToPocketKeyboardHandler(char *text)
+void EventHandler::saveToFileKeyboardHandler(char *text)
 {
     if (!text)
         return;
@@ -283,16 +282,18 @@ void EventHandler::sendToPocketKeyboardHandler(char *text)
             std::stringstream sstream(number);
             size_t currentEntry;
             sstream >> currentEntry;
-            Log::writeInfoLog("Sending the following Url to Pocket: " + _hnCommentView->getCurrentEntry().urls.at(currentEntry));
-            _pocket->addItems(_hnCommentView->getCurrentEntry().urls.at(currentEntry));
+            std::ofstream note(ARTICLE_FOLDER + URL_PATH, std::ios_base::app | std::ios_base::out);
+            note << _hnCommentView->getCurrentEntry().urls.at(currentEntry) << "\n";
+            note.close();
         }
-        catch(std::exception e)
+        catch (std::exception e)
         {
             Log::writeErrorLog("Could not read in number of Url.");
             Log::writeErrorLog(e.what());
         }
     }
     HideHourglass();
+    _hnCommentView->reDrawCurrentEntry();
 }
 
 void EventHandler::hnContextMenuHandlerStatic(const int index)
@@ -304,72 +305,74 @@ void EventHandler::hnContextMenuHandler(const int index)
 {
     switch (index)
     {
-        //Save note
-        case 101:
+    // Save note
+    case 101: {
+        std::ofstream note(ARTICLE_FOLDER + NOTES_PATH, std::ios_base::app | std::ios_base::out);
+        note << "https://news.ycombinator.com/user?id=" << _hnCommentView->getCurrentEntry().by
+             << "\nhttps://news.ycombinator.com/item?id=" << _hnCommentView->getCurrentEntry().id << "\n"
+             << _hnCommentView->getCurrentEntry().text << "\n\n";
+        note.close();
+        _hnCommentView->reDrawCurrentEntry();
+
+        break;
+    }
+    // urls
+    case 102: {
+
+        if (!_hnCommentView->getCurrentEntry().urls.empty())
+        {
+            _hnCommentView->invertCurrentEntryColor();
+            string text;
+            auto n = _hnCommentView->getCurrentEntry().urls.size();
+            _keyboardText.clear();
+            for (decltype(n) i = 0; i < n; ++i)
             {
-                //why created at 0777?
-                std::ofstream note(ARTICLE_FOLDER + "/notes", std::ios_base::app | std::ios_base::out);
-                note << "by=" << _hnCommentView->getCurrentEntry().by << " id=" << _hnCommentView->getCurrentEntry().id << "\ncontent=\n" << _hnCommentView->getCurrentEntry().text << "\n\n";
-                note.close();
-                _hnCommentView->reDrawCurrentEntry();
-
-                break;
+                text = text + '[' + std::to_string(i) + "] " + _hnCommentView->getCurrentEntry().urls[i] + "\n";
+                _keyboardText += std::to_string(i) + ',';
             }
-            //author
-        case 102:
+
+            auto dialogResult =
+                DialogSynchro(ICON_INFORMATION, "Action", text.c_str(), "Save to folder", "Cancel", NULL);
+
+            // TODO: this only saves the urls to an txt file
+            // add option bulk upload the text file and save?
+            if (dialogResult == 1)
             {
-                try{
-                    Util::connectToNetwork();
-                    HnUser user = Hackernews::getUser(_hnCommentView->getCurrentEntry().by);
-                    Util::decodeHTML(user.about);
-                    string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) + "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
-                    DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
-                    _hnCommentView->reDrawCurrentEntry();
-                }
-                catch (const std::exception &e)
-                {
-                    Log::writeErrorLog(e.what());
-                    Message(ICON_ERROR, "Error", e.what(), 1200);
-                }
-                break;
+                _keyboardText.resize(120);
+                OpenKeyboard(_keyboardText.c_str(), &_keyboardText[0], 120 - 1, KBD_NORMAL,
+                             &saveToFileKeyboardHandlerStatic);
             }
-            //urls
-        case 103:
-            {
-
-                if(!_hnCommentView->getCurrentEntry().urls.empty())
-                {
-                    activatePocket();
-                    _hnCommentView->invertCurrentEntryColor();
-                    string text;
-                    auto n = _hnCommentView->getCurrentEntry().urls.size();
-                    for(decltype(n) i = 0; i < n; ++i)
-                    {
-                        text = text + '[' + std::to_string(i) + "] " + _hnCommentView->getCurrentEntry().urls[i] + "\n";
-                        _keyboardText = std::to_string(i) + ',';
-
-                    }
-
-                    text = "When \"Send to Pocket\" is clicked, type in the numbers seperated by comma of the items that shall be synced. (e.g. 0,3,5)\n" + text;
-
-                    auto dialogResult = DialogSynchro(ICON_INFORMATION, "Action",text.c_str(), "Send to Pocket", "Cancel", NULL);
-                    if(dialogResult == 1)
-                    {
-                        _keyboardText.resize(60);
-                        OpenKeyboard(_keyboardText.c_str(), &_keyboardText[0], 60 - 1, KBD_NORMAL, &sendToPocketKeyboardHandlerStatic);
-                        break;
-                    }
-                }
-                else
-                {
-                    Message(ICON_INFORMATION, "Info", "There are no Urls in this comment.", 1000);
-                }
-            }
-        default:
-            {
-                _hnCommentView->invertCurrentEntryColor();
-                break;
-            }
+        }
+        else
+        {
+            Message(ICON_INFORMATION, "Info", "There are no Urls in this comment.", 1000);
+            _hnCommentView->reDrawCurrentEntry();
+        }
+        break;
+    }
+    // author
+    case 103: {
+        try
+        {
+            Util::connectToNetwork();
+            HnUser user = _hackernews.getUser(_hnCommentView->getCurrentEntry().by);
+            Util::decodeHTML(user.about);
+            string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) +
+                             "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
+            DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
+            _hnCommentView->reDrawCurrentEntry();
+        }
+        catch (const std::exception &e)
+        {
+            Log::writeErrorLog(e.what());
+            Message(ICON_ERROR, "Error", e.what(), 1200);
+        }
+        break;
+    }
+    default: {
+        _hnCommentView->invertCurrentEntryColor();
+        break;
+    }
     }
 }
 void EventHandler::contextMenuHandlerStatic(const int index)
@@ -843,6 +846,36 @@ void EventHandler::openArticle()
     else if (excerpt.empty())
         excerpt = "no excerpt";
 
+    // TODO: send to wallabag
+    int dialogResult = DialogSynchro(ICON_INFORMATION, "Action", ("Excerpt\n" + excerpt + "...").c_str(),
+                                     "Read article", "Send to Pocket", "Cancel");
+    switch (dialogResult)
+    {
+    case 1: {
+        if (_minifluxView->getCurrentEntry().reading_time == 0)
+        {
+            Message(ICON_INFORMATION, "Info", "The content of the article has not been provided by miniflux.", 1000);
+        }
+        else
+        {
+            if (OpenBook(Util::returnTitlePath(_minifluxView->getCurrentEntry().title).c_str(), "", 0) == 1)
+            {
+                Message(ICON_INFORMATION, "Info", "Could not open the book.", 1000);
+            }
+        }
+        break;
+    }
+    case 2: {
+        activatePocket();
+        _pocket->addItems(_minifluxView->getCurrentEntry().url);
+        HideHourglass();
+        break;
+    }
+    default:
+        break;
+    }
+    _minifluxView->invertCurrentEntryColor();
+}
 
 void EventHandler::activatePocket()
 {

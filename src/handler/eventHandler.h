@@ -78,7 +78,8 @@ class EventHandler
     std::map<int, int> _hnShownPage;
     int _currentPercentage = 0;
     int _parentItemDescandands = 0;
-    //TODO init and move
+    Hackernews _hackernews = Hackernews();
+    // TODO: init and move
     std::string _downloadText;
 
     /**
@@ -100,14 +101,14 @@ class EventHandler
      *
      *  @param  text typed in by the user to the keyboard
      */
-    static void sendToPocketKeyboardHandlerStatic(char *text);
+    static void saveToFileKeyboardHandlerStatic(char *text);
 
     /**
-     *  Function to read in the urls that shall be send to PB
+     *  Function to read in the urls that shall be saved
      *
      *  @param  text typed in by the user to the keyboard
      */
-    void sendToPocketKeyboardHandler(char *text);
+    void saveToFileKeyboardHandler(char *text);
 
     /**
      * Function needed to call C function, redirects to real function
