@@ -8,7 +8,6 @@
 
 #include "inkview.h"
 #include "eventHandler.h"
-#include "log.h"
 
 EventHandler *events = nullptr;
 /**
@@ -32,6 +31,7 @@ int Inkview_handler(int type, int par1, int par2)
     case EVT_EXIT:
     case EVT_HIDE:
     {
+        SetFrontlightEnabled(1);
         delete events;
         return 1;
         break;
