@@ -1,5 +1,3 @@
-#ifndef EVENT_HANDLER
-#define EVENT_HANDLER
 //------------------------------------------------------------------
 // eventHandler.h
 //
@@ -7,8 +5,7 @@
 // Date:             22.04.2021
 // Description:      Handles all events and directs them
 //-------------------------------------------------------------------
-
-#include "inkview.h"
+#pragma once
 
 #include "contextMenu.h"
 #include "hnContextMenu.h"
@@ -19,7 +16,6 @@
 #include "minifluxView.h"
 
 #include "hackernews.h"
-#include "hackernewsModel.h"
 #include "log.h"
 #include "hnCommentView.h"
 
@@ -27,10 +23,7 @@
 
 #include "sqliteConnector.h"
 
-#include <map>
-#include <memory>
 #include <string>
-#include <vector>
 
 enum class Views
 {
@@ -200,4 +193,3 @@ class EventHandler
 
     std::vector<MfEntry> getCurrentItems();
 };
-#endif

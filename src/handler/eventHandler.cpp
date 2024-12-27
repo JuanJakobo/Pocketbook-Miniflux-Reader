@@ -6,35 +6,23 @@
 //
 //-------------------------------------------------------------------
 #include "eventHandler.h"
+
+extern "C"
+{
 #include "inkview.h"
+}
 
-#include "contextMenu.h"
-#include "hnContextMenu.h"
-#include "mainMenu.h"
-
-#include "miniflux.h"
-#include "minifluxModel.h"
-#include "minifluxView.h"
-
-#include "pocket.h"
-
-#include "hackernews.h"
 #include "hackernewsModel.h"
-#include "hnCommentView.h"
-
+#include "hnContextMenu.h"
 #include "log.h"
-#include "sqliteConnector.h"
+#include "minifluxModel.h"
 #include "util.h"
 
-#include <algorithm>
-#include <map>
-#include <memory>
-#include <string>
-#include <thread>
-#include <vector>
-
 #include <fstream>
+#include <memory>
 #include <sstream>
+#include <string>
+#include <vector>
 
 using std::string;
 using std::vector;
@@ -61,8 +49,8 @@ EventHandler::EventHandler()
             iv_mkdir(ARTICLE_FOLDER.c_str(), 0666);
         }
 
-        _miniflux = std::make_unique<Miniflux>(
-            Miniflux(Util::accessConfig(Action::IReadString, "url"), Util::accessConfig(Action::IReadSecret, "token")));
+        _miniflux = std::make_unique<Miniflux>(Util::accessConfig(Action::IReadString, "url"),
+                                               Util::accessConfig(Action::IReadSecret, "token"));
 
         // TODO: delete here entries that are to old
         //_sqliteCon.deleteMfEntriesOlderThan(10);

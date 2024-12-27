@@ -5,11 +5,12 @@
 // Date:             14.06.2020
 // Description:      Handles the menubar and the menu
 //-------------------------------------------------------------------
+#pragma once
 
-#ifndef CONTEXT_MENU
-#define CONTEXT_MENU
-
+extern "C"
+{
 #include "inkview.h"
+}
 
 #include <string>
 
@@ -37,4 +38,3 @@ class ContextMenu
     char *_download;
     char *_article = strdup("Article");
 };
-#endif
