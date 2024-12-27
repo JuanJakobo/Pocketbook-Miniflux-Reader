@@ -11,6 +11,7 @@
 #define SQLITECONNECTOR
 
 #include "hackernewsModel.h"
+#include "log.h"
 #include "minifluxModel.h"
 #include "sqlite3.h"
 
@@ -57,6 +58,7 @@ class SqliteConnector
     std::vector<HnUser> selectHnUser();
 
   private:
+    Log _logger = Log("sqliteConnector");
     std::string _dbpath;
     sqlite3 *_db;
 

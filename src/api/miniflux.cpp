@@ -23,7 +23,7 @@ Miniflux::Miniflux(const string &url, const string &token) : _url(url), _token(t
     _ignoreCert = Util::accessConfig(Action::IReadString, "Cert") == "ignore";
     if (_ignoreCert)
     {
-        Log::writeInfoLog("ignoring certs");
+        _logger.writeInfoLog("ignoring certs");
     }
 }
 
@@ -204,14 +204,14 @@ void Miniflux::put(const std::string &apiEndpoint, const string &data)
             case 204:
                 break;
             default:
-                Log::writeErrorLog("Miniflux API: " + url + " Curl Response Code: " + std::to_string(response_code));
+                _logger.writeErrorLog("Miniflux API: " + url + " Curl Response Code: " + std::to_string(response_code));
                 throw std::runtime_error("Miniflux API: " + url +
                                          " Curl Response Code: " + std::to_string(response_code));
             }
         }
         else
         {
-            Log::writeErrorLog("Miniflux API: " + url + " RES Error Code: " + std::to_string(res));
+            _logger.writeErrorLog("Miniflux API: " + url + " RES Error Code: " + std::to_string(res));
             throw std::runtime_error("Minifllux API: " + url + " RES Error Code: " + std::to_string(res));
         }
     }
@@ -260,17 +260,17 @@ Json::Value Miniflux::get(const string &apiEndpoint)
                     return root;
                 }
                 constexpr auto err_msg{"Failed to parse Response to json"};
-                Log::writeErrorLog(err_msg);
+                _logger.writeErrorLog(err_msg);
                 throw std::runtime_error(err_msg);
             }
             default:
-                Log::writeErrorLog("Miniflux API: " + url + " Response Code: " + std::to_string(res));
+                _logger.writeErrorLog("Miniflux API: " + url + " Response Code: " + std::to_string(res));
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
             }
         }
         else
         {
-            Log::writeErrorLog("Miniflux API: " + url + " RES Error Code: " + std::to_string(res));
+            _logger.writeErrorLog("Miniflux API: " + url + " RES Error Code: " + std::to_string(res));
             throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
         }
     }

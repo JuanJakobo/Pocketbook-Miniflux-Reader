@@ -26,7 +26,7 @@ SqliteConnector::SqliteConnector(const string &DBpath) : _dbpath(DBpath)
 SqliteConnector::~SqliteConnector()
 {
     sqlite3_close(_db);
-    Log::writeInfoLog("closed DB");
+    _logger.writeInfoLog("closed DB");
 }
 
 vector<MfEntry> SqliteConnector::selectMfEntries()
@@ -279,7 +279,7 @@ bool SqliteConnector::updateDownloadStatusMfEntry(int entryID, IsDownloaded down
 
     if (rs != SQLITE_DONE)
     {
-        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        _logger.writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
@@ -304,7 +304,7 @@ bool SqliteConnector::updateMfEntry(int entryID, bool starred, const std::string
 
     if (rs != SQLITE_DONE)
     {
-        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        _logger.writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
@@ -326,7 +326,7 @@ bool SqliteConnector::deleteNotDownloadedMfEntries()
 
     if (rs != SQLITE_DONE)
     {
-        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        _logger.writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
@@ -364,13 +364,13 @@ bool SqliteConnector::insertMfEntries(const std::vector<MfEntry> &entries)
         if (rs == SQLITE_CONSTRAINT)
         {
             // If item already exists it is not written
-            // Log::writeInfoLog("item exists already: " + std::to_string(ent.id) + std::to_string(ent.starred) +
+            // _logger.writeInfoLog("item exists already: " + std::to_string(ent.id) + std::to_string(ent.starred) +
             // ent.status); updateMfEntry(ent.id, ent.starred, ent.status); --> database is locked, therefore only
             // updated needed, no
         }
         else if (rs != SQLITE_DONE)
         {
-            Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+            _logger.writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
         }
         rs = sqlite3_clear_bindings(stmt);
         rs = sqlite3_reset(stmt);
@@ -443,7 +443,7 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
 
             if (rs != SQLITE_DONE)
             {
-                Log::writeErrorLog("Error inserting Hn Entries " + std::string(" (Error Code: ") + std::to_string(rs) +
+                _logger.writeErrorLog("Error inserting Hn Entries " + std::string(" (Error Code: ") + std::to_string(rs) +
                                    sqlite3_errmsg(_db) + ")");
             }
             rs = sqlite3_clear_bindings(stmt);
@@ -457,7 +457,7 @@ bool SqliteConnector::insertHnEntries(const std::vector<HnEntry> &entries)
     }
     catch (const std::exception &e)
     {
-        Log::writeErrorLog(e.what());
+        _logger.writeErrorLog(e.what());
     }
 
     return true;
@@ -475,7 +475,7 @@ bool SqliteConnector::deleteHnEntries(int mfEntryId)
 
     if (rs != SQLITE_DONE)
     {
-        Log::writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
+        _logger.writeErrorLog(sqlite3_errmsg(_db) + std::string(" (Error Code: ") + std::to_string(rs) + ")");
     }
     rs = sqlite3_clear_bindings(stmt);
     rs = sqlite3_reset(stmt);
@@ -494,7 +494,7 @@ bool SqliteConnector::open()
 
     if (rs)
     {
-        Log::writeErrorLog("Could not open DB at " + _dbpath);
+        _logger.writeErrorLog("Could not open DB at " + _dbpath);
     }
     rs = sqlite3_exec(_db,
                       "CREATE TABLE IF NOT EXISTS MfEntries (id INT PRIMARY KEY, status TEXT, title TEXT, url TEXT, "

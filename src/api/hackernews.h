@@ -11,6 +11,7 @@
 #define HACKERNEWS
 
 #include "hackernewsModel.h"
+#include "log.h"
 #include "json/json.h"
 
 #include <curl/curl.h>
@@ -41,6 +42,7 @@ class Hackernews
     HnUser getUser(const std::string &username);
 
   private:
+    Log _logger = Log("hackernews");
     CURL *_curl;
 
     /**

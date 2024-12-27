@@ -14,12 +14,12 @@
 
 void Log::writeInfoLog(const std::string &text)
 {
-    writeLog("Info:" + text);
+    writeLog("[0]: " + text);
 }
 
 void Log::writeErrorLog(const std::string &text)
 {
-    writeLog("Error:" + text);
+    writeLog("[1]: " + text);
 }
 
 void Log::writeLog(const std::string &text)
@@ -33,9 +33,9 @@ void Log::writeLog(const std::string &text)
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    strftime(buffer, sizeof(buffer), "%d/%b/%Y:%H:%M:%S %z", timeinfo);
+    strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S", timeinfo);
 
-    log << buffer << ':' << text << "\n";
+    log << buffer << ' ' << _className << text << "\n";
 
     log.close();
 }

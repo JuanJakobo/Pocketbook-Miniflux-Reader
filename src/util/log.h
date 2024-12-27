@@ -16,30 +16,32 @@
 class Log
 {
   public:
+
+    Log(const std::string &class_name) : _className(class_name)
+    {}
+
     /**
      * Writes a error log entry to the log file
      *
      * @param text that shall be written to the log
      */
-    static void writeErrorLog(const std::string &text);
+    void writeErrorLog(const std::string &text);
 
     /**
      * Writes a info log entry to the log file
      *
      * @param text that shall be written to the log
      */
-    static void writeInfoLog(const std::string &text);
+    void writeInfoLog(const std::string &text);
 
   private:
-    Log()
-    {
-    }
+    const std::string _className;
 
     /**
      * Writes a log entry to the log file
      *
      * @param text that shall be written to the log
      */
-    static void writeLog(const std::string &text);
+    void writeLog(const std::string &text);
 };
 #endif

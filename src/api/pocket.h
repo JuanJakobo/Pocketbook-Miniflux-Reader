@@ -8,6 +8,7 @@
 //
 //-------------------------------------------------------------------
 #include "pocketModel.h"
+#include "log.h"
 #include "json/json.h"
 
 #include <string>
@@ -71,6 +72,7 @@ class Pocket
     void sendItem(PocketAction action, const std::string &id);
 
   private:
+    Log _logger = Log("pocket");
     std::string _accessToken;
 
     /**

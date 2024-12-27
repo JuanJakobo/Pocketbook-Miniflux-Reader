@@ -169,15 +169,16 @@ bool Util::createHtml(const string &title, string content)
 {
     const auto title_folder{returnFolderName(title)};
     const auto title_path{returnTitlePath(title)};
+    auto logger = Log("createHtml");
 
     if (iv_access(title_folder.c_str(), W_OK) != 0)
     {
         Util::connectToNetwork();
-        Log::writeInfoLog(title_folder);
+        logger.writeInfoLog(title_folder);
 
         if (iv_mkdir(title_folder.c_str(), 0666) != 0)
         {
-            Log::writeErrorLog("Could not create article path " + title_folder);
+            logger.writeErrorLog("Could not create article path " + title_folder);
             return false;
         }
 
@@ -215,12 +216,12 @@ bool Util::createHtml(const string &title, string content)
                     }
                     else
                     {
-                        Log::writeErrorLog("Could not open image path " + imagePath);
+                        logger.writeErrorLog("Could not open image path " + imagePath);
                     }
                 }
                 catch (const std::exception &e)
                 {
-                    Log::writeErrorLog(e.what());
+                    logger.writeErrorLog(e.what());
                 }
                 counter++;
             }

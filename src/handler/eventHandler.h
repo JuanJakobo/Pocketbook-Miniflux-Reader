@@ -20,6 +20,7 @@
 
 #include "hackernews.h"
 #include "hackernewsModel.h"
+#include "log.h"
 #include "hnCommentView.h"
 
 #include "pocket.h"
@@ -63,6 +64,7 @@ class EventHandler
 
   private:
     static std::unique_ptr<EventHandler> _eventHandlerStatic;
+    Log _logger = Log("eventHandler");
     std::unique_ptr<MinifluxView> _minifluxView;
     std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<Miniflux> _miniflux;

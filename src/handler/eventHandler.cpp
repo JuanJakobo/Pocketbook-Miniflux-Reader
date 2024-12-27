@@ -57,7 +57,9 @@ EventHandler::EventHandler()
     if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
     {
         if (iv_access(ARTICLE_FOLDER.c_str(), W_OK) != 0)
+        {
             iv_mkdir(ARTICLE_FOLDER.c_str(), 0666);
+        }
 
         _miniflux = std::make_unique<Miniflux>(
             Miniflux(Util::accessConfig(Action::IReadString, "url"), Util::accessConfig(Action::IReadSecret, "token")));
@@ -175,7 +177,7 @@ void EventHandler::mainMenuHandler(const int index)
             }
             catch (const std::exception &e)
             {
-                Log::writeErrorLog(e.what());
+                _logger.writeErrorLog(e.what());
                 _sqliteCon.updateDownloadStatusMfEntry(ent.id, IsDownloaded::FAILED);
             }
         }
@@ -193,7 +195,7 @@ void EventHandler::mainMenuHandler(const int index)
             }
             catch (const std::exception &e)
             {
-                Log::writeErrorLog(e.what());
+                _logger.writeErrorLog(e.what());
             }
         }
         CloseProgressbar();
@@ -229,7 +231,7 @@ void EventHandler::mainMenuHandler(const int index)
         }
         catch (const std::exception &e)
         {
-            Log::writeErrorLog(e.what());
+            _logger.writeErrorLog(e.what());
             Message(ICON_ERROR, "Error", e.what(), 1200);
         }
         break;
@@ -288,8 +290,8 @@ void EventHandler::saveToFileKeyboardHandler(char *text)
         }
         catch (std::exception e)
         {
-            Log::writeErrorLog("Could not read in number of Url.");
-            Log::writeErrorLog(e.what());
+            _logger.writeErrorLog("Could not read in number of Url.");
+            _logger.writeErrorLog(e.what());
         }
     }
     HideHourglass();
@@ -364,7 +366,7 @@ void EventHandler::hnContextMenuHandler(const int index)
         }
         catch (const std::exception &e)
         {
-            Log::writeErrorLog(e.what());
+            _logger.writeErrorLog(e.what());
             Message(ICON_ERROR, "Error", e.what(), 1200);
         }
         break;
@@ -432,7 +434,7 @@ void EventHandler::contextMenuHandler(const int index)
         }
         catch (const std::exception &e)
         {
-            Log::writeErrorLog(e.what());
+            _logger.writeErrorLog(e.what());
             Message(ICON_ERROR, "Error", e.what(), 1200);
             _minifluxView->invertCurrentEntryColor();
         }
@@ -640,7 +642,7 @@ void EventHandler::filterAndDrawMiniflux(const string &filter)
         }
         catch (const std::exception &e)
         {
-            Log::writeErrorLog(e.what());
+            _logger.writeErrorLog(e.what());
             Message(ICON_ERROR, "Error", e.what(), 1200);
         }
     }
@@ -695,7 +697,7 @@ void EventHandler::recursive(const HnEntry &parent)
         }
         catch (const std::exception &e)
         {
-            Log::writeErrorLog(e.what());
+            _logger.writeErrorLog(e.what());
         }
     }
 }

@@ -140,7 +140,6 @@ Json::Value Hackernews::get(const string &apiEndpoint)
 
     if (_curl)
     {
-        // TODO: keep curl request alive?
         struct curl_slist *headers = NULL;
         curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(_curl, CURLOPT_URL, url.c_str());
@@ -163,11 +162,11 @@ Json::Value Hackernews::get(const string &apiEndpoint)
                 {
                     return root;
                 }
-                Log::writeErrorLog(FETCH_ERROR_MSG);
+                _logger.writeErrorLog(FETCH_ERROR_MSG);
                 throw std::runtime_error(FETCH_ERROR_MSG);
             }
             default: {
-                Log::writeErrorLog("Hackernews API: " + url + " Response Code: " + std::to_string(res));
+                _logger.writeErrorLog("Hackernews API: " + url + " Response Code: " + std::to_string(res));
                 throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
             }
             }

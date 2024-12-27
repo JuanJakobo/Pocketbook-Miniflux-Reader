@@ -8,6 +8,7 @@
 //
 //-------------------------------------------------------------------
 #include "minifluxModel.h"
+#include "log.h"
 #include "json/json.h"
 
 #include <string>
@@ -65,6 +66,7 @@ class Miniflux
     void updateEntries(const std::vector<int> &entries, bool read);
 
   private:
+    Log _logger = Log("miniflux");
     std::string _url;
     std::string _token;
     bool _ignoreCert;

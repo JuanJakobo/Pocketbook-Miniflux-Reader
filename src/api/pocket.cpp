@@ -61,7 +61,7 @@ void Pocket::loginDialog()
     }
     catch (const std::exception &e)
     {
-        Log::writeErrorLog(e.what());
+        _logger.writeErrorLog(e.what());
         Message(ICON_INFORMATION, "Error while logging in.", e.what(), 1200);
         loginDialog();
     }
@@ -286,7 +286,7 @@ Json::Value Pocket::post(const string &apiEndpoint, const string &data)
                     return root;
                 }
                 constexpr auto err_msg{"Failed to parse Response to json"};
-                Log::writeErrorLog(err_msg);
+                _logger.writeErrorLog(err_msg);
                 throw std::runtime_error(err_msg);
             }
             case 400:
@@ -305,7 +305,7 @@ Json::Value Pocket::post(const string &apiEndpoint, const string &data)
         }
         else
         {
-            Log::writeErrorLog("pocket API: " + url + " RES Error Code: " + std::to_string(res));
+            _logger.writeErrorLog("pocket API: " + url + " RES Error Code: " + std::to_string(res));
             throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
         }
     }
