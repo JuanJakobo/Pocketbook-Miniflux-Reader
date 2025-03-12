@@ -9,8 +9,6 @@
 #ifndef LOG
 #define LOG
 
-#include "inkview.h"
-
 #include <string>
 
 class Log
@@ -25,14 +23,14 @@ class Log
      *
      * @param text that shall be written to the log
      */
-    void writeErrorLog(const std::string &text);
+    void writeErrorLog(const std::string &text) const;
 
     /**
      * Writes a info log entry to the log file
      *
      * @param text that shall be written to the log
      */
-    void writeInfoLog(const std::string &text);
+    void writeInfoLog(const std::string &text) const;
 
   private:
     const std::string _className;
@@ -42,6 +40,6 @@ class Log
      *
      * @param text that shall be written to the log
      */
-    void writeLog(const std::string &text);
+    void writeLog(const std::string &text) const;
 };
 #endif

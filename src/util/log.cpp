@@ -12,17 +12,17 @@
 #include <fstream>
 #include <string>
 
-void Log::writeInfoLog(const std::string &text)
+void Log::writeInfoLog(const std::string &text) const
 {
     writeLog("[0]: " + text);
 }
 
-void Log::writeErrorLog(const std::string &text)
+void Log::writeErrorLog(const std::string &text) const
 {
     writeLog("[1]: " + text);
 }
 
-void Log::writeLog(const std::string &text)
+void Log::writeLog(const std::string &text) const
 {
     std::ofstream log(CONFIG_FOLDER + std::string("/logfile.txt"), std::ios_base::app | std::ios_base::out);
 
