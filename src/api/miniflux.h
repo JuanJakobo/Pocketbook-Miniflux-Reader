@@ -33,7 +33,7 @@ class Miniflux
      * @return MfEntry item containing the information
      *
      */
-    MfEntry getEntry(int entryID);
+    MfEntry getEntry(int entryID) const;
 
     /**
      * gets multple entries that fit into the requested filter
@@ -42,19 +42,19 @@ class Miniflux
      * @return vector of MfEntrys that fit into the filter
      *
      */
-    std::vector<MfEntry> getEntries(const std::string &filter);
+    std::vector<MfEntry> getEntries(const std::string &filter) const;
 
-    MfFeedIcon getFeedIcon(int feedID);
+    MfFeedIcon getFeedIcon(int feedID) const;
 
     /**
      * Refreshes all feeds in the background
      *
      */
-    void refreshAllFeeds();
+    void refreshAllFeeds() const;
 
-    void markUserEntriesAsRead(int userID);
+    void markUserEntriesAsRead(int userID) const;
 
-    void toggleBookmark(int entryID);
+    void toggleBookmark(int entryID) const;
 
     /**
      * Upgrades the status (read, unread) of the selected items
@@ -63,7 +63,7 @@ class Miniflux
      * @param read true if items should be marked as read, false if unread
      *
      */
-    void updateEntries(const std::vector<int> &entries, bool read);
+    void updateEntries(const std::vector<int> &entries, bool read) const;
 
   private:
     Log _logger = Log("miniflux");
@@ -71,9 +71,9 @@ class Miniflux
     std::string _token;
     bool _ignoreCert;
 
-    MfEntry getEntryLocal(const Json::Value &element);
+    MfEntry getEntryLocal(const Json::Value &element) const;
 
-    void put(const std::string &apiEndpoint, const std::string &data);
+    void put(const std::string &apiEndpoint, const std::string &data) const;
 
-    Json::Value get(const std::string &apiEndpoint);
+    Json::Value get(const std::string &apiEndpoint) const;
 };

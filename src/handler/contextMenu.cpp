@@ -26,11 +26,11 @@ ContextMenu::~ContextMenu()
 int ContextMenu::createMenu(int y, const iv_menuhandler &handler, bool article, bool starred,
                             const std::string &downloaded)
 {
-    std::string text = "Star";
+    auto text {"Star"};
     if (starred)
         text = "Unstar";
 
-    _star = strdup(text.c_str());
+    _star = strdup(text);
 
     _download = strdup(downloaded.c_str());
 

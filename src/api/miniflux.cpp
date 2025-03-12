@@ -18,22 +18,26 @@
 using std::string;
 using std::vector;
 
+namespace {
+  constexpr auto IGNORE{"ignore"};
+}
+
 Miniflux::Miniflux(const string &url, const string &token) : _url(url), _token(token)
 {
-    _ignoreCert = Util::accessConfig(Action::IReadString, "Cert") == "ignore";
+    _ignoreCert = Util::accessConfig(Action::IReadString, "Cert") == IGNORE;
     if (_ignoreCert)
     {
         _logger.writeInfoLog("ignoring certs");
     }
 }
 
-MfEntry Miniflux::getEntry(int entryID)
+MfEntry Miniflux::getEntry(int entryID) const
 {
     const auto element{get("/v1/entries/" + std::to_string(entryID))};
     return getEntryLocal(element);
 }
 
-vector<MfEntry> Miniflux::getEntries(const string &filter)
+vector<MfEntry> Miniflux::getEntries(const string &filter) const
 {
     const auto j{get("/v1/entries?" + filter)};
 
@@ -47,7 +51,7 @@ vector<MfEntry> Miniflux::getEntries(const string &filter)
     return tempItems;
 }
 
-MfFeedIcon Miniflux::getFeedIcon(int feedID)
+MfFeedIcon Miniflux::getFeedIcon(int feedID) const
 {
 
     const auto j{get("/v1/feeds" + std::to_string(feedID) + "/icon")};
@@ -72,22 +76,22 @@ MfFeedIcon Miniflux::getFeedIcon(int feedID)
     return temp;
 }
 
-void Miniflux::refreshAllFeeds()
+void Miniflux::refreshAllFeeds() const
 {
     put("/v1/feeds/refresh", "");
 }
 
-void Miniflux::markUserEntriesAsRead(int userID)
+void Miniflux::markUserEntriesAsRead(int userID) const
 {
     put("/v1/users/" + std::to_string(userID) + "/mark-all-as-read", "");
 }
 
-void Miniflux::toggleBookmark(int entryID)
+void Miniflux::toggleBookmark(int entryID) const
 {
     put("/v1/entries/" + std::to_string(entryID) + "/bookmark", "");
 }
 
-void Miniflux::updateEntries(const vector<int> &entries, bool read)
+void Miniflux::updateEntries(const vector<int> &entries, bool read) const
 {
     if (entries.size() == 0)
     {
@@ -123,7 +127,7 @@ void Miniflux::updateEntries(const vector<int> &entries, bool read)
     put("/v1/entries", data);
 }
 
-MfEntry Miniflux::getEntryLocal(const Json::Value &element)
+MfEntry Miniflux::getEntryLocal(const Json::Value &element) const
 {
     MfEntry temp;
 
@@ -163,7 +167,7 @@ MfEntry Miniflux::getEntryLocal(const Json::Value &element)
     return temp;
 }
 
-void Miniflux::put(const std::string &apiEndpoint, const string &data)
+void Miniflux::put(const std::string &apiEndpoint, const string &data) const
 {
 
     Util::connectToNetwork();
@@ -217,7 +221,7 @@ void Miniflux::put(const std::string &apiEndpoint, const string &data)
     }
 }
 
-Json::Value Miniflux::get(const string &apiEndpoint)
+Json::Value Miniflux::get(const string &apiEndpoint) const
 {
 
     Util::connectToNetwork();
@@ -274,5 +278,5 @@ Json::Value Miniflux::get(const string &apiEndpoint)
             throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
         }
     }
-    return {};
+    throw::std::runtime_error("Curl node not set.");
 }

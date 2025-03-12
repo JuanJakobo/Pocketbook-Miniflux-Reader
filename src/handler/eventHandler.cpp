@@ -14,7 +14,6 @@ extern "C"
 
 #include "hackernewsModel.h"
 #include "hnContextMenu.h"
-#include "log.h"
 #include "minifluxModel.h"
 #include "util.h"
 
@@ -29,10 +28,11 @@ using std::vector;
 
 namespace
 {
-constexpr auto NOTES_PATH{"/Miniflux_Notes/notes.txt"};
-constexpr auto URL_PATH{"/Miniflux_Notes/urls.txt"};
+constexpr auto NOTES_PATH{"/Miniflux_Notes/notes"};
+constexpr auto URL_PATH{"/Miniflux_Notes/urls"};
 
 } // namespace
+
 std::unique_ptr<EventHandler> EventHandler::_eventHandlerStatic;
 
 EventHandler::EventHandler()
@@ -55,11 +55,11 @@ EventHandler::EventHandler()
         // TODO: delete here entries that are to old
         //_sqliteCon.deleteMfEntriesOlderThan(10);
 
-        vector<MfEntry> mfEntries = getCurrentItems();
+        const auto mfEntries{getCurrentItems()};
 
         if (!drawMinifluxEntries(mfEntries))
         {
-            string filter = Util::accessConfig(Action::IReadString, "filter");
+            auto filter {Util::accessConfig(Action::IReadString, "filter")};
             if (filter.empty())
             {
                 // TODO: const
@@ -102,8 +102,7 @@ void EventHandler::mainMenuHandler(const int index)
     {
     // show downloaded
     case 101: {
-        vector<MfEntry> mfEntries = getCurrentItems();
-        drawMinifluxEntries(mfEntries);
+        drawMinifluxEntries(getCurrentItems());
         break;
     }
         // show unread
@@ -113,13 +112,12 @@ void EventHandler::mainMenuHandler(const int index)
     }
         // show starred
     case 103: {
-        // TODO const
         filterAndDrawMiniflux("starred=true&direction=asc&limit=1000");
         break;
     }
         // sync items
     case 104: {
-        auto dialogResult = DialogSynchro(ICON_INFORMATION, "Action", "Shutdown after sync?", "Yes", "No", NULL);
+        const auto dialogResult {DialogSynchro(ICON_INFORMATION, "Action", "Shutdown after sync?", "Yes", "No", NULL)};
         auto toggleShutdown{false};
         if (dialogResult == 1)
         {
@@ -127,7 +125,7 @@ void EventHandler::mainMenuHandler(const int index)
         }
         SetFrontlightEnabled(0);
         OpenProgressbar(ICON_INFORMATION, "Syncing items", "Downloading Miniflux Entries", 0, NULL);
-        vector<MfEntry> entriesToSync = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
+        const auto entriesToSync = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
 
         double percentageMove = entriesToSync.size();
         percentageMove = 1 / percentageMove * 98;
@@ -172,7 +170,7 @@ void EventHandler::mainMenuHandler(const int index)
         UpdateProgressbar("Updating downloaded items.", 99);
         _sqliteCon.deleteNotDownloadedMfEntries();
 
-        vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
+        auto mfEntries{_sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED)};
         for (auto &mfEntry : mfEntries)
         {
             try
@@ -345,10 +343,10 @@ void EventHandler::hnContextMenuHandler(const int index)
         try
         {
             Util::connectToNetwork();
-            HnUser user = _hackernews.getUser(_hnCommentView->getCurrentEntry().by);
+            auto user{_hackernews.getUser(_hnCommentView->getCurrentEntry().by)};
             Util::decodeHTML(user.about);
-            string message = "User: " + user.id + "\n Karma: " + std::to_string(user.karma) +
-                             "\n About: " + user.about + "\n Created: " + std::to_string(user.created);
+            auto const message{"User: " + user.id + "\n Karma: " + std::to_string(user.karma) +
+                             "\n About: " + user.about + "\n Created: " + std::to_string(user.created)};
             DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
             _hnCommentView->reDrawCurrentEntry();
         }
@@ -385,8 +383,8 @@ void EventHandler::contextMenuHandler(const int index)
             _minifluxView->getCurrentEntry().downloaded == IsDownloaded::DOWNLOADED)
         {
             _sqliteCon.deleteHnEntries(_minifluxView->getCurrentEntry().id);
-            string title_folder = Util::returnFolderName(_minifluxView->getCurrentEntry().title);
-            string cmd = "rm -rf \"" + title_folder + "\"";
+            const auto title_folder{Util::returnFolderName(_minifluxView->getCurrentEntry().title)};
+            const auto cmd{"rm -rf \"" + title_folder + "\""};
             system(cmd.c_str());
             _minifluxView->getCurrentEntry().downloaded = IsDownloaded::NOTDOWNLOADED;
         }
@@ -585,7 +583,7 @@ int EventHandler::keyHandler(const int type, const int par1, [[maybe_unused]] co
     return 1;
 }
 
-bool EventHandler::drawMinifluxEntries(const vector<MfEntry> &mfEntries)
+bool EventHandler::drawMinifluxEntries(const std::vector<MfEntry> &mfEntries)
 {
     if (mfEntries.size() > 0)
     {
@@ -838,7 +836,7 @@ void EventHandler::openArticle()
 
     // TODO: send to wallabag
     int dialogResult = DialogSynchro(ICON_INFORMATION, "Action", ("Excerpt\n" + excerpt + "...").c_str(),
-                                     "Read article", "Send to Pocket", "Cancel");
+                                     "Read article", "Save to folder", "Cancel");
     switch (dialogResult)
     {
     case 1: {
@@ -891,7 +889,7 @@ void EventHandler::activatePocket()
 
 vector<MfEntry> EventHandler::getCurrentItems()
 {
-    vector<MfEntry> mfEntries = _sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED);
+    auto mfEntries{_sqliteCon.selectMfEntries(IsDownloaded::DOWNLOADED)};
     vector<MfEntry> toBeDownloadedEntries = _sqliteCon.selectMfEntries(IsDownloaded::TOBEDOWNLOADED);
     vector<MfEntry> failedEntries = _sqliteCon.selectMfEntries(IsDownloaded::FAILED);
     mfEntries.insert(mfEntries.end(), toBeDownloadedEntries.begin(), toBeDownloadedEntries.end());

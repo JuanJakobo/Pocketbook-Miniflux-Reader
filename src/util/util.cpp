@@ -28,7 +28,7 @@ size_t Util::writeCallback(void *contents, size_t size, size_t nmemb, void *user
 
 int Util::writeData(void *ptr, int size, int nmemb, FILE *stream)
 {
-    auto written{iv_fwrite(ptr, size, nmemb, stream)};
+    auto const written{iv_fwrite(ptr, size, nmemb, stream)};
     return written;
 }
 
@@ -36,7 +36,7 @@ int Util::writeData(void *ptr, int size, int nmemb, FILE *stream)
 void Util::connectToNetwork()
 {
     // NetError, NetErrorMessage
-    iv_netinfo *netinfo = NetInfo();
+    auto netinfo {NetInfo()};
     if (netinfo->connected)
     {
         ShowHourglassForce();
@@ -44,9 +44,11 @@ void Util::connectToNetwork()
     }
 
     const char *network_name = nullptr;
-    int result = NetConnect2(network_name, 1);
+    auto const result{NetConnect2(network_name, 1)};
     if (result != 0)
+    {
         throw std::runtime_error("Could not connect to the internet.");
+    }
 
     netinfo = NetInfo();
     if (netinfo->connected)
@@ -61,14 +63,16 @@ void Util::connectToNetwork()
 string Util::accessConfig(const Action &action, const string &name, const string &value)
 {
     iconfigedit *temp = nullptr;
-    iconfig *config = OpenConfig(CONFIG_PATH.c_str(), temp);
+    const auto config{OpenConfig(CONFIG_PATH.c_str(), temp)};
     string returnValue;
 
     switch (action)
     {
     case Action::IWriteSecret:
         if (!value.empty())
+        {
             WriteSecret(config, name.c_str(), value.c_str());
+        }
         returnValue = {};
         break;
     case Action::IReadSecret:
@@ -94,7 +98,7 @@ string Util::getData(const string &url)
 {
     string readBuffer;
     CURLcode res;
-    CURL *curl = curl_easy_init();
+    auto const curl = curl_easy_init();
 
     if (curl)
     {
@@ -147,7 +151,7 @@ void Util::decodeHTML(string &data)
 
 string Util::clearString(string title)
 {
-    const std::string forbiddenInFiles = "<>$\\/:?\"|*";
+    const std::string forbiddenInFiles{"<>$\\/:?\"|*"};
     std::transform(title.begin(), title.end(), title.begin(),
                    [&forbiddenInFiles](char c) { return forbiddenInFiles.find(c) != std::string::npos ? '_' : c; });
     return title;
@@ -169,7 +173,7 @@ bool Util::createHtml(const string &title, string content)
 {
     const auto title_folder{returnFolderName(title)};
     const auto title_path{returnTitlePath(title)};
-    auto logger = Log("createHtml");
+    const auto logger {Log("createHtml")};
 
     if (iv_access(title_folder.c_str(), W_OK) != 0)
     {
@@ -182,7 +186,7 @@ bool Util::createHtml(const string &title, string content)
             return false;
         }
 
-        auto finalHtml = content;
+        auto finalHtml {content};
 
         std::map<string, int> images;
         auto counter = 0;
@@ -191,7 +195,7 @@ bool Util::createHtml(const string &title, string content)
         while (found != std::string::npos)
         {
             content = content.substr(found);
-            auto it = content.find("src=\"");
+            auto it {content.find("src=\"")};
             if (it == std::string::npos)
                 break;
 
@@ -200,13 +204,13 @@ bool Util::createHtml(const string &title, string content)
             if (it == std::string::npos)
                 break;
 
-            auto ret = images.insert({content.substr(0, it), counter});
+            const auto ret{images.insert({content.substr(0, it), counter})};
             if (ret.second)
             {
                 // TODO check for internet
                 try
                 {
-                    auto imagePath = title_folder + std::to_string(ret.first->second);
+                    const auto imagePath{title_folder + std::to_string(ret.first->second)};
                     std::ofstream img(imagePath, std::ofstream::out);
                     if (img.is_open())
                     {
@@ -226,7 +230,7 @@ bool Util::createHtml(const string &title, string content)
                 counter++;
             }
 
-            auto toReplace = finalHtml.find("src=\"" + ret.first->first);
+            const auto toReplace{finalHtml.find("src=\"" + ret.first->first)};
 
             if (toReplace != std::string::npos)
                 finalHtml.replace(toReplace + 5, ret.first->first.length(), '/' + std::to_string(ret.first->second));
