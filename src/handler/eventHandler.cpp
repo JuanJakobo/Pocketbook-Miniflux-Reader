@@ -308,24 +308,31 @@ void EventHandler::hnContextMenuHandler(const int index)
         {
             _hnCommentView->invertCurrentEntryColor();
             string text;
-            auto n = _hnCommentView->getCurrentEntry().urls.size();
-            _keyboardText.clear();
-            for (decltype(n) i = 0; i < n; ++i)
+            auto n{_hnCommentView->getCurrentEntry().urls.size()};
+            if (n == 1)
             {
-                text = text + '[' + std::to_string(i) + "] " + _hnCommentView->getCurrentEntry().urls[i] + "\n";
-                _keyboardText += std::to_string(i) + ',';
+                std::ofstream note(ARTICLE_FOLDER + URL_PATH, std::ios_base::app | std::ios_base::out);
+                note << _hnCommentView->getCurrentEntry().urls[0] << "\n";
+                note.close();
             }
-
-            auto dialogResult =
-                DialogSynchro(ICON_INFORMATION, "Action", text.c_str(), "Save to folder", "Cancel", NULL);
-
-            // TODO: this only saves the urls to an txt file
-            // add option bulk upload the text file and save?
-            if (dialogResult == 1)
+            else
             {
-                _keyboardText.resize(120);
-                OpenKeyboard(_keyboardText.c_str(), &_keyboardText[0], 120 - 1, KBD_NORMAL,
-                             &saveToFileKeyboardHandlerStatic);
+                _keyboardText.clear();
+                for (decltype(n) i = 0; i < n; ++i)
+                {
+                    text = text + '[' + std::to_string(i) + "] " + _hnCommentView->getCurrentEntry().urls[i] + "\n";
+                    _keyboardText += std::to_string(i) + ',';
+                }
+
+                const auto dialogResult{
+                    DialogSynchro(ICON_INFORMATION, "Action", text.c_str(), "Save to folder", "Cancel", NULL)};
+
+                if (dialogResult == 1)
+                {
+                    _keyboardText.resize(120);
+                    OpenKeyboard(_keyboardText.c_str(), &_keyboardText[0], 120 - 1, KBD_NORMAL,
+                                 &saveToFileKeyboardHandlerStatic);
+                }
             }
         }
         else
@@ -851,8 +858,12 @@ void EventHandler::openArticle()
         break;
     }
     case 2: {
-        activatePocket();
-        _pocket->addItems(_minifluxView->getCurrentEntry().url);
+        // TODO: move to function
+        // activatePocket();
+        // _pocket->addItems(_minifluxView->getCurrentEntry().url);
+        std::ofstream note(ARTICLE_FOLDER + URL_PATH, std::ios_base::app | std::ios_base::out);
+        note << _minifluxView->getCurrentEntry().url << "\n";
+        note.close();
         HideHourglass();
         break;
     }
