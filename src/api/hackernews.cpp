@@ -8,11 +8,11 @@
 
 #include "hackernews.h"
 #include "hackernewsModel.h"
-#include "log.h"
 #include "util.h"
 
 #include <algorithm>
 #include <curl/curl.h>
+#include <stdexcept>
 #include <string>
 
 using std::string;
@@ -22,10 +22,6 @@ constexpr auto HACKERNEWS_API_URL{"https://hacker-news.firebaseio.com/v0/"};
 constexpr auto FETCH_ERROR_MSG{"Failed to parse Response to json"};
 } // namespace
 
-Hackernews::Hackernews()
-{
-    _curl = curl_easy_init();
-}
 Hackernews::~Hackernews()
 {
     curl_easy_cleanup(_curl);
@@ -100,7 +96,7 @@ HnUser Hackernews::getUser(const string &username)
 {
     const auto j{get("user/" + username + ".json")};
 
-    HnUser user = HnUser();
+    auto user {HnUser()};
 
     if (j["id"].isString())
     {
@@ -121,7 +117,7 @@ HnUser Hackernews::getUser(const string &username)
 
     if (j["submitted"].isArray())
     {
-        const auto in = j["submitted"];
+        const auto in{j["submitted"]};
 
         user.submitted.reserve(in.size());
         std::transform(in.begin(), in.end(), std::back_inserter(user.submitted),
@@ -133,54 +129,59 @@ HnUser Hackernews::getUser(const string &username)
 
 Json::Value Hackernews::get(const string &apiEndpoint)
 {
-    const auto url{HACKERNEWS_API_URL + apiEndpoint};
+  const auto url{HACKERNEWS_API_URL + apiEndpoint};
 
-    string readBuffer;
-    CURLcode res;
+  string readBuffer;
+  CURLcode res;
 
-    if (_curl)
+  if (_curl == nullptr) {
+    Util::connectToNetwork();
+    _curl = curl_easy_init();
+  }
+
+  if (_curl)
+  {
+    struct curl_slist *headers = NULL;
+    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(_curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
+    curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &readBuffer);
+
+    res = curl_easy_perform(_curl);
+
+    if (res == CURLE_OK)
     {
-        struct curl_slist *headers = NULL;
-        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(_curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, Util::writeCallback);
-        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &readBuffer);
+      long response_code;
+      curl_easy_getinfo(_curl, CURLINFO_RESPONSE_CODE, &response_code);
 
-        res = curl_easy_perform(_curl);
-
-        if (res == CURLE_OK)
-        {
-            long response_code;
-            curl_easy_getinfo(_curl, CURLINFO_RESPONSE_CODE, &response_code);
-
-            switch (response_code)
-            {
-            case 200: {
-                Json::Value root;
-                Json::Reader reader;
-                if (reader.parse(readBuffer, root))
-                {
-                    return root;
-                }
-                _logger.writeErrorLog(FETCH_ERROR_MSG);
-                throw std::runtime_error(FETCH_ERROR_MSG);
-            }
-            default: {
-                _logger.writeErrorLog("Hackernews API: " + url + " Response Code: " + std::to_string(res));
-                throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
-            }
-            }
+      switch (response_code)
+      {
+        case 200: {
+          Json::Value root;
+          Json::Reader reader;
+          if (reader.parse(readBuffer, root))
+          {
+            return root;
+          }
+          _logger.writeErrorLog(FETCH_ERROR_MSG);
+          throw std::runtime_error(FETCH_ERROR_MSG);
         }
-        else if (res == CURLE_OPERATION_TIMEDOUT)
-        {
-            throw std::runtime_error("Firebaseio.com is blocked on some DNS. The Hackernews API therefore cannot be "
-                                     "served. (Curl Error Code " +
-                                     std::to_string(res) + ")");
+        default: {
+          _logger.writeErrorLog("Hackernews API: " + url + " Response Code: " + std::to_string(res));
+          throw std::runtime_error("HTML Error Code" + std::to_string(response_code));
         }
-        else
-        {
-            throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
-        }
+      }
     }
-    return {};
+    else if (res == CURLE_OPERATION_TIMEDOUT)
+    {
+      throw std::runtime_error("Firebaseio.com is blocked on some DNS. The Hackernews API therefore cannot be "
+                               "served. (Curl Error Code " +
+                               std::to_string(res) + ")");
+    }
+    else
+    {
+      throw std::runtime_error("Curl RES Error Code " + std::to_string(res));
+    }
+  }
+  throw::std::runtime_error("Curl node not set.");
 }
