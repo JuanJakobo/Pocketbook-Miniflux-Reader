@@ -59,7 +59,7 @@ EventHandler::EventHandler()
 
         if (!drawMinifluxEntries(mfEntries))
         {
-            auto filter {Util::accessConfig(Action::IReadString, "filter")};
+            auto filter{Util::accessConfig(Action::IReadString, "filter")};
             if (filter.empty())
             {
                 // TODO: const
@@ -117,7 +117,7 @@ void EventHandler::mainMenuHandler(const int index)
     }
         // sync items
     case 104: {
-        const auto dialogResult {DialogSynchro(ICON_INFORMATION, "Action", "Shutdown after sync?", "Yes", "No", NULL)};
+        const auto dialogResult{DialogSynchro(ICON_INFORMATION, "Action", "Shutdown after sync?", "Yes", "No", NULL)};
         auto toggleShutdown{false};
         if (dialogResult == 1)
         {
@@ -350,7 +350,7 @@ void EventHandler::hnContextMenuHandler(const int index)
             auto user{_hackernews.getUser(_hnCommentView->getCurrentEntry().by)};
             Util::decodeHTML(user.about);
             auto const message{"User: " + user.id + "\n Karma: " + std::to_string(user.karma) +
-                             "\n About: " + user.about + "\n Created: " + std::to_string(user.created)};
+                               "\n About: " + user.about + "\n Created: " + std::to_string(user.created)};
             DialogSynchro(ICON_INFORMATION, "User information", message.c_str(), "Close", NULL, NULL);
             _hnCommentView->reDrawCurrentEntry();
         }

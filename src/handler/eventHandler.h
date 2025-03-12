@@ -16,8 +16,8 @@
 #include "minifluxView.h"
 
 #include "hackernews.h"
-#include "log.h"
 #include "hnCommentView.h"
+#include "log.h"
 
 #include "sqliteConnector.h"
 
