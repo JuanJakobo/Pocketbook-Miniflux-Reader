@@ -650,7 +650,6 @@ void EventHandler::recursive(const HnEntry &parent)
             HnEntry temp = _hackernews.getEntry(id);
             if (!temp.text.empty())
             {
-                // TODO: use constexpr?
                 Util::decodeHTML(temp.text);
                 auto found = temp.text.find("<a href=\"");
                 while (found != std::string::npos)
@@ -838,7 +837,6 @@ void EventHandler::openArticle()
     else if (excerpt.empty())
         excerpt = "no excerpt";
 
-    // TODO: send to wallabag
     int dialogResult = DialogSynchro(ICON_INFORMATION, "Action", ("Excerpt\n" + excerpt + "...").c_str(),
                                      "Read article", "Save to folder", "Cancel");
     switch (dialogResult)
@@ -858,9 +856,6 @@ void EventHandler::openArticle()
         break;
     }
     case 2: {
-        // TODO: move to function
-        // activatePocket();
-        // _pocket->addItems(_minifluxView->getCurrentEntry().url);
         std::ofstream note(ARTICLE_FOLDER + URL_PATH, std::ios_base::app | std::ios_base::out);
         note << _minifluxView->getCurrentEntry().url << "\n";
         note.close();
@@ -871,28 +866,6 @@ void EventHandler::openArticle()
         break;
     }
     _minifluxView->invertCurrentEntryColor();
-}
-
-void EventHandler::activatePocket()
-{
-    if (!_pocket)
-    {
-        if (iv_access(CONFIG_PATH.c_str(), W_OK) == 0)
-        {
-            auto accessToken = Util::accessConfig(Action::IReadSecret, "AccessToken");
-            if (!accessToken.empty())
-                _pocket = std::make_unique<Pocket>();
-        }
-        else
-        {
-            int dialogResult =
-                DialogSynchro(ICON_INFORMATION, "Action", "Do you want to activate Pocket?", "Yes", "No", "Cancel");
-            if (dialogResult == 1)
-            {
-                _pocket = std::make_unique<Pocket>();
-            }
-        }
-    }
 }
 
 vector<MfEntry> EventHandler::getCurrentItems()

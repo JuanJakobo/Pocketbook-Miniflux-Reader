@@ -19,8 +19,6 @@
 #include "log.h"
 #include "hnCommentView.h"
 
-#include "pocket.h"
-
 #include "sqliteConnector.h"
 
 #include <string>
@@ -62,7 +60,6 @@ class EventHandler
     std::unique_ptr<HnCommentView> _hnCommentView;
     std::unique_ptr<Miniflux> _miniflux;
     MainMenu _menu = MainMenu("Miniflux");
-    std::unique_ptr<Pocket> _pocket = nullptr;
     HnContextMenu _hnContextMenu = HnContextMenu();
     ContextMenu _contextMenu = ContextMenu();
     SqliteConnector _sqliteCon = SqliteConnector(DB_PATH);
@@ -188,8 +185,6 @@ class EventHandler
     void openArticle();
 
     void recursive(const HnEntry &parent);
-
-    void activatePocket();
 
     std::vector<MfEntry> getCurrentItems();
 };
